@@ -4,39 +4,52 @@ import { Link } from "react-router-dom";
 const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [department, setDepartment] = useState("");
+  const [staffId, setStaffId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!name || !email || !password || !confirmPassword) {
-    setError("All fields are required");
-    return;
-  }
+    if (!name || !email || !department || !staffId || !password || !confirmPassword) {
+      setError("All fields are required");
+      return;
+    }
 
-  // Password strength check using regex
-  const strongPasswordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!termsAccepted) {
+      setError("You must accept the terms and conditions");
+      return;
+    }
 
-  if (!strongPasswordRegex.test(password)) {
-    setError(
-      "Password must be at least 8 characters, include uppercase, lowercase, number, and special character."
-    );
-    return;
-  }
+    const strongPasswordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-  if (password !== confirmPassword) {
-    setError("Passwords do not match");
-    return;
-  }
+    if (!strongPasswordRegex.test(password)) {
+      setError(
+        "Password must be at least 8 characters, include uppercase, lowercase, number, and special character."
+      );
+      return;
+    }
 
-  setError("");
-  console.log("Signup Details:", { name, email, password });
-  // Send data to backend here
-};
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
 
+    setError("");
+    console.log("Signup Details:", {
+      name,
+      email,
+      department,
+      staffId,
+      password,
+    });
+
+    // Send data to backend here
+  };
 
   return (
     <div className="min-h-screen bg-white font-[Poppins] flex flex-col items-center justify-center px-4">
@@ -46,7 +59,6 @@ const Signup = () => {
           Create Account.<br />
           Join the Automation.
         </h1>
-
         <p className="mt-4 text-[#ec4899] text-lg font-medium">
           Sign up and let automation handle results.
         </p>
@@ -66,10 +78,10 @@ const Signup = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-[#2e1065] mb-1">Name</label>
+            <label className="block text-sm font-medium text-[#2e1065] mb-1">Full Name</label>
             <input
               type="text"
-              placeholder="Your Name"
+              placeholder="Your Full Name"
               className="w-full border border-[#cbd5e1] px-4 py-2 rounded-xl bg-[#f9fafb] focus:outline-none focus:ring-2 focus:ring-[#ec4899] text-[#2e1065]"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -77,13 +89,35 @@ const Signup = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#2e1065] mb-1">Email</label>
+            <label className="block text-sm font-medium text-[#2e1065] mb-1">Institutional Email ID</label>
             <input
               type="email"
               placeholder="you@college.edu"
               className="w-full border border-[#cbd5e1] px-4 py-2 rounded-xl bg-[#f9fafb] focus:outline-none focus:ring-2 focus:ring-[#ec4899] text-[#2e1065]"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#2e1065] mb-1">Department</label>
+            <input
+              type="text"
+              placeholder="Department"
+              className="w-full border border-[#cbd5e1] px-4 py-2 rounded-xl bg-[#f9fafb] focus:outline-none focus:ring-2 focus:ring-[#ec4899] text-[#2e1065]"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#2e1065] mb-1">Staff ID</label>
+            <input
+              type="text"
+              placeholder="Staff/Employee ID"
+              className="w-full border border-[#cbd5e1] px-4 py-2 rounded-xl bg-[#f9fafb] focus:outline-none focus:ring-2 focus:ring-[#ec4899] text-[#2e1065]"
+              value={staffId}
+              onChange={(e) => setStaffId(e.target.value)}
             />
           </div>
 
@@ -96,6 +130,9 @@ const Signup = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Must include uppercase, lowercase, number & symbol. Min 8 chars.
+            </p>
           </div>
 
           <div>
@@ -107,6 +144,19 @@ const Signup = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="terms"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <label htmlFor="terms" className="text-sm text-[#2e1065]">
+              I agree to the <Link to="/terms" className="text-[#ec4899] hover:underline">Terms & Conditions</Link>
+            </label>
           </div>
 
           <button
