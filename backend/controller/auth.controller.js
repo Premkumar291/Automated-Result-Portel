@@ -30,7 +30,7 @@ export const signup = async (req,res) => {
         await newUser.save();
 
         //jwt authentication 
-        generateTokenAndSetCookie(res, newUser._id);
+        generateTokenAndSetCookie(newUser._id,res);
 
         res.status(201).json({
           success: true,
