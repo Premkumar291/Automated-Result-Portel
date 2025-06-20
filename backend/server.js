@@ -5,7 +5,7 @@ import { connectDb } from './dataBase/connectDb.js';
 dotenv.config(); // Load environment variables first
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080 ;
 
 //Home page simple route
 app.get("/", (req, res) => {
@@ -15,6 +15,5 @@ app.get("/", (req, res) => {
 //listening the server at start position with port 8080
 app.listen(PORT, () => {
   connectDb();
-      console.log(`Server is running on http://localhost:${PORT}`);
-
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
