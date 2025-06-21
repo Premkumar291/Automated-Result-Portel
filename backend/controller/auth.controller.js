@@ -5,9 +5,9 @@ import { sendEmail } from "../utils/sendEmail.js";
 import { User } from '../models/user.model.js';
 
 export const signup = async (req, res) => {
-    const { email, password, name } = req.body;
+    const { email, password, name, department } = req.body;
     try {
-        if (!email || !password || !name) {
+        if (!email || !password || !name || !department) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -24,6 +24,7 @@ export const signup = async (req, res) => {
             email,
             password: hashedPassword,
             name,
+            department,
             verificationToken,
             verificationTokenExpiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
         });
@@ -49,7 +50,8 @@ export const signup = async (req, res) => {
             user: {
                 _id: newUser._id,
                 email: newUser.email,
-                name: newUser.name
+                name: newUser.name,
+                department: newUser.department,
             }
         });
 
