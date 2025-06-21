@@ -46,7 +46,12 @@ const VerifyEmail = () => {
             className="w-full border px-4 py-2 rounded-xl bg-[#f9fafb]"
             required
           />
-          <button type="submit" className="w-full bg-[#ec4899] text-white py-2 rounded-xl font-semibold hover:bg-pink-600">
+          <button 
+            type="submit" 
+            className="w-full bg-[#ec4899] text-white py-2 rounded-xl font-semibold 
+              hover:bg-pink-600 hover:cursor-pointer transition-all duration-200 
+              active:translate-y-[2px] active:shadow-lg active:scale-[0.99]"
+          >
             Verify
           </button>
         </form>
