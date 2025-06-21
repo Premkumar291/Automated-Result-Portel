@@ -27,11 +27,6 @@ app.use("/api/auth",authRoutes)
 //listening the server at start position with port 8080
 app.listen(PORT, () => {
   connectDb();
-<<<<<<< HEAD
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-=======
-      console.log(`Server is running on http://localhost:${PORT}`);
 
-});
->>>>>>> Prem-dev
