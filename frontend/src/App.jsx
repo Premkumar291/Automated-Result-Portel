@@ -6,8 +6,10 @@ export default function App() {
   
 
   return (
-    <div className="">
-      
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-2xl w-full">
+        <Dashboard />
+      </div>
     </div>
   )
 }
