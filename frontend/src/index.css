@@ -2,3 +2,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body.dark {
+  background-color: #1f1f2e;
+  color: white;
+  transition: background 0.3s ease, color 0.3s ease;
+}
