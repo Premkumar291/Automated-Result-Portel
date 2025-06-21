@@ -1,10 +1,11 @@
 import bcrypt from "bcryptjs";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
-import {generateTokenAndSetCookie} from "../utils/generateTokenAndSetCookie.js";
+import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import { sendEmail } from "../utils/sendEmail.js";
 import { User } from '../models/user.model.js';
 
-export const signup = async (req,res) => {
-    const {email , password , name} = req.body;
+export const signup = async (req, res) => {
+    const { email, password, name } = req.body;
     try {
         if (!email || !password || !name) {
             return res.status(400).json({ message: "All fields are required" });
@@ -12,8 +13,8 @@ export const signup = async (req,res) => {
 
         const userAlreadyExists = await User.findOne({ email });
 
-        if(userAlreadyExists) {
-            return res.status(400).json({ success:false ,message: "User already exists" });
+        if (userAlreadyExists) {
+            return res.status(400).json({ success: false, message: "User already exists" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -23,23 +24,30 @@ export const signup = async (req,res) => {
             email,
             password: hashedPassword,
             name,
-            verificationToken ,
+            verificationToken,
             verificationTokenExpiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
         });
 
         await newUser.save();
 
-        //jwt authentication 
-        generateTokenAndSetCookie(newUser._id,res);
+        // Send verification email
+        await sendEmail(
+            newUser.email,
+            "Verify your account",
+            `Your verification code is: ${newUser.verificationToken}`
+        );
+
+        // JWT authentication
+        generateTokenAndSetCookie(newUser._id, res);
 
         res.status(201).json({
-          success: true,
-          message: "User created successfully",
-          user: {
-            _id: newUser._id,
-            email: newUser.email,
-            name: newUser.name
-          }
+            success: true,
+            message: "User created successfully. Verification email sent.",
+            user: {
+                _id: newUser._id,
+                email: newUser.email,
+                name: newUser.name
+            }
         });
 
     } catch (error) {
