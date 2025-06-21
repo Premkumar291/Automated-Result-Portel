@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { sendEmail } from "../utils/sendEmail.js";
@@ -121,4 +122,71 @@ export const login = async (req,res) => {
 export const logout = async (req,res) => {
     res.clearCookie("token");
     res.status(200).json({ message: "Logged out successfully" });
+};
+
+// Send reset token to user's email
+export const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "User not found" });
+        }
+        const resetToken = generateVerificationCode();
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
+        await user.save();
+
+        await sendEmail(
+            user.email,
+            "Reset Password",
+            `Your reset password code is: ${resetToken}. It is valid for 30 minutes.`
+        );
+
+        res.status(200).json({ message: "Reset password code sent to your email." });
+    } catch (error) {
+        res.status(500).json({ message: `Error: ${error.message}` });
+    }
+};
+
+// Verify reset token
+export const verifyResetToken = async (req, res) => {
+    const { email, code } = req.body;
+    try {
+        const user = await User.findOne({
+            email,
+            resetPasswordToken: code,
+            resetPasswordExpiresAt: { $gt: Date.now() }
+        });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired reset code" });
+        }
+        res.status(200).json({ message: "Reset code is valid" });
+    } catch (error) {
+        res.status(500).json({ message: `Error: ${error.message}` });
+    }
+};
+
+// Reset password
+export const resetPassword = async (req, res) => {
+    const { email, code, newPassword } = req.body;
+    try {
+        const user = await User.findOne({
+            email,
+            resetPasswordToken: code,
+            resetPasswordExpiresAt: { $gt: Date.now() }
+        });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired reset code" });
+        }
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiresAt = undefined;
+        await user.save();
+
+        res.status(200).json({ message: "Password reset successful" });
+    } catch (error) {
+        res.status(500).json({ message: `Error: ${error.message}` });
+    }
+
 };
