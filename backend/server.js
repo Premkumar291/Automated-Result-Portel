@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDb } from './dataBase/connectDb.js';
+import authRoutes from './routes/auth.route.js';
 import authRoutes from './routes/auth.route.js';
 
 dotenv.config(); // Load environment variables first
@@ -17,6 +19,8 @@ app.use(cors());
 app.get("/", (req, res) => {
   res.send("Server Started successfully!");
 });
+
+app.use("/api/auth",authRoutes)
 
 app.use("/api/auth",authRoutes)
 
