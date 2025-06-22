@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../Sidebar";
 import { MdMenu } from "react-icons/md";
 import { motion } from "framer-motion";
 import * as XLSX from "xlsx";
@@ -18,17 +18,26 @@ const UploadResults = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-      setPreviewData(json);
-      setMessage("✅ File uploaded and parsed successfully!");
-    };
+    const fileExtension = file.name.split('.').pop().toLowerCase();
 
-    reader.readAsArrayBuffer(file);
+    if (fileExtension === "pdf") {
+      setPreviewData([]);
+      setMessage("✅ PDF file uploaded successfully!");
+    } else if (fileExtension === "csv" || fileExtension === "xlsx") {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        setPreviewData(json);
+        setMessage("✅ File uploaded and parsed successfully!");
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      setMessage("❌ Unsupported file format. Please upload .csv, .xlsx or .pdf files only.");
+      setPreviewData([]);
+    }
   };
 
   return (
@@ -92,10 +101,10 @@ const UploadResults = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#2e1065] mb-1">Upload File (.csv or .xlsx)</label>
+            <label className="block text-sm font-semibold text-[#2e1065] mb-1">Upload File (.csv, .xlsx, .pdf)</label>
             <input
               type="file"
-              accept=".csv,.xlsx"
+              accept=".csv,.xlsx,.pdf"
               onChange={(e) => setFile(e.target.files[0])}
               className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2 bg-[#f9fafb] file:mr-4 file:px-2 file:py-1 file:border-0 file:bg-[#ec4899] file:text-white hover:file:bg-pink-600"
             />

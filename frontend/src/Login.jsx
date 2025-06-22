@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+  import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -15,16 +16,16 @@ const Login = () => {
       return;
     }
 
-    console.log("Login Details:", { email, password });
     setError("");
+    console.log("Login Details:", { email, password });
 
-    // 🔁 Redirect to dashboard after mock login
-    navigate("/dashboard");
+    // Redirect to dashboard
+    navigate("/upload");
   };
 
   return (
     <div className="min-h-screen bg-white font-[Poppins] flex flex-col items-center justify-center px-4">
-      {/* 🧠 Heading */}
+      {/* Heading Section */}
       <div className="text-center max-w-2xl mb-12">
         <h1 className="text-4xl font-extrabold text-black leading-tight relative inline-block heading-sweep">
           Automate Results.<br />
@@ -38,7 +39,7 @@ const Login = () => {
         </p>
       </div>
 
-      {/* 🔐 Login Card */}
+      {/* Login Card */}
       <div className="bg-white p-10 rounded-3xl shadow-2xl border border-[#e2e8f0] w-full max-w-md">
         <h2 className="text-3xl font-bold text-[#2e1065] text-center mb-2">Get into it 👋</h2>
         <p className="text-sm text-[#ec4899] text-center mb-6">Login to your account to continue</p>
@@ -68,8 +69,6 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-
-            {/* 🔗 Forgot Password */}
             <div className="text-right mt-1">
               <Link
                 to="/forgot-password"
@@ -88,7 +87,7 @@ const Login = () => {
           </button>
         </form>
 
-        {/* 🔗 Signup Link */}
+        {/* Sign up link */}
         <p className="text-sm text-center text-[#2e1065] mt-6">
           Don’t have an account?{" "}
           <Link
@@ -100,7 +99,7 @@ const Login = () => {
         </p>
       </div>
 
-      {/* ✨ Sweep Light Effect Styling */}
+      {/* Glowing animation effect */}
       <style>{`
         .heading-sweep {
           background-image: linear-gradient(120deg, #000000, #000000, #ffffff 40%, #000000, #000000);
