@@ -5,7 +5,19 @@ import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
 import cors from "cors";
 
-dotenv.config(); // Load environment variables first
+// Load environment variables with explicit path
+dotenv.config({ path: './.env' });
+
+// Debug logging for environment variables
+console.log('=== Environment Variables Debug ===');
+console.log('Current working directory:', process.cwd());
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
+console.log('MONGO_URI length:', process.env.MONGO_URI ? process.env.MONGO_URI.length : 0);
+console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('=====================================');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
