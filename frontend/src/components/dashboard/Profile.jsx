@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Sidebar from "../Sidebar";
+import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
 import { FaUserCircle } from "react-icons/fa";
 import { motion } from "framer-motion";

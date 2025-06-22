@@ -8,3 +8,25 @@ body.dark {
   color: white;
   transition: background 0.3s ease, color 0.3s ease;
 }
+
+body {
+  background-image: url('.src/assets/background1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Optional: Add overlay for readability */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Dark overlay */
+  z-index: -1;
+}
+

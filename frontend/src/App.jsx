@@ -1,18 +1,16 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Login from './components/Login'
-import Signup from './components/Signup'
-import ForgotPassword from './ForgetPassword' 
-import Terms from './components/terms'
-import Sidebar from './components/Sidebar'
-import Dashboard from './components/dashboard'
-import UploadResults from './components/UploadResults'
-import PublishResults from './components/PublishResults'
-import MyResults from './components/MyResults'
-import Analytics from './components/Analytics'
-import StudentList from './components/StudentList'
-import Profile from './components/Profile'
-import HelpSupport from './components/HelpSupport'
-import Settings from './components/Settings'
+import Login from './components/auth/Login'
+import Signup from './components/auth/Signup'
+import ForgotPassword from './components/auth/ForgetPassword' 
+import Sidebar from './components/dashboard/Sidebar'
+import ManageResults from './components/dashboard/ManageResults'
+import PublishResults from './components/dashboard/PublishResults'
+import MyResults from './components/dashboard/MyResults'
+import Analytics from './components/dashboard/Analytics'
+import StudentList from './components/dashboard/StudentList'
+import Profile from './components/dashboard/Profile'
+import HelpSupport from './components/dashboard/HelpSupport'
+import Settings from './components/dashboard/Settings'
 
 
 function App() {
@@ -22,10 +20,8 @@ function App() {
       <Route path="/login" element={<Login />} />
        <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/terms" element={<Terms />} />
       <Route path="/dashboard/*" element={<Sidebar />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/upload" element={<UploadResults />} />
+
       <Route path="/publish" element={<PublishResults />} />
       <Route path="/my-results" element={<MyResults />} />
       <Route path="/analytics" element={<Analytics />} />
@@ -33,7 +29,7 @@ function App() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/help" element={<HelpSupport />} />
       <Route path="/settings" element={<Settings />} />
-      
+      <Route path="/manage-results" element={<ManageResults />} />
       {/* Add more routes as needed */} 
       
       

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../../Sidebar";
+import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
-import LogoutModal from "../components/LogoutModal";
+import LogoutModal from "./LogoutModal";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
