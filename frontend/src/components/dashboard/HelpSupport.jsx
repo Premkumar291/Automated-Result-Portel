@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
 import { motion } from "framer-motion";
 import { FaChevronDown, FaChevronUp, FaEnvelope, FaPhone } from "react-icons/fa";
+import backgroundImage from "../../assets/background1.jpg";
 
 const HelpSupport = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
@@ -36,7 +37,16 @@ const HelpSupport = () => {
   };
 
   return (
-    <div className="flex min-h-screen font-[Poppins] bg-[#f9fafb] text-[#2e1065] overflow-x-hidden">
+    <div
+      className="flex min-h-screen font-[Poppins] text-[#2e1065] overflow-x-hidden"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
@@ -57,17 +67,17 @@ const HelpSupport = () => {
         <div className="mb-4">
           <button
             onClick={() => setSidebarVisible(!sidebarVisible)}
-            className="text-2xl text-[#2e1065]"
+            className="text-2xl text-white"
           >
             <MdMenu />
           </button>
         </div>
 
-        <h2 className="text-2xl font-bold mb-6">🆘 Help & Support</h2>
+        <h2 className="text-3xl font-bold mb-6 text-white">🆘 Help & Support</h2>
 
         {/* FAQ Section */}
         <div className="mb-10">
-          <h3 className="text-lg font-semibold mb-4 text-[#ec4899]">Frequently Asked Questions</h3>
+          <h3 className="text-lg font-semibold mb-4 text-pink-300">Frequently Asked Questions</h3>
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <div
@@ -91,7 +101,7 @@ const HelpSupport = () => {
           </div>
         </div>
 
-        {/* Contact Section — Profile Style Card */}
+        {/* Contact Section */}
         <div className="bg-gradient-to-r from-[#6d28d9] via-[#9333ea] to-[#ec4899] rounded-3xl p-1 max-w-3xl mx-auto shadow-2xl">
           <div className="bg-white rounded-[28px] px-6 py-6 sm:p-8 text-center">
             <h3 className="text-xl font-bold text-[#2e1065] mb-3">Need More Help?</h3>

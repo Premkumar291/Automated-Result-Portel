@@ -1,4 +1,5 @@
-import { useState } from "react";
+// Same imports as before
+import { useState, useRef } from "react";
 import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
 import { motion } from "framer-motion";
@@ -14,13 +15,19 @@ import {
 } from "recharts";
 import backgroundImage from "../../assets/background1.jpg";
 
-
 const ManageResults = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handlePlusClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
   const handleUpload = () => {
     if (!file) {
@@ -36,7 +43,6 @@ const ManageResults = () => {
         const workbook = XLSX.read(data, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-        console.log("Parsed:", json);
         setResults(json);
         setMessage("✅ File parsed successfully!");
       } catch {
@@ -55,7 +61,7 @@ const ManageResults = () => {
 
   return (
     <div
-      className="min-h-screen font-[Poppins] text-[#121212]"
+      className="min-h-screen font-['Rubik'] text-[#1a1a1a] font-semibold"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "cover",
@@ -82,7 +88,7 @@ const ManageResults = () => {
           >
             <MdMenu />
           </button>
-          <h1 className="text-3xl font-bold text-white font-['Playfair_Display'] tracking-wide">
+          <h1 className="text-3xl font-bold text-white font-['Dancing_Script'] tracking-wide">
             Result Portal 🎓
           </h1>
         </div>
@@ -95,32 +101,45 @@ const ManageResults = () => {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-4xl font-bold mb-8 text-white font-['Playfair_Display'] drop-shadow-xl"
+          className="text-4xl font-extrabold mb-8 text-[#b88c65] font-['Playfair_Display'] drop-shadow-xl"
         >
-          Manage Results 📂
+          Manage Results
         </motion.h2>
 
         {/* Upload Card */}
-        <div className="bg-white h-[450px] md:w-[90%] mx-auto mb-12 rounded-3xl shadow-xl border border-indigo-200 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-2xl backdrop-blur-sm bg-opacity-90">
-          <h3 className="text-3xl font-bold mb-6 text-[#2e1065]">
-            Upload New Result
-          </h3>
-          <div className="flex flex-col sm:flex-row gap-4 items-center w-4/5">
-            <input
-              type="file"
-              accept=".xlsx,.csv,.pdf"
-              onChange={(e) => setFile(e.target.files[0])}
-              className="border px-6 py-3 rounded-xl w-full sm:w-1/2 bg-[#f9fafb] text-sm shadow"
-            />
-            <button
-              onClick={handleUpload}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold"
-            >
-              Upload
-            </button>
-          </div>
+        <div className="bg-white h-[470px] md:w-[90%] mx-auto mb-12 rounded-[30px] border-4 border-[#ec4899] p-6 shadow-xl flex flex-col items-center justify-center backdrop-blur-sm bg-opacity-90 transition-all hover:shadow-2xl text-center">
+          <h3 className="text-2xl font-bold text-[#2e1065] mb-2">Upload New Result</h3>
+          <p className="text-sm text-gray-600 max-w-md mx-auto mb-6">
+            Click the <span className="font-bold text-[#2e1065]">+</span> icon to upload a student result file (.csv, .xlsx, or .pdf).
+          </p>
+
+          {/* Centered + icon */}
+          <button
+            onClick={handlePlusClick}
+            className="text-7xl text-white bg-[#2e1065] hover:bg-[#4c1d95] w-20 h-20 rounded-full shadow-lg flex items-center justify-center transition duration-300 ease-in-out mb-4"
+          >
+            +
+          </button>
+
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            accept=".xlsx,.csv,.pdf"
+            ref={fileInputRef}
+            onChange={(e) => setFile(e.target.files[0])}
+            className="hidden"
+          />
+
+          {/* Upload Button */}
+          <button
+            onClick={handleUpload}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold"
+          >
+            Upload
+          </button>
+
           {message && (
-            <p className="text-sm mt-4 text-[#2e1065] font-medium">{message}</p>
+            <p className="text-sm mt-3 text-[#2e1065] font-medium">{message}</p>
           )}
         </div>
 
@@ -131,11 +150,9 @@ const ManageResults = () => {
           </div>
         )}
 
-        {/* Chart Display */}
+        {/* Chart Section */}
         <div className="bg-white p-6 rounded-xl shadow border mb-10 backdrop-blur-md bg-opacity-90">
-          <h3 className="text-xl font-semibold mb-4 text-[#2e1065]">
-            Performance Overview
-          </h3>
+          <h3 className="text-xl font-bold mb-4 text-[#2e1065]">Performance Overview</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={chartData}>
               <XAxis dataKey="subject" />
@@ -147,13 +164,11 @@ const ManageResults = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Results Table */}
-        <div className="bg-white p-6 rounded-xl shadow border overflow-x-auto animate-fade-in backdrop-blur-lg bg-opacity-90">
-          <h3 className="text-xl font-semibold mb-4 text-[#2e1065]">
-            Results Management
-          </h3>
+        {/* Table */}
+        <div className="bg-white p-6 rounded-xl shadow border overflow-x-auto backdrop-blur-lg bg-opacity-90">
+          <h3 className="text-xl font-bold mb-4 text-[#2e1065]">Results Management</h3>
           <table className="min-w-full text-sm text-left">
-            <thead className="bg-[#f3f4f6] text-[#2e1065] font-semibold">
+            <thead className="bg-[#f3f4f6] text-[#2e1065] font-bold">
               <tr>
                 <th className="py-2 px-4">Roll No</th>
                 <th className="py-2 px-4">Name</th>

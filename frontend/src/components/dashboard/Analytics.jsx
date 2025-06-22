@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
 import { motion } from "framer-motion";
 import { Bar, Pie } from "react-chartjs-2";
+import backgroundImage from "../../assets/background1.jpg";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -70,7 +71,15 @@ const Analytics = () => {
   };
 
   return (
-    <div className="flex min-h-screen font-[Poppins] bg-[#f9fafb] text-[#2e1065] overflow-x-hidden">
+    <div
+      className="flex min-h-screen font-[Poppins] text-[#2e1065] overflow-x-hidden"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
@@ -91,30 +100,30 @@ const Analytics = () => {
         <div className="mb-6">
           <button
             onClick={() => setSidebarVisible(!sidebarVisible)}
-            className="text-2xl text-[#2e1065]"
+            className="text-2xl text-white"
           >
             <MdMenu />
           </button>
         </div>
 
-        <h2 className="text-3xl font-bold mb-6">📊 Analytics</h2>
+        <h2 className="text-3xl font-extrabold mb-6 text-white drop-shadow">📊 Analytics</h2>
 
         {/* Analytics Blocks */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 📈 Subject Average */}
-          <div className="bg-white p-6 rounded-xl shadow border border-[#e2e8f0]">
+          <div className="bg-white/90 p-6 rounded-xl shadow-lg border border-[#e2e8f0] backdrop-blur-md">
             <h3 className="text-lg font-bold mb-4">Subject-wise Average Marks</h3>
             <Bar data={subjectAverages} options={{ responsive: true }} />
           </div>
 
           {/* 🥧 Pass/Fail */}
-          <div className="bg-white p-6 rounded-xl shadow border border-[#e2e8f0]">
+          <div className="bg-white/90 p-6 rounded-xl shadow-lg border border-[#e2e8f0] backdrop-blur-md">
             <h3 className="text-lg font-bold mb-4">Pass vs Fail Ratio</h3>
             <Pie data={passFailData} />
           </div>
 
           {/* 👑 Top Performers */}
-          <div className="bg-white p-6 rounded-xl shadow border border-[#e2e8f0] col-span-1">
+          <div className="bg-white/90 p-6 rounded-xl shadow-lg border border-[#e2e8f0] col-span-1 backdrop-blur-md">
             <h3 className="text-lg font-bold mb-4">Top Performers</h3>
             <table className="w-full text-sm text-left border">
               <thead className="bg-[#f3f4f6] text-[#ec4899]">
@@ -139,7 +148,7 @@ const Analytics = () => {
           </div>
 
           {/* 🏫 Class-Wise Avg */}
-          <div className="bg-white p-6 rounded-xl shadow border border-[#e2e8f0] col-span-1">
+          <div className="bg-white/90 p-6 rounded-xl shadow-lg border border-[#e2e8f0] col-span-1 backdrop-blur-md">
             <h3 className="text-lg font-bold mb-4">Class-wise Subject Comparison</h3>
             <Bar data={classAverages} options={{ responsive: true }} />
           </div>

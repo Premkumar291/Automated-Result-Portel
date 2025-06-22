@@ -4,7 +4,6 @@ import {
   FaUser,
   FaQuestionCircle,
   FaCog,
-  FaSignOutAlt,
   FaTimes,
   FaFileUpload
 } from "react-icons/fa";
@@ -49,17 +48,6 @@ const Sidebar = ({ onCloseSidebar }) => {
           </Link>
         ))}
       </nav>
-
-      {/* Logout */}
-      <div className="p-4 border-t border-gray-200">
-        <Link
-          to="/settings"
-          className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:text-[#ec4899] hover:bg-pink-50 transition"
-        >
-          <FaSignOutAlt />
-          <span className="text-sm font-medium">Logout</span>
-        </Link>
-      </div>
     </div>
   );
 };

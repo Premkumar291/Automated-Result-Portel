@@ -3,14 +3,13 @@ import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
 import ForgotPassword from './components/auth/ForgetPassword' 
 import Sidebar from './components/dashboard/Sidebar'
-import ManageResults from './components/dashboard/ManageResults'
 import PublishResults from './components/dashboard/PublishResults'
-import MyResults from './components/dashboard/MyResults'
 import Analytics from './components/dashboard/Analytics'
 import StudentList from './components/dashboard/StudentList'
 import Profile from './components/dashboard/Profile'
 import HelpSupport from './components/dashboard/HelpSupport'
 import Settings from './components/dashboard/Settings'
+import ManageResults from './components/dashboard/ManageResults'
 
 
 function App() {
@@ -23,7 +22,7 @@ function App() {
       <Route path="/dashboard/*" element={<Sidebar />} />
 
       <Route path="/publish" element={<PublishResults />} />
-      <Route path="/my-results" element={<MyResults />} />
+      
       <Route path="/analytics" element={<Analytics />} />
       <Route path="/students" element={<StudentList />} />
       <Route path="/profile" element={<Profile />} />

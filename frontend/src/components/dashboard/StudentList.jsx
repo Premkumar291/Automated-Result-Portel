@@ -2,6 +2,7 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
 import { motion } from "framer-motion";
+import backgroundImage from "../../assets/background1.jpg";
 
 const StudentList = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
@@ -32,7 +33,16 @@ const StudentList = () => {
   const classOptions = [...new Set(students.map((s) => `${s.dept} - ${s.year}`))];
 
   return (
-    <div className="flex min-h-screen font-[Poppins] bg-[#f9fafb] text-[#2e1065] overflow-x-hidden">
+    <div
+      className="flex min-h-screen font-[Poppins] text-[#2e1065] overflow-x-hidden"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+        backgroundPosition: "center",
+      }}
+    >
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
@@ -53,14 +63,14 @@ const StudentList = () => {
         <div className="mb-4">
           <button
             onClick={() => setSidebarVisible(!sidebarVisible)}
-            className="text-2xl text-[#2e1065]"
+            className="text-2xl text-white"
           >
             <MdMenu />
           </button>
         </div>
 
         {/* Heading */}
-        <h2 className="text-2xl font-bold mb-4">🧑‍🎓 Student List</h2>
+        <h2 className="text-3xl font-bold mb-4 text-white">🧑‍🎓 Student List</h2>
 
         {/* Filter Dropdown */}
         <div className="mb-4">
@@ -79,7 +89,7 @@ const StudentList = () => {
         </div>
 
         {/* Student Table */}
-        <div className="bg-white rounded-xl shadow-md border border-[#e2e8f0] overflow-x-auto">
+        <div className="bg-white bg-opacity-90 rounded-xl shadow-md border border-[#e2e8f0] overflow-x-auto">
           <table className="min-w-full text-sm text-left">
             <thead className="bg-[#f3f4f6] text-[#ec4899] font-semibold">
               <tr>
