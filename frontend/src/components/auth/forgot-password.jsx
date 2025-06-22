@@ -29,7 +29,7 @@ const ForgotPassword = () => {
         setSuccess(data.message);
         setStep(2);
       }
-    } catch (err) {
+    } catch(error) {
       setError("Failed to send verification code");
     }
   };
@@ -77,7 +77,7 @@ const ForgotPassword = () => {
       if (data.message === "Password reset successful") {
         navigate("/login");
       }
-    } catch (err) {
+    } catch(error) {
       setError("Failed to reset password");
     }
   };
