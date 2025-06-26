@@ -4,6 +4,7 @@ import SignupPage from "./components/auth/signup-page";
 import Dashboard from "./components/Dashboard/dashboard";
 import VerifyEmail from "./components/auth/verify-email-page";
 import ForgotPassword from "./components/auth/forgot-password"; // Add this import
+import PageNotFound from "./components/pagenotfound/page-not-found";
 
 export default function App() {
   return (
@@ -16,7 +17,8 @@ export default function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Fixed route */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="*" element={<PageNotFound />} />
           </Routes>
         </div>
       </div>

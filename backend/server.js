@@ -3,9 +3,18 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
+import pdfRoutes from './routes/pdf.route.js';
 import cors from "cors";
 
-dotenv.config(); // Load environment variables first
+
+dotenv.config({ path: './.env' });
+
+console.log('=== Environment Variables Debug ===');
+console.log('PORT:', process.env.PORT);
+console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
+console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('=====================================');
 
 const app = express();
 const PORT = process.env.PORT || 8080 ;
@@ -14,7 +23,7 @@ const PORT = process.env.PORT || 8080 ;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173", // your frontend URL
+  origin: "http://localhost:5173",
   credentials: true
 }));
 
@@ -24,6 +33,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth",authRoutes)
+app.use("/api/pdf",pdfRoutes)
 
 app.use("/api/auth",authRoutes)
 
