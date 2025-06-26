@@ -7,16 +7,19 @@ import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
 
-  // Handle full-page dark mode toggle
   useEffect(() => {
     if (darkMode) {
-      document.body.classList.add("dark");
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
-      document.body.classList.remove("dark");
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
 
@@ -28,10 +31,16 @@ const Settings = () => {
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
   return (
-    <div className={`min-h-screen flex font-[Poppins] ${darkMode ? "bg-[#1f1f2e] text-white" : "bg-[#f9fafb] text-[#2e1065]"}`}>
+    <div
+      className={`min-h-screen font-[Poppins] flex bg-gradient-to-br ${
+        darkMode
+          ? "from-[#0f0c29] via-[#302b63] to-[#24243e] text-white"
+          : "from-[#f3f4f6] via-[#e5e7eb] to-[#f9fafb] text-[#1f2937]"
+      } transition-colors duration-300`}
+    >
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#2b2b3b] text-[#2e1065] dark:text-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/10 dark:bg-white/10 backdrop-blur-md text-white border-r border-white/20 shadow-xl transform transition-transform duration-300 ease-in-out ${
           sidebarVisible ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -45,43 +54,49 @@ const Settings = () => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {/* ☰ Menu Icon */}
+        {/* ☰ Menu */}
         <button
-          className="text-2xl mb-4"
+          className="text-2xl mb-4 text-white"
           onClick={() => setSidebarVisible(!sidebarVisible)}
         >
           <MdMenu />
         </button>
 
-        <h1 className="text-2xl font-bold mb-6">⚙️ Settings</h1>
+        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-pink-400 to-violet-500 text-transparent bg-clip-text">
+          ⚙️ Settings
+        </h1>
 
-        {/* 🌗 Dark Mode Toggle */}
-        <div className="rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2b2b3b] mb-6">
-          <h2 className="text-lg font-semibold mb-4 text-[#ec4899] dark:text-pink-400">Appearance</h2>
-          <label className="flex items-center gap-3">
+        {/* Appearance Section */}
+        <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-xl p-8 mb-8">
+          <h2 className="text-2xl font-semibold mb-4 text-pink-400">
+            🌗 Appearance
+          </h2>
+          <label className="flex items-center gap-4">
             <input
               type="checkbox"
               checked={darkMode}
               onChange={toggleDarkMode}
-              className="w-5 h-5"
+              className="w-6 h-6 accent-pink-500"
             />
-            <span className="text-sm">Enable Dark Mode</span>
+            <span className="text-lg">Enable Dark Mode</span>
           </label>
         </div>
 
-        {/* 🔐 Session Control Section */}
-        <div className="rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2b2b3b]">
-          <h2 className="text-lg font-semibold mb-4 text-[#ec4899] dark:text-pink-400">Session Control</h2>
+        {/* Logout Section */}
+        <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-xl p-8">
+          <h2 className="text-2xl font-semibold mb-4 text-pink-400">
+            🔐 Session Control
+          </h2>
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="px-4 py-2 rounded-lg bg-[#ec4899] text-white hover:bg-pink-600 transition text-sm font-medium"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold hover:opacity-90 transition"
           >
             Logout
           </button>
         </div>
       </motion.div>
 
-      {/* 🪄 Logout Modal */}
+      {/* Logout Modal */}
       {showLogoutModal && (
         <LogoutModal
           onClose={() => setShowLogoutModal(false)}
@@ -93,3 +108,5 @@ const Settings = () => {
 };
 
 export default Settings;
+
+
