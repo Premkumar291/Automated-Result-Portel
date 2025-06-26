@@ -25,6 +25,4 @@ router.post("/forgot-password", forgotPassword);
 router.post("/verify-reset-token", verifyResetToken);
 router.post("/reset-password", resetPassword);
 
-
-
 export default router;
