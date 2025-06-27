@@ -11,6 +11,7 @@ import Profile from './components/dashboard/Profile'
 import HelpSupport from './components/dashboard/HelpSupport'
 import Settings from './components/dashboard/Settings'
 import ManageResults from './components/dashboard/ManageResults'
+import { ThemeProvider } from "./context/ThemeContext";
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
       <Route path="/help" element={<HelpSupport />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/manage-results" element={<ManageResults />} />
+      <Route path="/theme" element={<ThemeProvider />} />
       {/* Add more routes as needed */} 
       
       

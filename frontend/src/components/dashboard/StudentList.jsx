@@ -73,9 +73,9 @@ const StudentList = () => {
         <h2 className="text-3xl font-bold mb-4 text-white">🧑‍🎓 Student List</h2>
 
         {/* Filter Dropdown */}
-        <div className="mb-4">
+        <div className="mb-6">
           <select
-            className="px-4 py-2 border border-[#ec4899] rounded-lg focus:outline-none text-sm"
+            className="px-4 py-2 border border-[#ec4899] rounded-lg focus:outline-none text-sm shadow-md"
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
           >
@@ -88,36 +88,38 @@ const StudentList = () => {
           </select>
         </div>
 
-        {/* Student Table */}
-        <div className="bg-white bg-opacity-90 rounded-xl shadow-md border border-[#e2e8f0] overflow-x-auto">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-[#f3f4f6] text-[#ec4899] font-semibold">
-              <tr>
-                <th className="px-4 py-2">Reg No</th>
-                <th className="px-4 py-2">Name</th>
-                <th className="px-4 py-2">Department</th>
-                <th className="px-4 py-2">Year</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStudents.length === 0 ? (
+        {/* Student Table (Centered) */}
+        <div className="flex justify-center">
+          <div className="w-full max-w-5xl bg-white bg-opacity-90 rounded-2xl shadow-xl border border-[#e2e8f0] overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-[#f3f4f6] text-[#ec4899] font-semibold">
                 <tr>
-                  <td colSpan="4" className="px-4 py-4 text-center text-gray-500">
-                    No students found.
-                  </td>
+                  <th className="px-6 py-4">Reg No</th>
+                  <th className="px-6 py-4">Name</th>
+                  <th className="px-6 py-4">Department</th>
+                  <th className="px-6 py-4">Year</th>
                 </tr>
-              ) : (
-                filteredStudents.map((s, idx) => (
-                  <tr key={idx} className="border-t">
-                    <td className="px-4 py-2">{s.reg}</td>
-                    <td className="px-4 py-2">{s.name}</td>
-                    <td className="px-4 py-2">{s.dept}</td>
-                    <td className="px-4 py-2">{s.year}</td>
+              </thead>
+              <tbody>
+                {filteredStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-6 text-center text-gray-500">
+                      No students found.
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredStudents.map((s, idx) => (
+                    <tr key={idx} className="border-t hover:bg-gray-50 transition-all">
+                      <td className="px-6 py-4">{s.reg}</td>
+                      <td className="px-6 py-4">{s.name}</td>
+                      <td className="px-6 py-4">{s.dept}</td>
+                      <td className="px-6 py-4">{s.year}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </motion.div>
     </div>
@@ -125,3 +127,4 @@ const StudentList = () => {
 };
 
 export default StudentList;
+

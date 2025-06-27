@@ -56,57 +56,57 @@ const Settings = () => {
       >
         {/* ☰ Menu */}
         <button
-          className="text-2xl mb-4 text-white"
+          className={`text-2xl mb-4 ${darkMode ? "text-white" : "text-gray-700"}`}
           onClick={() => setSidebarVisible(!sidebarVisible)}
         >
           <MdMenu />
         </button>
 
-        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-pink-400 to-violet-500 text-transparent bg-clip-text">
-          ⚙️ Settings
-        </h1>
+        {/* Centered Content Wrapper */}
+        <div className="flex justify-center">
+          <div className="w-full max-w-3xl space-y-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-violet-500 text-transparent bg-clip-text">
+              ⚙️ Settings
+            </h1>
 
-        {/* Appearance Section */}
-        <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-xl p-8 mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-pink-400">
-            🌗 Appearance
-          </h2>
-          <label className="flex items-center gap-4">
-            <input
-              type="checkbox"
-              checked={darkMode}
-              onChange={toggleDarkMode}
-              className="w-6 h-6 accent-pink-500"
-            />
-            <span className="text-lg">Enable Dark Mode</span>
-          </label>
-        </div>
+            {/* Appearance Section */}
+            <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-xl p-8">
+              <h2 className="text-2xl font-semibold mb-4 text-pink-400">🌗 Appearance</h2>
+              <label className="flex items-center gap-4">
+                <input
+                  type="checkbox"
+                  checked={darkMode}
+                  onChange={toggleDarkMode}
+                  className="w-6 h-6 accent-pink-500"
+                />
+                <span className="text-lg">Enable Dark Mode</span>
+              </label>
+            </div>
 
-        {/* Logout Section */}
-        <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-xl p-8">
-          <h2 className="text-2xl font-semibold mb-4 text-pink-400">
-            🔐 Session Control
-          </h2>
-          <button
-            onClick={() => setShowLogoutModal(true)}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold hover:opacity-90 transition"
-          >
-            Logout
-          </button>
+            {/* Logout Section */}
+            <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-xl p-8">
+              <h2 className="text-2xl font-semibold mb-4 text-pink-400">🔐 Session Control</h2>
+              <button
+                onClick={() => setShowLogoutModal(true)}
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold hover:opacity-90 transition"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       </motion.div>
 
       {/* Logout Modal */}
       {showLogoutModal && (
-        <LogoutModal
-          onClose={() => setShowLogoutModal(false)}
-          onConfirm={handleLogout}
-        />
+        <LogoutModal onClose={() => setShowLogoutModal(false)} onConfirm={handleLogout} />
       )}
     </div>
   );
 };
 
 export default Settings;
+
+
 
 
