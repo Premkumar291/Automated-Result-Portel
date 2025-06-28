@@ -128,18 +128,14 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      console.log('Starting login process...');
       const data = await login(form);
-      console.log('Login response received:', data);
       
       if (data.success) {
-        console.log('Login successful, navigating to dashboard...');
         navigate("/dashboard");
       } else {
         setError(data.message || "Login failed");
       }
     } catch (err) {
-      console.error('Login error:', err);
       setError(err.message || "Network error occurred. Please try again.");
     } finally {
       setIsLoading(false);

@@ -28,9 +28,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      console.log('Sending forgot password request...');
       const data = await forgotPassword(form.email);
-      console.log('Forgot password response:', data);
       
       if (data.success) {
         setSuccess(data.message);
@@ -39,7 +37,6 @@ const ForgotPassword = () => {
         setError(data.message || "Failed to send verification code");
       }
     } catch(err) {
-      console.error('Forgot password error:', err);
       setError(err.message || "Failed to send verification code. Please try again.");
     } finally {
       setLoading(false);
@@ -59,9 +56,7 @@ const ForgotPassword = () => {
     }
 
     try {
-      console.log('Verifying reset code...');
       const data = await verifyResetToken(form.email, form.code);
-      console.log('Verify reset token response:', data);
       
       if (data.success) {
         setSuccess("Code verified successfully!");
@@ -79,7 +74,6 @@ const ForgotPassword = () => {
         setError(data.message || "Invalid verification code");
       }
     } catch (err) {
-      console.error('Verify reset token error:', err);
       setError(err.message || "Failed to verify code. Please try again.");
     } finally {
       setLoading(false);
@@ -98,9 +92,7 @@ const ForgotPassword = () => {
     }
     
     try {
-      console.log('Resetting password...');
       const data = await resetPassword(form.email, form.code, form.newPassword);
-      console.log('Reset password response:', data);
       
       if (data.success) {
         setSuccess("Password reset successful! Redirecting to login...");
@@ -111,7 +103,6 @@ const ForgotPassword = () => {
         setError(data.message || "Failed to reset password");
       }
     } catch(err) {
-      console.error('Reset password error:', err);
       setError(err.message || "Failed to reset password. Please try again.");
     } finally {
       setLoading(false);

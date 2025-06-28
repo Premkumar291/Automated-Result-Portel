@@ -104,9 +104,7 @@ const Signup = () => {
     };
 
     try {
-      console.log('Starting signup process...');
       const data = await signup(formData);
-      console.log('Signup response received:', data);
       
       if (data.success === false) {
         setError(data.message || "Signup failed");
@@ -119,7 +117,6 @@ const Signup = () => {
         }, 2000);
       }
     } catch (err) {
-      console.error('Signup error:', err);
       setError(err.message || "Network error occurred. Please try again.");
     } finally {
       setLoading(false);

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout, checkAuth } from "../../api/auth";
 import PDFUploadAndViewer from "../pdf/pdf-upload-viewer";
+import StatisticsCards from "./StatisticsCards";
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -9,6 +10,8 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [pdfData, setPdfData] = useState(null);
+  const [isPdfUploaded, setIsPdfUploaded] = useState(false);
   const navigate = useNavigate();
 
   // Fetch user data when component mounts
@@ -17,8 +20,7 @@ const Dashboard = () => {
       try {
         const response = await checkAuth();
         setUser(response.user);
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
+      } catch {
         navigate("/login");
       } finally {
         setUserLoading(false);
@@ -28,6 +30,18 @@ const Dashboard = () => {
     fetchUserData();
   }, [navigate]);
 
+  // Handle PDF upload completion
+  const handlePdfUpload = (data) => {
+    setPdfData(data);
+    setIsPdfUploaded(true);
+  };
+
+  // Handle PDF data clearing
+  const handlePdfClear = () => {
+    setPdfData(null);
+    setIsPdfUploaded(false);
+  };
+
   const handleLogout = async () => {
     setIsLoading(true);
     setError("");
@@ -35,159 +49,231 @@ const Dashboard = () => {
     try {
       await logout();
       navigate("/login");
-    } catch (error) {
+    } catch {
       setError("Logout failed. Please try again.");
-      console.error("Logout error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-gray-50">
+      {/* Header - Full Width */}
+      <header className="bg-white shadow-sm border-b border-gray-200 w-full">
+        <div className="w-full px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo/Title */}
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-purple-600">
-                College Result Portal
-              </h1>
+            {/* Left Section - Logo and Title */}
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Academic Result Portal</h1>
+                <p className="text-sm text-gray-500">Student Performance Management System</p>
+              </div>
             </div>
 
-            {/* User Actions */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700">
-                  {userLoading ? (
-                    "Loading..."
-                  ) : user ? (
-                    `Welcome, ${user.name}!`
-                  ) : (
-                    "Welcome back!"
-                  )}
-                </span>
-              </div>
-              
-              {/* Logout Button */}
+            {/* Center Navigation */}
+            <nav className="hidden md:flex items-center space-x-1">
               <button
-                onClick={handleLogout}
-                disabled={isLoading}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isLoading
-                    ? 'bg-gray-400 cursor-not-allowed text-white'
-                    : 'bg-red-600 hover:bg-red-700 text-white'
+                onClick={() => setActiveSection('dashboard')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  activeSection === 'dashboard' 
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                {isLoading ? "Logging out..." : "Logout"}
+                Dashboard
               </button>
+              <button
+                onClick={() => setActiveSection('pdf-extractor')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  activeSection === 'pdf-extractor' 
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Upload Results
+              </button>
+            </nav>
+
+            {/* Right Section */}
+            <div className="flex items-center space-x-4">
+              {/* Academic Year Badge */}
+              <div className="bg-gradient-to-r from-purple-500 to-blue-600 text-white px-4 py-2 rounded-full">
+                <span className="text-sm font-semibold">Academic Year 2024-25</span>
+              </div>
+              
+              {/* User Profile */}
+              <div className="flex items-center space-x-3">
+                <div className="hidden sm:block text-right">
+                  <p className="text-sm font-medium text-gray-900">{user ? user.name : 'Prem'}</p>
+                  <p className="text-xs text-gray-500">Administrator</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoading}
+                  className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+                  title="Logout"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Error Display */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <span className="text-red-700 text-sm">{error}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation Tabs */}
-        <div className="mb-8">
-          <nav className="flex space-x-4">
+      {/* Mobile Navigation - Full Width */}
+      <div className="md:hidden bg-white border-b border-gray-200 w-full">
+        <div className="w-full px-6">
+          <div className="flex space-x-2 py-3">
             <button
               onClick={() => setActiveSection('dashboard')}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                activeSection === 'dashboard'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                activeSection === 'dashboard' 
+                  ? 'bg-purple-100 text-purple-700' 
+                  : 'text-gray-600 hover:text-gray-900 bg-gray-50'
               }`}
             >
               Dashboard
             </button>
             <button
               onClick={() => setActiveSection('pdf-extractor')}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                activeSection === 'pdf-extractor'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                activeSection === 'pdf-extractor' 
+                  ? 'bg-purple-100 text-purple-700' 
+                  : 'text-gray-600 hover:text-gray-900 bg-gray-50'
               }`}
             >
-              PDF Result Extractor
+              Upload Results
             </button>
-          </nav>
+          </div>
         </div>
+      </div>
+
+      {/* Main Content - Full Width */}
+      <main className="w-full px-6 lg:px-8 py-8">
+        {/* Error Display */}
+        {error && (
+          <div className="mb-8 bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-red-700 text-sm">{error}</span>
+            </div>
+          </div>
+        )}
 
         {/* Content based on active section */}
         {activeSection === 'pdf-extractor' ? (
-          <PDFUploadAndViewer />
+          <PDFUploadAndViewer 
+            onDataExtracted={handlePdfUpload}
+            onClearData={handlePdfClear}
+          />
         ) : (
           <>
             {/* Loading State */}
             {userLoading ? (
-              <div className="space-y-6">
-                <div className="bg-white rounded-lg shadow p-8 mb-8">
+              <div className="space-y-8">
+                <div className="bg-white rounded-xl shadow-sm p-8">
                   <div className="text-center">
-                    <div className="animate-pulse">
+                    <div className="animate-pulse space-y-4">
                       <div className="h-8 bg-gray-200 rounded mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                        {[...Array(4)].map((_, i) => (
+                          <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <>
-                {/* Welcome Section */}
-                <div className="bg-white rounded-lg shadow p-8 mb-8">
-                  <div className="text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      {user ? (
-                        `Welcome back, ${user.name}!`
-                      ) : (
-                        "Welcome to Your Dashboard!"
-                      )}
+              <div className="space-y-8">
+                {/* Welcome Section - Full Width */}
+                <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-8 text-white relative overflow-hidden w-full">
+                  <div className="relative z-10">
+                    <h2 className="text-3xl font-bold mb-3">
+                      Welcome back, {user ? user.name : 'Prem'}! 👋
                     </h2>
-                    <p className="text-gray-600 text-lg">
-                      {user && user.department ? (
-                        `${user.department} Department - Your gateway to automated result management`
-                      ) : (
-                        "Your gateway to automated result management and analysis"
-                      )}
+                    <p className="text-gray-300 text-lg mb-6">
+                      Upload and process student result files with advanced analytics
                     </p>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <button
+                        onClick={() => setActiveSection('pdf-extractor')}
+                        className="bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors inline-flex items-center justify-center"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Upload Results
+                      </button>
+                      <button className="border-2 border-white text-white px-6 py-3 rounded-xl font-semibold hover:bg-white hover:text-gray-900 transition-colors">
+                        View Analytics
+                      </button>
+                    </div>
                   </div>
+                  {/* Decorative circles */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white bg-opacity-5 rounded-full -translate-y-32 translate-x-32"></div>
+                  <div className="absolute bottom-0 right-0 w-32 h-32 bg-white bg-opacity-5 rounded-full translate-y-16 translate-x-16"></div>
                 </div>
 
-                {/* Feature Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {/* Card 1 - PDF Extractor */}
-                  <div 
-                    className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => setActiveSection('pdf-extractor')}
-                  >
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">PDF Result Extractor</h3>
-                    <p className="text-gray-600 text-sm">
-                      Upload and extract structured data from PDF result documents
-                    </p>
+                {/* Statistics Cards - Show after PDF upload */}
+                <StatisticsCards 
+                  pdfData={pdfData} 
+                  isVisible={isPdfUploaded} 
+                />
+
+                {/* Bottom Section - Full Width Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
+                  {/* Upload Center */}
+                  <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-200">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-3">Upload Result Files</h3>
+                      <p className="text-gray-600 mb-6">
+                        Drag and drop your result files here, or click to browse.
+                      </p>
+                      <button
+                        onClick={() => setActiveSection('pdf-extractor')}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                      >
+                        Choose Files to Upload
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Card 2 */}
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Analytics</h3>
-                    <p className="text-gray-600 text-sm">
-                      Generate comprehensive reports and analytics on student performance
-                    </p>
-                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full mt-2 inline-block">
-                      Coming Soon
-                    </span>
+                  {/* Quick Analytics */}
+                  <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-200">
+                    <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Analytics</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
+                        <span className="font-medium text-gray-700">Files Processed Today</span>
+                        <span className="text-2xl font-bold text-blue-600">12</span>
+                      </div>
+                      <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
+                        <span className="font-medium text-gray-700">Success Rate</span>
+                        <span className="text-2xl font-bold text-green-600">98.5%</span>
+                      </div>
+                      <div className="text-center py-6">
+                        <p className="text-gray-500 text-sm">Upload result files to view detailed analytics</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </>
         )}
