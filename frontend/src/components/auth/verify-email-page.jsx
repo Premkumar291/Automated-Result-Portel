@@ -17,9 +17,7 @@ const VerifyEmail = () => {
     setLoading(true);
 
     try {
-      console.log('Starting email verification...');
       const data = await verifyEmail(code);
-      console.log('Verify email response:', data);
       
       if (data.success) {
         setSuccess("Email verified successfully! Redirecting to dashboard...");
@@ -30,7 +28,6 @@ const VerifyEmail = () => {
         setError(data.message || "Verification failed");
       }
     } catch (err) {
-      console.error('Verify email error:', err);
       setError(err.message || "Network error occurred. Please try again.");
     } finally {
       setLoading(false);

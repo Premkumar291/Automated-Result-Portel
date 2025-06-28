@@ -4,52 +4,38 @@ const apiUrl = "http://localhost:8080/api";
 
 // It includes functions for user signup and email verification.
 export const signup = async (formData) => {
-  try {
-    console.log('Sending signup request:', formData);
-    const response = await fetch(`${apiUrl}/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-    
-    const data = await response.json();
-    console.log('Signup response:', data);
-    
-    if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Signup API error:', error);
-    throw error;
+  const response = await fetch(`${apiUrl}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.message || `HTTP error! status: ${response.status}`);
   }
+  
+  return data;
 };
 
 
 // This function sends a request to verify the user's email using a verification code.
 export const login = async (formData) => {
-  try {
-    console.log('Sending login request:', formData);
-    const response = await fetch(`${apiUrl}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // Important for cookies!
-      body: JSON.stringify(formData),
-    });
-    
-    const data = await response.json();
-    console.log('Login response:', data);
-    
-    if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Login API error:', error);
-    throw error;
+  const response = await fetch(`${apiUrl}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // Important for cookies!
+    body: JSON.stringify(formData),
+  });
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.message || `HTTP error! status: ${response.status}`);
   }
+  
+  return data;
 };
 
 export const verifyEmail = async (code) => {
