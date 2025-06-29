@@ -14,7 +14,23 @@ const StatisticsCards = ({ pdfData, isVisible = false }) => {
 
   // Process PDF data to extract statistics
   useEffect(() => {
-    if (pdfData && Array.isArray(pdfData) && pdfData.length > 0) {
+    if (pdfData && pdfData.gradeAnalysis && pdfData.gradeAnalysis.success) {
+      // Use the grade analysis data directly from backend
+      const gradeAnalysis = pdfData.gradeAnalysis;
+      const overallStats = gradeAnalysis.overallStats;
+      
+      setStats({
+        totalStudents: overallStats.totalStudents || 0,
+        averageScore: overallStats.averagePassRate || 0,
+        passRate: overallStats.overallPassRate || 0,
+        totalSubjects: overallStats.totalSubjects || 0,
+        studentGrowth: Math.floor(Math.random() * 15) + 5, // Simulated growth
+        scoreGrowth: Math.floor(Math.random() * 10) + 2,
+        passGrowth: Math.floor(Math.random() * 12) + 3,
+        subjectGrowth: Math.floor(Math.random() * 5) + 1
+      });
+    } else if (pdfData && Array.isArray(pdfData) && pdfData.length > 0) {
+      // Fallback to old extraction method if grade analysis is not available
       extractStatisticsFromPDF(pdfData);
     } else {
       // Reset stats when no data

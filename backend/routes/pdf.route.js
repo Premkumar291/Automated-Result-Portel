@@ -3,6 +3,15 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { uploadAndExtractPDF, getPDFAnalysis } from "../controller/pdf/pdfController.js";
+import { 
+  uploadPDF, 
+  getUserPDFs, 
+  analyzePDF, 
+  updatePDFInfo, 
+  downloadPDF, 
+  deletePDF, 
+  getPDFAnalysis as getPDFAnalysisResult 
+} from "../controller/pdf/pdfManagement.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
@@ -43,8 +52,29 @@ const upload = multer({
   }
 });
 
+// Configure multer for memory storage (for database storage)
+const memoryUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
+
 // Routes
+// Old route (keeping for backward compatibility)
 router.post("/upload", verifyToken, upload.single('pdf'), uploadAndExtractPDF);
+
+// New PDF management routes
+router.post("/save", verifyToken, memoryUpload.single('pdf'), uploadPDF);
+router.get("/list", verifyToken, getUserPDFs);
+router.post("/analyze/:pdfId", verifyToken, analyzePDF);
+router.put("/update/:pdfId", verifyToken, updatePDFInfo);
+router.get("/download/:pdfId", verifyToken, downloadPDF);
+router.delete("/delete/:pdfId", verifyToken, deletePDF);
+router.get("/analysis/:pdfId", verifyToken, getPDFAnalysisResult);
+
+// Analysis capabilities endpoint
 router.get("/analysis", verifyToken, getPDFAnalysis);
 
 // Error handling middleware for multer errors
