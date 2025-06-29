@@ -1,17 +1,18 @@
 {
-  "name": "website",
+  "name": "automated-result-portal",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "backend/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon ./backend/server.js",
-    "start": "node ./backend/server.js"
+    "start": "node ./backend/server.js",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build"
   },
-  "keywords": [],
+  "keywords": ["education", "result-portal", "pdf-analysis", "grade-management"],
   "author": "",
   "type": "module",
   "license": "ISC",
-  "description": "",
+  "description": "Automated College Result Portal with PDF Analysis",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",

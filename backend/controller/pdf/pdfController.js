@@ -61,54 +61,6 @@ export const uploadAndExtractPDF = async (req, res) => {
           gradeAnalysis: gradeAnalysis
         };
         
-        // Log extraction results
-        console.log('Extraction Results:');
-        console.log('- Pages processed:', extractedData.pages?.length || 0);
-        console.log('- Tables found:', extractedData.tables?.length || 0);
-        console.log('- Forms found:', extractedData.forms?.length || 0);
-        console.log('- Full text length:', extractedData.fullText?.length || 0);
-        
-        // Log grade analysis results
-        if (gradeAnalysis.success) {
-          console.log('Grade Analysis Results:');
-          console.log('- Subjects found:', gradeAnalysis.subjects?.length || 0);
-          console.log('- Total records:', gradeAnalysis.totalRecords || 0);
-          console.log('- Overall pass rate:', gradeAnalysis.overallStats?.overallPassRate || 0, '%');
-          
-          // Log subject-wise summary
-          gradeAnalysis.subjects?.forEach(subject => {
-            console.log(`  ${subject.subjectCode}: ${subject.passPercentage}% pass rate (${subject.passedStudents}/${subject.totalStudents})`);
-          });
-        } else {
-          console.log('Grade Analysis Failed:', gradeAnalysis.error);
-        }
-        
-        // Log sample text patterns for debugging table detection
-        if (extractedData.pages && extractedData.pages.length > 0) {
-          const firstPage = extractedData.pages[0];
-          const studentIds = firstPage.texts?.filter(t => /^\d{12}/.test(t.text)) || [];
-          const courseCodes = firstPage.texts?.filter(t => /^[A-Z]{2,3}\d{4}/.test(t.text)) || [];
-          const grades = firstPage.texts?.filter(t => /^[ABCDEFPU][+\-]?$/.test(t.text) || /^UA$/.test(t.text)) || [];
-          const names = firstPage.texts?.filter(t => t.text.length > 2 && /^[A-Z][A-Z\s]*$/.test(t.text)) || [];
-          
-          console.log('Text patterns detected on first page:');
-          console.log('- Student IDs:', studentIds.length, studentIds.slice(0, 3).map(t => `"${t.text}" at (${t.x.toFixed(1)},${t.y.toFixed(1)})`));
-          console.log('- Course codes:', courseCodes.length, courseCodes.slice(0, 5).map(t => `"${t.text}" at (${t.x.toFixed(1)},${t.y.toFixed(1)})`));
-          console.log('- Grades:', grades.length, grades.slice(0, 10).map(t => `"${t.text}" at (${t.x.toFixed(1)},${t.y.toFixed(1)})`));
-          console.log('- Names:', names.length, names.slice(0, 5).map(t => `"${t.text}" at (${t.x.toFixed(1)},${t.y.toFixed(1)})`));
-          
-          // Show table detection results
-          if (extractedData.tables && extractedData.tables.length > 0) {
-            console.log('Table structure created:');
-            extractedData.tables.forEach((table, index) => {
-              console.log(`Table ${index + 1}: ${table.rows?.length || 0} rows, ${table.columns?.length || 0} columns`);
-              if (table.rows && table.rows.length > 0) {
-                console.log('First few rows:', table.rows.slice(0, 3));
-              }
-            });
-          }
-        }
-        
         // Clean up uploaded file
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
