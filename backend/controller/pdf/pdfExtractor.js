@@ -1,5 +1,4 @@
-// Enhanced PDF data extraction and structuring functionality
-// Import modular functions from separate files
+// PDF data extraction and structuring functionality
 export { 
   extractStructuredData,
   detectStructuredContent,

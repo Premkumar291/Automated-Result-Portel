@@ -104,8 +104,8 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Academic Result Portal</h1>
-                <p className="text-sm text-gray-500">Student Performance Management System</p>
+                <h1 className="text-xl font-bold text-gray-900">Result Analysis Portal</h1>
+                <p className="text-sm text-gray-500">Student Performance Analysis System</p>
               </div>
             </div>
 
@@ -129,7 +129,7 @@ const Dashboard = () => {
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                Upload Results
+                Upload & Extract
               </button>
               <button
                 onClick={() => setActiveSection('pdf-management')}
@@ -139,7 +139,7 @@ const Dashboard = () => {
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                Manage PDFs
+                Database PDFs
               </button>
               <button
                 onClick={() => setActiveSection('analysis')}
@@ -149,21 +149,16 @@ const Dashboard = () => {
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                Grade Analysis
+                Statistical Analysis
               </button>
             </nav>
 
             {/* Right Section */}
             <div className="flex items-center space-x-4">
-              {/* Academic Year Badge */}
-              <div className="bg-gradient-to-r from-purple-500 to-blue-600 text-white px-4 py-2 rounded-full">
-                <span className="text-sm font-semibold">Academic Year 2024-25</span>
-              </div>
-              
               {/* User Profile */}
               <div className="flex items-center space-x-3">
                 <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-gray-900">{user ? user.name : 'Prem'}</p>
+                  <p className="text-sm font-medium text-gray-900">{user ? user.name : 'User'}</p>
                   <p className="text-xs text-gray-500">Administrator</p>
                 </div>
                 <button
@@ -204,7 +199,7 @@ const Dashboard = () => {
                   : 'text-gray-600 hover:text-gray-900 bg-gray-50'
               }`}
             >
-              Upload Results
+              Upload & Extract
             </button>
             <button
               onClick={() => setActiveSection('pdf-management')}
@@ -214,7 +209,7 @@ const Dashboard = () => {
                   : 'text-gray-600 hover:text-gray-900 bg-gray-50'
               }`}
             >
-              Manage PDFs
+              Database PDFs
             </button>
             <button
               onClick={() => setActiveSection('analysis')}
@@ -224,7 +219,7 @@ const Dashboard = () => {
                   : 'text-gray-600 hover:text-gray-900 bg-gray-50'
               }`}
             >
-              Grade Analysis
+              Statistical Analysis
             </button>
           </div>
         </div>
@@ -285,10 +280,10 @@ const Dashboard = () => {
                 <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-8 text-white relative overflow-hidden w-full">
                   <div className="relative z-10">
                     <h2 className="text-3xl font-bold mb-3">
-                      Welcome back, {user ? user.name : 'Prem'}! 👋
+                      Welcome back, {user ? user.name : 'User'}! 👋
                     </h2>
                     <p className="text-gray-300 text-lg mb-6">
-                      Upload and process student result files with advanced analytics
+                      Upload and process student result files with statistical analysis
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4">
                       <button
@@ -298,10 +293,13 @@ const Dashboard = () => {
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
-                        Upload Results
+                        Upload & Extract
                       </button>
-                      <button className="border-2 border-white text-white px-6 py-3 rounded-xl font-semibold hover:bg-white hover:text-gray-900 transition-colors">
-                        View Analytics
+                      <button 
+                        onClick={() => setActiveSection('analysis')}
+                        className="border-2 border-white text-white px-6 py-3 rounded-xl font-semibold hover:bg-white hover:text-gray-900 transition-colors"
+                      >
+                        View Analysis
                       </button>
                     </div>
                   </div>
@@ -341,18 +339,22 @@ const Dashboard = () => {
 
                   {/* Quick Analytics */}
                   <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-200">
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Analytics</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Statistics</h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
-                        <span className="font-medium text-gray-700">Files Processed Today</span>
-                        <span className="text-2xl font-bold text-blue-600">12</span>
+                        <span className="font-medium text-gray-700">Files Processed</span>
+                        <span className="text-2xl font-bold text-blue-600">{isPdfUploaded ? '1' : '0'}</span>
                       </div>
                       <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
-                        <span className="font-medium text-gray-700">Success Rate</span>
-                        <span className="text-2xl font-bold text-green-600">98.5%</span>
+                        <span className="font-medium text-gray-700">Analysis Ready</span>
+                        <span className="text-2xl font-bold text-green-600">{gradeAnalysis ? 'Yes' : 'No'}</span>
                       </div>
                       <div className="text-center py-6">
-                        <p className="text-gray-500 text-sm">Upload result files to view detailed analytics</p>
+                        <p className="text-gray-500 text-sm">
+                          {!isPdfUploaded 
+                            ? "Upload result files to view detailed statistics" 
+                            : "Statistical analysis available"}
+                        </p>
                       </div>
                     </div>
                   </div>

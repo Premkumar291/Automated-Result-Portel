@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { uploadPDF } from '../../api/pdf';
 
 const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {

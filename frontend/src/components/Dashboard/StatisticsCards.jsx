@@ -24,10 +24,10 @@ const StatisticsCards = ({ pdfData, isVisible = false }) => {
         averageScore: overallStats.averagePassRate || 0,
         passRate: overallStats.overallPassRate || 0,
         totalSubjects: overallStats.totalSubjects || 0,
-        studentGrowth: Math.floor(Math.random() * 15) + 5, // Simulated growth
-        scoreGrowth: Math.floor(Math.random() * 10) + 2,
-        passGrowth: Math.floor(Math.random() * 12) + 3,
-        subjectGrowth: Math.floor(Math.random() * 5) + 1
+        studentGrowth: 0,
+        scoreGrowth: 0,
+        passGrowth: 0,
+        subjectGrowth: 0
       });
     } else if (pdfData && Array.isArray(pdfData) && pdfData.length > 0) {
       // Fallback to old extraction method if grade analysis is not available
@@ -95,10 +95,10 @@ const StatisticsCards = ({ pdfData, isVisible = false }) => {
         averageScore: parseFloat(averageScore),
         passRate: parseFloat(passRate),
         totalSubjects: subjects.size,
-        studentGrowth: Math.floor(Math.random() * 15) + 5, // Simulated growth
-        scoreGrowth: Math.floor(Math.random() * 10) + 2,
-        passGrowth: Math.floor(Math.random() * 12) + 3,
-        subjectGrowth: Math.floor(Math.random() * 5) + 1
+        studentGrowth: 0,
+        scoreGrowth: 0,
+        passGrowth: 0,
+        subjectGrowth: 0
       });
     } catch (error) {
       console.error('Error processing PDF data:', error);
@@ -112,9 +112,11 @@ const StatisticsCards = ({ pdfData, isVisible = false }) => {
         <div className={`w-12 h-12 rounded-2xl ${bgColor} flex items-center justify-center shadow-lg`}>
           {icon}
         </div>
-        <div className={`text-sm font-bold ${color} bg-green-50 px-2 py-1 rounded-full`}>
-          +{growth}%
-        </div>
+        {growth > 0 && (
+          <div className={`text-sm font-bold ${color} bg-green-50 px-2 py-1 rounded-full`}>
+            +{growth}%
+          </div>
+        )}
       </div>
       <div>
         <p className="text-sm text-gray-500 mb-1">{title}</p>
