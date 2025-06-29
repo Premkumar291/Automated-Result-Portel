@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import PDFParser from 'pdf2json';
 import { extractStructuredData } from './pdfExtractor.js';
+import GradeAnalyzer from './gradeAnalyzer.js';
 
 // Main PDF upload and processing endpoint
 export const uploadAndExtractPDF = async (req, res) => {
@@ -50,12 +51,37 @@ export const uploadAndExtractPDF = async (req, res) => {
         // Extract structured data using the modular extractor
         const extractedData = extractStructuredData(pdfData);
         
+        // Perform grade analysis
+        const gradeAnalyzer = new GradeAnalyzer();
+        const gradeAnalysis = gradeAnalyzer.analyzeGrades(extractedData);
+        
+        // Combine extracted data with grade analysis
+        const completeData = {
+          ...extractedData,
+          gradeAnalysis: gradeAnalysis
+        };
+        
         // Log extraction results
         console.log('Extraction Results:');
         console.log('- Pages processed:', extractedData.pages?.length || 0);
         console.log('- Tables found:', extractedData.tables?.length || 0);
         console.log('- Forms found:', extractedData.forms?.length || 0);
         console.log('- Full text length:', extractedData.fullText?.length || 0);
+        
+        // Log grade analysis results
+        if (gradeAnalysis.success) {
+          console.log('Grade Analysis Results:');
+          console.log('- Subjects found:', gradeAnalysis.subjects?.length || 0);
+          console.log('- Total records:', gradeAnalysis.totalRecords || 0);
+          console.log('- Overall pass rate:', gradeAnalysis.overallStats?.overallPassRate || 0, '%');
+          
+          // Log subject-wise summary
+          gradeAnalysis.subjects?.forEach(subject => {
+            console.log(`  ${subject.subjectCode}: ${subject.passPercentage}% pass rate (${subject.passedStudents}/${subject.totalStudents})`);
+          });
+        } else {
+          console.log('Grade Analysis Failed:', gradeAnalysis.error);
+        }
         
         // Log sample text patterns for debugging table detection
         if (extractedData.pages && extractedData.pages.length > 0) {
@@ -91,7 +117,7 @@ export const uploadAndExtractPDF = async (req, res) => {
         res.json({
           success: true,
           message: 'PDF processed successfully',
-          data: extractedData,
+          data: completeData,
           fileInfo: {
             originalName: req.file.originalname,
             size: req.file.size,

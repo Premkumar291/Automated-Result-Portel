@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout, checkAuth } from "../../api/auth";
+import { getPDFAnalysis } from "../../api/pdf";
 import PDFUploadAndViewer from "../pdf/pdf-upload-viewer";
 import StatisticsCards from "./StatisticsCards";
+import SubjectAnalysis from "./SubjectAnalysis";
+import PDFManagement from "./PDFManagement";
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +15,8 @@ const Dashboard = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [pdfData, setPdfData] = useState(null);
   const [isPdfUploaded, setIsPdfUploaded] = useState(false);
+  const [gradeAnalysis, setGradeAnalysis] = useState(null);
+  const [selectedPDFId, setSelectedPDFId] = useState(null);
   const navigate = useNavigate();
 
   // Fetch user data when component mounts
@@ -34,12 +39,41 @@ const Dashboard = () => {
   const handlePdfUpload = (data) => {
     setPdfData(data);
     setIsPdfUploaded(true);
+    
+    // Extract grade analysis if available
+    if (data && data.gradeAnalysis) {
+      setGradeAnalysis(data.gradeAnalysis);
+    }
+  };
+
+  // Handle PDF selection from management component
+  const handlePDFSelection = async (pdfData) => {
+    if (pdfData && pdfData.id) {
+      // If it's a PDF object with ID, fetch its analysis
+      try {
+        const response = await getPDFAnalysis(pdfData.id);
+        setGradeAnalysis(response.gradeAnalysis);
+        setPdfData(response.extractedData);
+        setIsPdfUploaded(true);
+        setSelectedPDFId(pdfData.id);
+        setActiveSection('analysis'); // Auto switch to analysis view
+      } catch (error) {
+        console.error('Failed to load PDF analysis:', error);
+      }
+    } else {
+      // If it's analysis data directly
+      setGradeAnalysis(pdfData);
+      setIsPdfUploaded(true);
+      setActiveSection('analysis'); // Auto switch to analysis view
+    }
   };
 
   // Handle PDF data clearing
   const handlePdfClear = () => {
     setPdfData(null);
     setIsPdfUploaded(false);
+    setGradeAnalysis(null);
+    setSelectedPDFId(null);
   };
 
   const handleLogout = async () => {
@@ -97,6 +131,26 @@ const Dashboard = () => {
               >
                 Upload Results
               </button>
+              <button
+                onClick={() => setActiveSection('pdf-management')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  activeSection === 'pdf-management' 
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Manage PDFs
+              </button>
+              <button
+                onClick={() => setActiveSection('analysis')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  activeSection === 'analysis' 
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Grade Analysis
+              </button>
             </nav>
 
             {/* Right Section */}
@@ -131,10 +185,10 @@ const Dashboard = () => {
       {/* Mobile Navigation - Full Width */}
       <div className="md:hidden bg-white border-b border-gray-200 w-full">
         <div className="w-full px-6">
-          <div className="flex space-x-2 py-3">
+          <div className="flex space-x-2 py-3 overflow-x-auto">
             <button
               onClick={() => setActiveSection('dashboard')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
                 activeSection === 'dashboard' 
                   ? 'bg-purple-100 text-purple-700' 
                   : 'text-gray-600 hover:text-gray-900 bg-gray-50'
@@ -144,13 +198,33 @@ const Dashboard = () => {
             </button>
             <button
               onClick={() => setActiveSection('pdf-extractor')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
                 activeSection === 'pdf-extractor' 
                   ? 'bg-purple-100 text-purple-700' 
                   : 'text-gray-600 hover:text-gray-900 bg-gray-50'
               }`}
             >
               Upload Results
+            </button>
+            <button
+              onClick={() => setActiveSection('pdf-management')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+                activeSection === 'pdf-management' 
+                  ? 'bg-purple-100 text-purple-700' 
+                  : 'text-gray-600 hover:text-gray-900 bg-gray-50'
+              }`}
+            >
+              Manage PDFs
+            </button>
+            <button
+              onClick={() => setActiveSection('analysis')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+                activeSection === 'analysis' 
+                  ? 'bg-purple-100 text-purple-700' 
+                  : 'text-gray-600 hover:text-gray-900 bg-gray-50'
+              }`}
+            >
+              Grade Analysis
             </button>
           </div>
         </div>
@@ -175,6 +249,16 @@ const Dashboard = () => {
           <PDFUploadAndViewer 
             onDataExtracted={handlePdfUpload}
             onClearData={handlePdfClear}
+          />
+        ) : activeSection === 'pdf-management' ? (
+          <PDFManagement 
+            onPDFSelect={handlePDFSelection}
+            selectedPDFId={selectedPDFId}
+          />
+        ) : activeSection === 'analysis' ? (
+          <SubjectAnalysis 
+            gradeAnalysis={gradeAnalysis}
+            isVisible={isPdfUploaded}
           />
         ) : (
           <>

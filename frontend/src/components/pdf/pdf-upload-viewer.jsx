@@ -63,11 +63,10 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
       setActiveMainTab('results');
       setActiveDataTab('overview'); // Set default data tab
       
-      // Call the onDataExtracted callback with processed data
-      if (onDataExtracted && result.data && result.data.tables) {
-        // Extract student data from tables for statistics
-        const studentData = extractStudentDataFromTables(result.data.tables);
-        onDataExtracted(studentData);
+      // Call the onDataExtracted callback with complete data (including grade analysis)
+      if (onDataExtracted && result.data) {
+        // Pass the complete data structure to the dashboard
+        onDataExtracted(result.data);
       }
     } catch (error) {
       setError(error.message || 'Failed to process PDF');
@@ -92,8 +91,8 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
     }
   };
 
-  // Extract student data from tables for statistics
-  const extractStudentDataFromTables = (tables) => {
+  // Extract student data from tables for statistics (unused - keeping for reference)
+  const _extractStudentDataFromTables = (tables) => {
     const studentData = [];
     
     if (!tables || tables.length === 0) return studentData;
@@ -106,7 +105,7 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
         dataRows.forEach((row, rowIndex) => {
           if (row && row.length > 0) {
             // Try to extract student information from the row
-            const studentInfo = extractStudentInfoFromRow(row, tableIndex, rowIndex);
+            const studentInfo = _extractStudentInfoFromRow(row, tableIndex, rowIndex);
             if (studentInfo) {
               studentData.push(studentInfo);
             }
@@ -118,8 +117,8 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
     return studentData;
   };
 
-  // Extract student information from a table row
-  const extractStudentInfoFromRow = (row, tableIndex, rowIndex) => {
+  // Extract student information from a table row (unused - keeping for reference)
+  const _extractStudentInfoFromRow = (row, tableIndex, rowIndex) => {
     // Common patterns for student data in result sheets
     let studentId = null;
     let name = null;
