@@ -62,12 +62,24 @@ const pdfSchema = new mongoose.Schema({
     default: null
   },
   
-  // Analysis metadata
+  // Storage and Processing metadata
+  isStored: {
+    type: Boolean,
+    default: false // Initially not stored in database
+  },
+  isProcessed: {
+    type: Boolean,
+    default: false // Renamed from isAnalyzed for better clarity
+  },
   isAnalyzed: {
     type: Boolean,
-    default: false
+    default: false // Keep for backward compatibility
   },
   lastAnalyzed: {
+    type: Date,
+    default: null
+  },
+  lastProcessed: {
     type: Date,
     default: null
   },
@@ -83,8 +95,13 @@ const pdfSchema = new mongoose.Schema({
   // Status and flags
   status: {
     type: String,
-    enum: ['uploaded', 'analyzing', 'analyzed', 'error'],
+    enum: ['uploaded', 'processing', 'processed', 'analyzing', 'analyzed', 'error'],
     default: 'uploaded'
+  },
+  processingStatus: {
+    type: String,
+    enum: ['pending', 'processing', 'completed', 'failed'],
+    default: 'pending'
   },
   errorMessage: {
     type: String,
@@ -97,6 +114,10 @@ const pdfSchema = new mongoose.Schema({
 // Index for better query performance
 pdfSchema.index({ uploadedBy: 1, uploadDate: -1 });
 pdfSchema.index({ uploadedBy: 1, filename: 1 });
+pdfSchema.index({ uploadedBy: 1, isStored: 1 });
+pdfSchema.index({ uploadedBy: 1, isProcessed: 1 });
+pdfSchema.index({ uploadedBy: 1, status: 1 });
+pdfSchema.index({ uploadedBy: 1, processingStatus: 1 });
 
 // Virtual for file size formatting
 pdfSchema.virtual('formattedSize').get(function() {
@@ -113,8 +134,11 @@ pdfSchema.methods.updateAnalysis = function(extractedData, gradeAnalysis) {
   this.extractedData = extractedData;
   this.gradeAnalysis = gradeAnalysis;
   this.isAnalyzed = true;
+  this.isProcessed = true;
   this.lastAnalyzed = new Date();
+  this.lastProcessed = new Date();
   this.status = gradeAnalysis.success ? 'analyzed' : 'error';
+  this.processingStatus = gradeAnalysis.success ? 'completed' : 'failed';
   
   if (gradeAnalysis.success && gradeAnalysis.overallStats) {
     this.statistics = {
@@ -127,6 +151,31 @@ pdfSchema.methods.updateAnalysis = function(extractedData, gradeAnalysis) {
   
   if (!gradeAnalysis.success) {
     this.errorMessage = gradeAnalysis.error || 'Analysis failed';
+  }
+  
+  return this.save();
+};
+
+// Method to mark PDF as stored in database
+pdfSchema.methods.markAsStored = function() {
+  this.isStored = true;
+  this.lastModified = new Date();
+  return this.save();
+};
+
+// Method to update processing status
+pdfSchema.methods.updateProcessingStatus = function(status, errorMessage = null) {
+  this.processingStatus = status;
+  this.lastProcessed = new Date();
+  
+  if (status === 'processing') {
+    this.status = 'processing';
+  } else if (status === 'completed') {
+    this.status = 'processed';
+    this.isProcessed = true;
+  } else if (status === 'failed') {
+    this.status = 'error';
+    this.errorMessage = errorMessage || 'Processing failed';
   }
   
   return this.save();
@@ -148,11 +197,47 @@ pdfSchema.statics.findByUser = function(userId, options = {}) {
     query.where('isAnalyzed').equals(options.analyzed);
   }
   
+  if (options.processed !== undefined) {
+    query.where('isProcessed').equals(options.processed);
+  }
+  
+  if (options.stored !== undefined) {
+    query.where('isStored').equals(options.stored);
+  }
+  
   if (options.status) {
     query.where('status').equals(options.status);
   }
   
+  if (options.processingStatus) {
+    query.where('processingStatus').equals(options.processingStatus);
+  }
+  
   return query.sort({ uploadDate: -1 });
+};
+
+// Static method to find stored PDFs only
+pdfSchema.statics.findStoredByUser = function(userId) {
+  return this.find({ 
+    uploadedBy: userId, 
+    isStored: true 
+  }).sort({ uploadDate: -1 });
+};
+
+// Static method to get PDF statistics for user
+pdfSchema.statics.getUserStats = function(userId) {
+  return this.aggregate([
+    { $match: { uploadedBy: mongoose.Types.ObjectId(userId), isStored: true } },
+    {
+      $group: {
+        _id: null,
+        totalPDFs: { $sum: 1 },
+        processedPDFs: { $sum: { $cond: ['$isProcessed', 1, 0] } },
+        analyzedPDFs: { $sum: { $cond: ['$isAnalyzed', 1, 0] } },
+        totalSize: { $sum: '$fileSize' }
+      }
+    }
+  ]);
 };
 
 const PDF = mongoose.model('PDF', pdfSchema);

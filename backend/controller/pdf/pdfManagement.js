@@ -354,3 +354,287 @@ export const getPDFAnalysis = async (req, res) => {
     });
   }
 };
+
+// NEW ENDPOINTS FOR ENHANCED WORKFLOW
+
+// Process PDF without storing (temporary processing)
+export const processPDFTemporary = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No PDF file uploaded'
+      });
+    }
+
+    // Validate file type
+    if (req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only PDF files are allowed'
+      });
+    }
+
+    const userId = req.user.id;
+    const fileData = req.file.buffer;
+
+    // Create temporary PDF document (not stored)
+    const tempPDF = {
+      filename: req.body.filename || req.file.originalname,
+      originalName: req.file.originalname,
+      description: req.body.description || '',
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+      fileData: fileData,
+      uploadedBy: userId,
+      status: 'processing',
+      processingStatus: 'processing',
+      isStored: false,
+      uploadDate: new Date()
+    };
+
+    // Process the PDF
+    const pdfParser = new PDFParser();
+    
+    return new Promise((resolve, reject) => {
+      pdfParser.on("pdfParser_dataError", (errData) => {
+        console.error('PDF parsing error:', errData.parserError);
+        res.status(500).json({
+          success: false,
+          message: 'Error parsing PDF file',
+          error: errData.parserError
+        });
+      });
+
+      pdfParser.on("pdfParser_dataReady", async (pdfData) => {
+        try {
+          // Extract structured data
+          const extractedData = extractStructuredData(pdfData);
+          
+          // Perform grade analysis
+          const gradeAnalyzer = new GradeAnalyzer();
+          const gradeAnalysis = gradeAnalyzer.analyzeGrades(extractedData);
+          
+          // Update temp PDF with results
+          tempPDF.extractedData = extractedData;
+          tempPDF.gradeAnalysis = gradeAnalysis;
+          tempPDF.status = gradeAnalysis.success ? 'processed' : 'error';
+          tempPDF.processingStatus = gradeAnalysis.success ? 'completed' : 'failed';
+          tempPDF.isProcessed = gradeAnalysis.success;
+          
+          if (!gradeAnalysis.success) {
+            tempPDF.errorMessage = gradeAnalysis.error || 'Processing failed';
+          }
+
+          res.json({
+            success: true,
+            message: 'PDF processed successfully (not stored)',
+            data: {
+              tempId: `temp_${Date.now()}_${userId}`, // Temporary ID for frontend tracking
+              ...tempPDF,
+              extractedData,
+              gradeAnalysis,
+              fileInfo: {
+                originalName: req.file.originalname,
+                size: req.file.size,
+                processedDate: new Date().toISOString()
+              }
+            }
+          });
+        } catch (error) {
+          console.error('Error processing PDF:', error);
+          res.status(500).json({
+            success: false,
+            message: 'Error processing PDF',
+            error: error.message
+          });
+        }
+      });
+
+      // Parse PDF from buffer
+      pdfParser.parseBuffer(fileData);
+    });
+
+  } catch (error) {
+    console.error('Process PDF temporary error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during PDF processing',
+      error: error.message
+    });
+  }
+};
+
+// Store processed PDF in database
+export const storePDFInDatabase = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { 
+      tempId, 
+      filename, 
+      originalName, 
+      description, 
+      fileSize, 
+      mimeType, 
+      fileData, 
+      extractedData, 
+      gradeAnalysis,
+      statistics 
+    } = req.body;
+
+    if (!fileData || !extractedData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required PDF data for storage'
+      });
+    }
+
+    // Create and save PDF document in database
+    const pdfDoc = new PDF({
+      filename: filename || originalName,
+      originalName,
+      description: description || '',
+      fileSize,
+      mimeType,
+      fileData: Buffer.from(fileData, 'base64'), // Convert base64 back to buffer
+      uploadedBy: userId,
+      extractedData,
+      gradeAnalysis,
+      statistics: statistics || {},
+      status: 'analyzed',
+      processingStatus: 'completed',
+      isStored: true,
+      isProcessed: true,
+      isAnalyzed: true,
+      lastProcessed: new Date(),
+      lastAnalyzed: new Date()
+    });
+
+    await pdfDoc.save();
+
+    res.json({
+      success: true,
+      message: 'PDF stored in database successfully',
+      pdf: {
+        id: pdfDoc._id,
+        filename: pdfDoc.filename,
+        originalName: pdfDoc.originalName,
+        description: pdfDoc.description,
+        fileSize: pdfDoc.fileSize,
+        uploadDate: pdfDoc.uploadDate,
+        status: pdfDoc.status,
+        processingStatus: pdfDoc.processingStatus,
+        isStored: pdfDoc.isStored,
+        isProcessed: pdfDoc.isProcessed,
+        statistics: pdfDoc.statistics
+      }
+    });
+
+  } catch (error) {
+    console.error('Store PDF error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to store PDF in database',
+      error: error.message
+    });
+  }
+};
+
+// Get stored PDFs for user
+export const getStoredPDFs = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 10, status, processingStatus } = req.query;
+
+    const options = { 
+      stored: true // Only get stored PDFs
+    };
+    
+    if (status) options.status = status;
+    if (processingStatus) options.processingStatus = processingStatus;
+
+    const pdfs = await PDF.findByUser(userId, options)
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select('-fileData') // Exclude file data for performance
+      .lean();
+
+    const totalCount = await PDF.countDocuments({ 
+      uploadedBy: userId, 
+      isStored: true 
+    });
+
+    // Get user statistics
+    const stats = await PDF.getUserStats(userId);
+
+    res.json({
+      success: true,
+      message: 'Stored PDFs retrieved successfully',
+      data: {
+        pdfs,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(totalCount / limit),
+          totalCount,
+          hasNext: page * limit < totalCount,
+          hasPrev: page > 1
+        },
+        statistics: stats[0] || {
+          totalPDFs: 0,
+          processedPDFs: 0,
+          analyzedPDFs: 0,
+          totalSize: 0
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get stored PDFs error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve stored PDFs',
+      error: error.message
+    });
+  }
+};
+
+// Get processing status of a PDF
+export const getPDFProcessingStatus = async (req, res) => {
+  try {
+    const { pdfId } = req.params;
+    const userId = req.user.id;
+
+    const pdf = await PDF.findOne({ 
+      _id: pdfId, 
+      uploadedBy: userId 
+    }).select('status processingStatus isProcessed isStored errorMessage lastProcessed');
+
+    if (!pdf) {
+      return res.status(404).json({
+        success: false,
+        message: 'PDF not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: pdf._id,
+        status: pdf.status,
+        processingStatus: pdf.processingStatus,
+        isProcessed: pdf.isProcessed,
+        isStored: pdf.isStored,
+        errorMessage: pdf.errorMessage,
+        lastProcessed: pdf.lastProcessed
+      }
+    });
+
+  } catch (error) {
+    console.error('Get PDF status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get PDF status',
+      error: error.message
+    });
+  }
+};
