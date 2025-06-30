@@ -5,7 +5,7 @@ import { getPDFAnalysis } from "../../api/pdf";
 import PDFUploadAndViewer from "../pdf/pdf-upload-viewer";
 import StatisticsCards from "./StatisticsCards";
 import SubjectAnalysis from "./SubjectAnalysis";
-import PDFManagement from "./PDFManagement";
+import PDFManagement from "../pdf/PDFManagement";
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
