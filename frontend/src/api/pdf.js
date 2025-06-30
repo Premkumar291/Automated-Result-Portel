@@ -228,3 +228,104 @@ export const getPDFAnalysisCapabilities = async () => {
     throw error;
   }
 };
+
+// Enhanced workflow APIs
+
+// Process PDF temporarily (upload and process without storing)
+export const processPDFTemporary = async (file, filename = '', description = '') => {
+  try {
+    const formData = new FormData();
+    formData.append('pdf', file);
+    formData.append('filename', filename || file.name);
+    formData.append('description', description);
+
+    const response = await fetch(`${API_URL}/pdf/process-temporary`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to process PDF');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('PDF temporary processing error:', error);
+    throw error;
+  }
+};
+
+// Store processed PDF in database
+export const storePDFInDatabase = async (pdfId) => {
+  try {
+    const response = await fetch(`${API_URL}/pdf/store/${pdfId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to store PDF in database');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Store PDF error:', error);
+    throw error;
+  }
+};
+
+// Get stored PDFs only
+export const getStoredPDFs = async () => {
+  try {
+    const response = await fetch(`${API_URL}/pdf/stored`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch stored PDFs');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Get stored PDFs error:', error);
+    throw error;
+  }
+};
+
+// Get PDF processing status
+export const getPDFProcessingStatus = async (pdfId) => {
+  try {
+    const response = await fetch(`${API_URL}/pdf/status/${pdfId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to get PDF processing status');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Get PDF status error:', error);
+    throw error;
+  }
+};

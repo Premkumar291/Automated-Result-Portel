@@ -10,7 +10,11 @@ import {
   updatePDFInfo, 
   downloadPDF, 
   deletePDF, 
-  getPDFAnalysis as getPDFAnalysisResult 
+  getPDFAnalysis as getPDFAnalysisResult,
+  processPDFTemporary,
+  storePDFInDatabase,
+  getStoredPDFs,
+  getPDFProcessingStatus
 } from "../controller/pdf/pdfManagement.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -73,6 +77,12 @@ router.put("/update/:pdfId", verifyToken, updatePDFInfo);
 router.get("/download/:pdfId", verifyToken, downloadPDF);
 router.delete("/delete/:pdfId", verifyToken, deletePDF);
 router.get("/analysis/:pdfId", verifyToken, getPDFAnalysisResult);
+
+// New enhanced workflow routes
+router.post("/process-temporary", verifyToken, memoryUpload.single('pdf'), processPDFTemporary);
+router.post("/store/:pdfId", verifyToken, storePDFInDatabase);
+router.get("/stored", verifyToken, getStoredPDFs);
+router.get("/status/:pdfId", verifyToken, getPDFProcessingStatus);
 
 // Analysis capabilities endpoint
 router.get("/analysis", verifyToken, getPDFAnalysis);

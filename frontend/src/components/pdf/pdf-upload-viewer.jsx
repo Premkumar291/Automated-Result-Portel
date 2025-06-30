@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { uploadPDF } from '../../api/pdf';
+import { useState, useRef, useEffect } from 'react';
+import { uploadPDF, processPDFTemporary, storePDFInDatabase, getPDFProcessingStatus, getStoredPDFs, deletePDF, analyzePDF, getPDFAnalysis } from '../../api/pdf';
 
 const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -8,6 +8,13 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
   const [error, setError] = useState(null);
   const [activeMainTab, setActiveMainTab] = useState('upload');
   const [activeDataTab, setActiveDataTab] = useState('overview');
+  const [showStorageDialog, setShowStorageDialog] = useState(false);
+  const [currentPDFId, setCurrentPDFId] = useState(null);
+  const [processingStatus, setProcessingStatus] = useState(null);
+  const [storedPDFs, setStoredPDFs] = useState([]);
+  const [isLoadingStored, setIsLoadingStored] = useState(false);
+  const [viewingPDF, setViewingPDF] = useState(null);
+  const [reprocessingId, setReprocessingId] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleFileSelect = (event) => {
@@ -48,24 +55,29 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
     }
   };
 
+  // Enhanced upload handler using processPDFTemporary
   const handleUpload = async () => {
     if (!selectedFile) {
       setError('Please select a PDF file first');
       return;
     }
-
     setIsUploading(true);
     setError(null);
-
+    setExtractedData(null);
+    setProcessingStatus(null);
+    setCurrentPDFId(null);
     try {
-      const result = await uploadPDF(selectedFile);
-      setExtractedData(result.data);
+      // Step 1: Process PDF temporarily
+      const result = await processPDFTemporary(selectedFile);
+      if (result && result.pdfId) {
+        setCurrentPDFId(result.pdfId);
+      }
+      setExtractedData(result.data || result.extractedData || null);
       setActiveMainTab('results');
-      setActiveDataTab('overview'); // Set default data tab
-      
-      // Call the onDataExtracted callback with complete data (including grade analysis)
+      setActiveDataTab('overview');
+      // Show dialog to ask if user wants to store
+      setShowStorageDialog(true);
       if (onDataExtracted && result.data) {
-        // Pass the complete data structure to the dashboard
         onDataExtracted(result.data);
       }
     } catch (error) {
@@ -73,6 +85,28 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Store PDF in database after user confirmation
+  const handleStorePDF = async () => {
+    if (!currentPDFId) return;
+    setIsUploading(true);
+    setError(null);
+    try {
+      await storePDFInDatabase(currentPDFId);
+      setShowStorageDialog(false);
+      await fetchStoredPDFs(); // Refresh list
+    } catch (error) {
+      setError(error.message || 'Failed to store PDF');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Cancel storing PDF
+  const handleCancelStore = () => {
+    setShowStorageDialog(false);
+    setCurrentPDFId(null);
   };
 
   const resetUpload = () => {
@@ -358,6 +392,89 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
         ))}
       </div>
     );
+  };
+
+  // Poll for processing status if a PDF is being processed
+  useEffect(() => {
+    let intervalId;
+    if (currentPDFId && isUploading) {
+      intervalId = setInterval(async () => {
+        try {
+          const statusResult = await getPDFProcessingStatus(currentPDFId);
+          setProcessingStatus(statusResult.processingStatus || statusResult.status || 'processing');
+        } catch (e) {
+          // Ignore polling errors
+        }
+      }, 1500);
+    } else {
+      setProcessingStatus(null);
+    }
+    return () => intervalId && clearInterval(intervalId);
+  }, [currentPDFId, isUploading]);
+
+  // Fetch stored PDFs
+  const fetchStoredPDFs = async () => {
+    setIsLoadingStored(true);
+    try {
+      const data = await getStoredPDFs();
+      setStoredPDFs(data.pdfs || []);
+    } catch (err) {
+      // Optionally handle error
+    } finally {
+      setIsLoadingStored(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStoredPDFs();
+  }, []);
+
+  // View PDF handler
+  const handleViewPDF = async (pdfId) => {
+    setIsUploading(true);
+    setError(null);
+    try {
+      const result = await getPDFAnalysis(pdfId);
+      setExtractedData(result.data || result.extractedData || null);
+      setActiveMainTab('results');
+      setActiveDataTab('overview');
+      setViewingPDF(pdfId);
+      if (onDataExtracted && result.data) {
+        onDataExtracted(result.data);
+      }
+    } catch (error) {
+      setError(error.message || 'Failed to load PDF analysis');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Re-process PDF handler
+  const handleReprocessPDF = async (pdfId) => {
+    setReprocessingId(pdfId);
+    setError(null);
+    try {
+      await analyzePDF(pdfId);
+      await fetchStoredPDFs(); // Refresh list
+    } catch (error) {
+      setError(error.message || 'Failed to re-process PDF');
+    } finally {
+      setReprocessingId(null);
+    }
+  };
+
+  // Delete PDF handler
+  const handleDeletePDF = async (pdfId) => {
+    setIsUploading(true);
+    setError(null);
+    try {
+      await deletePDF(pdfId);
+      await fetchStoredPDFs();
+    } catch (error) {
+      setError(error.message || 'Failed to delete PDF');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -951,6 +1068,72 @@ const PDFUploadAndViewer = ({ onDataExtracted, onClearData }) => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Processing Status Indicator */}
+      {processingStatus && isUploading && (
+        <div className="flex items-center space-x-2 mb-4">
+          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-blue-700 font-medium">Processing Status: {processingStatus}</span>
+        </div>
+      )}
+
+      {/* Storage Confirmation Dialog */}
+      {showStorageDialog && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-semibold mb-4">Store PDF in Database?</h3>
+            <p className="text-gray-700 text-sm mb-6">
+              Do you want to store this PDF and its extracted data in your account?
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={handleStorePDF}
+                disabled={isUploading}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {isUploading ? 'Storing...' : 'Yes, Store'}
+              </button>
+              <button
+                onClick={handleCancelStore}
+                disabled={isUploading}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              >
+                No, Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Previously Uploaded PDFs Section */}
+      <div className="mt-10">
+        <h2 className="text-xl font-semibold mb-4">Previously Uploaded PDFs</h2>
+        {isLoadingStored ? (
+          <div>Loading...</div>
+        ) : storedPDFs.length === 0 ? (
+          <div className="text-gray-500">No PDFs uploaded yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {storedPDFs.map((pdf) => (
+              <div key={pdf._id} className="bg-white rounded-lg shadow p-4 flex flex-col space-y-2 border">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium text-blue-800 truncate max-w-xs">{pdf.filename}</div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${pdf.isProcessed ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{pdf.isProcessed ? 'Processed' : 'Pending'}</span>
+                </div>
+                <div className="text-xs text-gray-500">Uploaded: {new Date(pdf.createdAt).toLocaleString()}</div>
+                <div className="flex space-x-2 mt-2">
+                  <button onClick={() => handleViewPDF(pdf._id)} className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">View</button>
+                  <button onClick={() => handleReprocessPDF(pdf._id)} disabled={reprocessingId === pdf._id} className="px-2 py-1 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600 disabled:bg-gray-300">{reprocessingId === pdf._id ? 'Re-processing...' : 'Re-process'}</button>
+                  <button onClick={() => handleDeletePDF(pdf._id)} className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
