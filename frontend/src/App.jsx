@@ -1,10 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import LoginPage from "./components/auth/login-page";
-import SignupPage from "./components/auth/signup-page";
-import Dashboard from "./components/Dashboard/dashboard";
-import VerifyEmail from "./components/auth/verify-email-page";
-import ForgotPassword from "./components/auth/forgot-password"; // Add this import
-import PageNotFound from "./components/pagenotfound/page-not-found";
+import { 
+  LoginPage, 
+  SignupPage, 
+  VerifyEmailPage, 
+  ForgotPassword,
+  Dashboard,
+  PageNotFound 
+} from "./components";
 
 // Layout wrapper component that applies different styles based on route
 function AppLayout({ children }) {
@@ -39,7 +41,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
