@@ -160,7 +160,7 @@ export const login = async (req,res) => {
             });
         }
 
-        const user = await User.findOne({email});
+        const user = await User.findOne({email}).maxTimeMS(5000);
         if (!user) {
             console.log('User not found:', email);
             return res.status(400).json({ 
@@ -198,7 +198,7 @@ export const login = async (req,res) => {
         }
 
         user.lastLogin = Date.now();
-        await user.save();
+        await user.save({ maxTimeMS: 5000 });
 
         console.log('Login successful for user:', email);
 
@@ -385,13 +385,34 @@ export const resetPassword = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
     try {
-        const user = await User.findById(req.userId);
+        console.log('checkAuth called, req.userId:', req.userId);
+        console.log('checkAuth called, req.user:', req.user);
+        
+        // Use userId from either req.userId or req.user.userId
+        const userId = req.userId || (req.user && req.user.userId);
+        
+        if (!userId) {
+            console.error('No userId found in request');
+            return res.status(401).json({ 
+                success: false, 
+                message: "Authentication required - no userId" 
+            });
+        }
+
+        console.log('Finding user by ID:', userId);
+        
+        // Add timeout to the database query
+        const user = await User.findById(userId).maxTimeMS(5000);
+        
         if (!user) {
+            console.log('User not found for ID:', userId);
             return res.status(404).json({ 
                 success: false, 
                 message: "User not found" 
             });
         }
+
+        console.log('User found successfully:', user.email);
 
         res.status(200).json({
             success: true,
@@ -407,6 +428,15 @@ export const checkAuth = async (req, res) => {
 
     } catch (error) {
         console.error("Error during auth check:", error);
+        
+        // Specific handling for timeout errors
+        if (error.name === 'MongooseError' && error.message.includes('timeout')) {
+            return res.status(503).json({ 
+                success: false, 
+                message: "Database connection timeout. Please try again." 
+            });
+        }
+        
         res.status(500).json({ 
             success: false, 
             message: "Internal server error" 

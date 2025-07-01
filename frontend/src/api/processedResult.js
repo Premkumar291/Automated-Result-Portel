@@ -2,22 +2,56 @@
 const API_URL = "http://localhost:8080/api";
 
 export const uploadAndExtractPDF = async (file) => {
-  const formData = new FormData();
-  formData.append('pdfFile', file);
+  console.log('🚀 Starting PDF upload...');
+  console.log('📄 File:', file.name, file.size, 'bytes');
+  console.log('🔗 API URL:', `${API_URL}/processed-results/upload-extract`);
 
-  const response = await fetch(`${API_URL}/processed-results/upload-extract`, {
-    method: "POST",
-    credentials: "include",
-    body: formData,
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+  try {
+    const formData = new FormData();
+    formData.append('pdfFile', file);
+
+    console.log('📡 Sending request to backend...');
+    
+    const response = await fetch(`${API_URL}/processed-results/upload-extract`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+    
+    console.log('📨 Response received:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      console.error('❌ Response not OK:', response.status);
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+        console.error('❌ Error data:', errorData);
+      } catch (jsonError) {
+        console.error('❌ Could not parse error response as JSON:', jsonError);
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    const data = await response.json();
+    console.log('✅ Success! Data received:', data);
+    
+    return data;
+    
+  } catch (error) {
+    console.error('🔥 Upload error details:');
+    console.error('  Error name:', error.name);
+    console.error('  Error message:', error.message);
+    console.error('  Full error:', error);
+    
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080');
+    }
+    
+    throw error;
   }
-  
-  return data;
 };
 
 export const saveProcessedResult = async (tempId, decision) => {

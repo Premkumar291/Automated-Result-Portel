@@ -4,8 +4,10 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
+import resultRoutes from './routes/result.route.js';
+import processedResultRoutes from './routes/processedResult.route.js';
 
-dotenv.config({ path: './.env' });
+dotenv.config({ path: '../.env' });
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -18,12 +20,17 @@ app.use(cors({
   credentials: true
 }));
 
+// In-memory session storage for temporary data (use Redis in production)
+const tempSessionStorage = new Map();
+
 // Routes
 app.get("/", (req, res) => {
   res.send("Server Started successfully!");
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/results", resultRoutes);
+app.use("/api/processed-results", processedResultRoutes);
 
 // Start server
 app.listen(PORT, async () => {
