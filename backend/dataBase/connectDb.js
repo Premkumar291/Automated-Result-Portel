@@ -12,7 +12,16 @@ export const connectDb = async () => {
     console.log('Attempting to connect to MongoDB...');
     console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
     
-    const conn = await mongoose.connect(process.env.MONGO_URI);   
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000, // Increased from 5000ms
+      socketTimeoutMS: 45000,
+      maxIdleTimeMS: 30000,
+      connectTimeoutMS: 10000,
+      // Retry configuration
+      retryWrites: true
+    });   
     console.log(`MongoDB connected successfully: ${conn.connection.host}`);
   } catch (error) {
     console.error(`MongoDB connection error: ${error.message}`);

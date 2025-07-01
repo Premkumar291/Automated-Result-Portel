@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, FileText, Download, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { uploadAndExtractPDF } from '../../api/processedResult';
 
 const SimplePDFExtractor = () => {
   const [file, setFile] = useState(null);
@@ -9,6 +10,34 @@ const SimplePDFExtractor = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [dragActive, setDragActive] = useState(false);
+
+  // Helper functions for cell value formatting and styling
+  const formatCellValue = (value) => {
+    if (!value || value === '') return '-';
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value).trim();
+  };
+
+  const getValueClass = (value) => {
+    if (!value || value === '' || value === '-') {
+      return 'text-gray-400 italic';
+    }
+    if (typeof value === 'string') {
+      // Check if it's a number
+      if (/^\d+(\.\d+)?$/.test(value.trim())) {
+        return 'text-blue-600 font-mono';
+      }
+      // Check if it's a grade
+      if (/^[A-F][+-]?$/i.test(value.trim())) {
+        return 'text-green-600 font-semibold';
+      }
+      // Check if it's a name (contains multiple words with capitals)
+      if (/^[A-Z][a-z]+\s+[A-Z]/i.test(value.trim())) {
+        return 'text-gray-900 font-medium';
+      }
+    }
+    return 'text-gray-900';
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -59,18 +88,19 @@ const SimplePDFExtractor = () => {
     setSuccess('');
 
     try {
-      const formData = new FormData();
-      formData.append('pdfFile', file);
+      const data = await uploadAndExtractPDF(file);
 
-      const response = await fetch('/api/processed-results/upload-extract', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (data.success) {
+        console.log('=== RECEIVED DATA ===');
+        console.log('Full response:', data);
+        console.log('Extracted data:', data.data.extractedData);
+        console.log('Headers:', data.data.extractedData.headers);
+        console.log('Rows count:', data.data.extractedData.rows?.length);
+        console.log('Sample row structure:', data.data.extractedData.rows?.[0]);
+        console.log('Row data keys:', data.data.extractedData.rows?.[0] ? Object.keys(data.data.extractedData.rows[0]) : 'No rows');
+        console.log('Metadata:', data.data.extractedData.metadata);
+        console.log('====================');
+        
         setExtractedData(data.data.extractedData);
         setSuccess('PDF content extracted successfully!');
       } else {
@@ -78,7 +108,7 @@ const SimplePDFExtractor = () => {
       }
     } catch (error) {
       console.error('Error extracting PDF:', error);
-      setError('An error occurred while extracting PDF content');
+      setError(error.message || 'An error occurred while extracting PDF content');
     } finally {
       setProcessing(false);
     }
@@ -102,17 +132,39 @@ const SimplePDFExtractor = () => {
   const downloadCSV = () => {
     if (!extractedData || !extractedData.headers || !extractedData.rows) return;
 
+    console.log('Preparing CSV download...');
+    console.log('Headers:', extractedData.headers);
+    console.log('Sample row for CSV:', extractedData.rows[0]);
+
     const csvContent = [
       extractedData.headers.join(','),
-      ...extractedData.rows.map(row => 
-        extractedData.headers.map(header => {
-          const value = row[header] || '';
-          return value.toString().includes(',') 
-            ? `"${value.toString().replace(/"/g, '""')}"`
-            : value.toString();
+      ...extractedData.rows.map((row, rowIndex) => 
+        extractedData.headers.map((header, colIndex) => {
+          // Use the same data access logic as the table
+          let value = '';
+          if (row.data && row.data[header]) {
+            value = row.data[header];
+          } else if (row[header]) {
+            value = row[header];
+          } else if (Array.isArray(row) && row[colIndex]) {
+            value = row[colIndex];
+          } else if (row.originalRow && row.originalRow[colIndex]) {
+            value = row.originalRow[colIndex];
+          } else if (Array.isArray(row) && colIndex < row.length) {
+            value = row[colIndex];
+          }
+          
+          const stringValue = value ? value.toString() : '';
+          console.log(`CSV Row ${rowIndex}, Column ${header}:`, stringValue);
+          
+          return stringValue.includes(',') 
+            ? `"${stringValue.replace(/"/g, '""')}"`
+            : stringValue;
         }).join(',')
       )
     ].join('\n');
+
+    console.log('CSV content preview:', csvContent.substring(0, 500));
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -263,10 +315,10 @@ const SimplePDFExtractor = () => {
             </div>
           </div>
 
-          {/* Metadata */}
+          {/* Enhanced Metadata */}
           {extractedData.metadata && (
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mb-4">
                 <div>
                   <span className="font-medium text-gray-700">Rows:</span>
                   <span className="ml-2 text-gray-900">{extractedData.metadata.totalRows || extractedData.rows?.length || 0}</span>
@@ -275,6 +327,12 @@ const SimplePDFExtractor = () => {
                   <span className="font-medium text-gray-700">Columns:</span>
                   <span className="ml-2 text-gray-900">{extractedData.headers?.length || 0}</span>
                 </div>
+                {extractedData.metadata.isMultiPage && (
+                  <div>
+                    <span className="font-medium text-gray-700">Pages:</span>
+                    <span className="ml-2 text-blue-600 font-semibold">{extractedData.metadata.totalPages || 1}</span>
+                  </div>
+                )}
                 <div>
                   <span className="font-medium text-gray-700">Method:</span>
                   <span className="ml-2 text-gray-900">{extractedData.metadata.extractionMethod || 'Unknown'}</span>
@@ -289,43 +347,214 @@ const SimplePDFExtractor = () => {
                   </span>
                 </div>
               </div>
+
+              {/* Spatial Grouping Details */}
+              {extractedData.structuredTables && extractedData.structuredTables.length > 0 && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                    <FileText className="h-4 w-4 mr-2 text-indigo-600" />
+                    Spatial Analysis Results
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {extractedData.structuredTables.map((table, tableIndex) => (
+                      <div key={tableIndex} className="bg-white p-3 rounded border border-indigo-200">
+                        <div className="font-medium text-indigo-700 mb-2 flex items-center">
+                          {table.page === 'all' ? (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
+                              Combined Table
+                            </>
+                          ) : (
+                            `Page ${table.page}`
+                          )}
+                        </div>
+                        <div className="space-y-1 text-xs text-gray-600">
+                          <div className="flex justify-between">
+                            <span>Headers:</span>
+                            <span className="font-medium">{table.headers?.length || 0}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Data Rows:</span>
+                            <span className="font-medium">{table.rows?.length || 0}</span>
+                          </div>
+                          {table.metadata?.originalElements && (
+                            <div className="flex justify-between">
+                              <span>Text Elements:</span>
+                              <span className="font-medium">{table.metadata.originalElements}</span>
+                            </div>
+                          )}
+                          {table.metadata?.columnCount && (
+                            <div className="flex justify-between">
+                              <span>Columns Detected:</span>
+                              <span className="font-medium text-blue-600">{table.metadata.columnCount}</span>
+                            </div>
+                          )}
+                          {table.metadata?.processedRows && (
+                            <div className="flex justify-between">
+                              <span>Processed Rows:</span>
+                              <span className="font-medium">{table.metadata.processedRows}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Multi-page breakdown */}
+              {extractedData.metadata.isMultiPage && extractedData.metadata.pageBreakdown && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-gray-700 mb-2">Page Processing Details:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    {Object.entries(extractedData.metadata.pageBreakdown).map(([page, info]) => (
+                      <div key={page} className="bg-white p-2 rounded border">
+                        <div className="font-medium text-blue-600">Page {page}</div>
+                        <div className="text-gray-600">{info.dataRows} data rows</div>
+                        {info.hasHeader && <div className="text-green-600">✓ Header detected</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* Content Display */}
           <div className="border rounded-lg overflow-hidden">
             {viewMode === 'table' ? (
-              // Table View
+              // Enhanced Table View
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
                     <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        #
+                      </th>
                       {extractedData.headers?.map((header, index) => (
                         <th
                           key={index}
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 last:border-r-0"
                         >
-                          {header}
+                          <div className="flex items-center">
+                            <span>{header}</span>
+                            {extractedData.metadata?.issues?.length > 0 && (
+                              <AlertCircle className="h-4 w-4 ml-1 text-yellow-500" />
+                            )}
+                          </div>
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {extractedData.rows?.map((row, rowIndex) => (
-                      <tr key={rowIndex} className="hover:bg-gray-50">
-                        {extractedData.headers?.map((header, colIndex) => (
-                          <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {row[header] || '-'}
+                    {extractedData.rows?.map((row, rowIndex) => {
+                      // Handle different row data structures from spatial grouping
+                      const getRowData = (row, header, colIndex) => {
+                        console.log(`Getting data for row ${rowIndex}, header "${header}", colIndex ${colIndex}:`, row);
+                        
+                        // Priority 1: Direct array access (from spatial grouping 2D array)
+                        if (Array.isArray(row) && colIndex < row.length) {
+                          return row[colIndex];
+                        }
+                        
+                        // Priority 2: Object with header keys
+                        if (row.data && row.data[header]) {
+                          return row.data[header];
+                        }
+                        if (row[header]) {
+                          return row[header];
+                        }
+                        
+                        // Priority 3: Columns array (from our spatial grouping)
+                        if (row.columns && Array.isArray(row.columns) && colIndex < row.columns.length) {
+                          return row.columns[colIndex];
+                        }
+                        
+                        // Priority 4: Original row data
+                        if (row.originalRow && Array.isArray(row.originalRow) && colIndex < row.originalRow.length) {
+                          return row.originalRow[colIndex];
+                        }
+                        
+                        // Priority 5: Try to extract from any array-like structure
+                        if (typeof row === 'object' && !Array.isArray(row)) {
+                          const values = Object.values(row);
+                          if (values.length > colIndex) {
+                            return values[colIndex];
+                          }
+                        }
+                        
+                        return '';
+                      };
+
+                      return (
+                        <tr 
+                          key={rowIndex} 
+                          className={`hover:bg-gray-50 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
+                        >
+                          <td className="px-4 py-4 text-sm font-medium text-gray-500 border-r border-gray-200">
+                            {rowIndex + 1}
                           </td>
-                        ))}
-                      </tr>
-                    ))}
+                          {extractedData.headers?.map((header, colIndex) => {
+                            const cellValue = getRowData(row, header, colIndex);
+                            const displayValue = formatCellValue(cellValue);
+                            
+                            return (
+                              <td
+                                key={colIndex}
+                                className="px-6 py-4 text-sm text-gray-900 border-r border-gray-200 last:border-r-0"
+                              >
+                                <div className="flex items-center">
+                                  <span className={getValueClass(cellValue)}>
+                                    {displayValue}
+                                  </span>
+                                  {row.issues && row.issues.length > 0 && (
+                                    <AlertCircle className="h-4 w-4 ml-2 text-red-500" title={row.issues.join(', ')} />
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+                
+                {/* Table Statistics */}
+                <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>
+                      Showing {extractedData.rows?.length || 0} rows × {extractedData.headers?.length || 0} columns
+                    </span>
+                    {extractedData.metadata?.originalTableRows && (
+                      <span>
+                        Original PDF had {extractedData.metadata.originalTableRows} rows
+                        {extractedData.metadata.headerRowIndex >= 0 && 
+                          ` (header at row ${extractedData.metadata.headerRowIndex + 1})`
+                        }
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             ) : (
-              // JSON View
+              // JSON View with enhanced debugging
               <div className="p-6">
+                {/* Debug Information */}
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="font-medium text-yellow-800 mb-2">Debug Information:</h4>
+                  <div className="text-sm text-yellow-700 space-y-1">
+                    <div>Headers count: {extractedData.headers?.length || 0}</div>
+                    <div>Rows count: {extractedData.rows?.length || 0}</div>
+                    <div>First row type: {extractedData.rows?.[0] ? typeof extractedData.rows[0] : 'N/A'}</div>
+                    <div>First row keys: {extractedData.rows?.[0] ? JSON.stringify(Object.keys(extractedData.rows[0])) : 'N/A'}</div>
+                    {extractedData.rows?.[0] && (
+                      <div>Sample row structure: {JSON.stringify(extractedData.rows[0], null, 2).substring(0, 200)}...</div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Full JSON */}
                 <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm">
                   {JSON.stringify(extractedData, null, 2)}
                 </pre>
