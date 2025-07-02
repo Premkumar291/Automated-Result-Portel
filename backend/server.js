@@ -4,8 +4,6 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
-import resultRoutes from './routes/result.route.js';
-import processedResultRoutes from './routes/processedResult.route.js';
 
 dotenv.config({ path: '../.env' });
 
@@ -29,8 +27,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/results", resultRoutes);
-app.use("/api/processed-results", processedResultRoutes);
 
 // Start server
 app.listen(PORT, async () => {
