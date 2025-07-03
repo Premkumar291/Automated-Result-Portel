@@ -1,5 +1,5 @@
 {
-  "name": "automated-result-portal",
+  "name": "college-result-portal",
   "version": "1.0.0",
   "main": "backend/server.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "author": "",
   "type": "module",
   "license": "ISC",
-  "description": "Automated College Result Portal",
+  "description": "College Result Portal - Authentication and Dashboard System",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
@@ -24,15 +24,12 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
-    "fs-extra": "^11.2.0",
-    "groq-sdk": "^0.7.0",
+    "groq-sdk": "^0.26.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.0",
-    "multer": "^1.4.5-lts.1",
+    "mongoose": "^8.16.1",
+    "multer": "^2.0.1",
     "nodemailer": "^6.10.1",
-    "path": "^0.12.7",
     "pdf-parse": "^1.1.1",
-    "pdf2json": "^3.1.6",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

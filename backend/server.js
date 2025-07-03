@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
-import pdfRoutes from './routes/pdf.route.js';
+import pdfAnalysisRoutes from './routes/pdfAnalysis.route.js';
 
 dotenv.config({ path: '../.env' });
 
@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/pdf", pdfRoutes);
+app.use("/api/pdf-analysis", pdfAnalysisRoutes);
 
 // Start server
 app.listen(PORT, async () => {
