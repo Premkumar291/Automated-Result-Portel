@@ -11,6 +11,7 @@ export * from './ResultsManager';
 export * from './PDFUpload';
 export * from './ExcelManager';
 export * from './ResultAnalysis';
+export * from './ExcelPreview';
 
 // Other Components
 export { default as PageNotFound } from './pagenotfound/page-not-found';

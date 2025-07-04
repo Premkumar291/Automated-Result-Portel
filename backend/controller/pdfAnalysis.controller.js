@@ -5,6 +5,11 @@ import { ExcelFile } from '../models/excelFile.model.js';
 
 export const uploadAndProcessPDF = async (req, res) => {
   try {
+    console.log('PDF upload request received');
+    console.log('Request headers:', req.headers.cookie ? 'Cookie present' : 'No cookie');
+    console.log('req.user:', req.user);
+    console.log('req.userId:', req.userId);
+    
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -12,50 +17,92 @@ export const uploadAndProcessPDF = async (req, res) => {
       });
     }
 
-    const userId = req.user._id;
+    const userId = req.user?._id;
     const originalFileName = req.file.originalname;
     const pdfBuffer = req.file.buffer;
+
+    console.log(`Processing PDF: ${originalFileName}, Size: ${pdfBuffer.length} bytes`);
+    console.log(`User ID: ${userId}`);
+
+    if (!userId) {
+      console.error('Authentication failed - no userId found');
+      console.log('req.user object:', JSON.stringify(req.user, null, 2));
+      return res.status(401).json({
+        success: false,
+        message: 'User authentication required for PDF processing'
+      });
+    }
 
     // Process PDF and analyze with Groq
     const analysisData = await pdfProcessor.processAndAnalyzePDF(pdfBuffer);
     
+    console.log('Analysis data received:', JSON.stringify(analysisData, null, 2));
+    
+    // Check if analysis was successful
+    if (!analysisData || !analysisData.students || analysisData.students.length === 0) {
+      console.log('No valid student data found in analysis');
+      return res.status(400).json({
+        success: false,
+        message: 'No student data could be extracted from the PDF. Please ensure the PDF contains clear academic result data.',
+        analysisData: analysisData,
+        debug: {
+          textLength: analysisData?.metadata?.textLength || 0,
+          hasParsingError: analysisData?.parsing_error || false,
+          errorMessage: analysisData?.error_message || 'Unknown error'
+        }
+      });
+    }
+    
     // Group data by semester
     const semesterGroups = pdfProcessor.groupBySemester(analysisData);
+    
+    console.log(`Grouped into ${Object.keys(semesterGroups).length} semesters`);
     
     // Generate Excel files for each semester and store in database
     const savedFiles = [];
     
     for (const [semesterKey, semesterData] of Object.entries(semesterGroups)) {
-      // Generate Excel file
-      const excelBuffer = excelGenerator.generateExcelForSemester(semesterData);
-      const fileName = excelGenerator.generateFileName(semesterData, originalFileName);
-      
-      // Save to database
-      const excelFile = new ExcelFile({
-        fileName: fileName,
-        semester: semesterData.semester,
-        filePath: `/excel/${fileName}`,
-        fileData: excelBuffer,
-        fileSize: excelBuffer.length,
-        userId: userId,
-        originalPdfName: originalFileName,
-        analysisData: semesterData,
-        studentCount: semesterData.students ? semesterData.students.length : 0,
-        subjectCount: semesterData.students ? 
-          semesterData.students.reduce((total, student) => 
-            total + (student.subjects ? student.subjects.length : 0), 0) : 0
-      });
+      try {
+        // Generate Excel file with enhanced formatting
+        const excelBuffer = excelGenerator.generateExcelForSemesterEnhanced 
+          ? excelGenerator.generateExcelForSemesterEnhanced(semesterData)
+          : excelGenerator.generateExcelForSemester(semesterData);
+        const fileName = excelGenerator.generateFileName(semesterData, originalFileName);
+        
+        // Save to database
+        const excelFile = new ExcelFile({
+          fileName: fileName,
+          semester: semesterData.semester,
+          filePath: `/excel/${fileName}`,
+          fileData: excelBuffer,
+          fileSize: excelBuffer.length,
+          userId: userId,
+          originalPdfName: originalFileName,
+          analysisData: semesterData,
+          studentCount: semesterData.students ? semesterData.students.length : 0,
+          subjectCount: semesterData.students ? 
+            semesterData.students.reduce((total, student) => 
+              total + (student.subjects ? student.subjects.length : 0), 0) : 0
+        });
 
-      const savedFile = await excelFile.save();
-      savedFiles.push({
-        _id: savedFile._id,
-        fileName: savedFile.fileName,
-        semester: savedFile.semester,
-        createdAt: savedFile.createdAt,
-        studentCount: savedFile.studentCount,
-        subjectCount: savedFile.subjectCount
-      });
+        const savedFile = await excelFile.save();
+        savedFiles.push({
+          _id: savedFile._id,
+          fileName: savedFile.fileName,
+          semester: savedFile.semester,
+          createdAt: savedFile.createdAt,
+          studentCount: savedFile.studentCount,
+          subjectCount: savedFile.subjectCount
+        });
+        
+        console.log(`Excel file generated for semester ${semesterData.semester}: ${fileName}`);
+      } catch (excelError) {
+        console.error(`Error generating Excel for semester ${semesterKey}:`, excelError);
+        // Continue with other semesters even if one fails
+      }
     }
+
+    console.log(`Processing complete. Generated ${savedFiles.length} Excel files.`);
 
     res.status(200).json({
       success: true,
@@ -79,9 +126,27 @@ export const uploadAndProcessPDF = async (req, res) => {
 
   } catch (error) {
     console.error('PDF processing error:', error);
-    res.status(500).json({
+    
+    // Provide more detailed error information
+    let errorMessage = 'Failed to process PDF';
+    let statusCode = 500;
+    
+    if (error.message.includes('extract text')) {
+      errorMessage = 'Could not extract text from PDF. The file may be corrupted or image-based.';
+      statusCode = 400;
+    } else if (error.message.includes('analyze PDF')) {
+      errorMessage = 'AI analysis failed. Please try again or check PDF format.';
+      statusCode = 422;
+    } else if (error.message.includes('generate Excel')) {
+      errorMessage = 'Failed to generate Excel files from extracted data.';
+      statusCode = 422;
+    }
+    
+    res.status(statusCode).json({
       success: false,
-      message: error.message || 'Failed to process PDF'
+      message: errorMessage,
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 };

@@ -68,6 +68,19 @@ export const downloadExcelFile = async (fileId, fileName) => {
   }
 };
 
+// Get Excel file preview data
+export const getExcelPreview = async (fileId) => {
+  try {
+    const response = await axios.get(`${API_URL}/preview/${fileId}`, {
+      withCredentials: true
+    });
+
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch Excel preview' };
+  }
+};
+
 // Delete Excel file
 export const deleteExcelFile = async (fileId) => {
   try {

@@ -6,7 +6,8 @@ import {
   VerifyEmailPage, 
   ForgotPassword,
   Dashboard,
-  ResultsManager
+  ResultsManager,
+  PageNotFound
 } from "./components";
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/results" element={<ResultsManager />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Toaster
           position="top-right"

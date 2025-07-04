@@ -16,6 +16,7 @@ export const verifyToken = (req, res, next) => {
     // Ensure req.user is properly set
     req.userId = decoded.userId; // Attach user info to request object
     req.user = { 
+      _id: decoded.userId,  // This is what the controller expects
       userId: decoded.userId,
       id: decoded.userId // Add id as well for compatibility
     };
