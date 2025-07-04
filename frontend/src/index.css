@@ -1,4 +1,5 @@
 @import "tailwindcss";
+<<<<<<< HEAD
 
 body {
   margin: 0;
@@ -13,3 +14,5 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+=======
+>>>>>>> cccbcd8ad28449916d6ddc487e1f5c6b01e4a5af

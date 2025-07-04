@@ -10,13 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@heroicons/react": "^2.2.0",
+=======
+>>>>>>> cccbcd8ad28449916d6ddc487e1f5c6b01e4a5af
     "@tailwindcss/vite": "^4.1.10",
     "axios": "^1.10.0",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+<<<<<<< HEAD
     "react-hot-toast": "^2.5.2",
+=======
+>>>>>>> cccbcd8ad28449916d6ddc487e1f5c6b01e4a5af
     "react-router-dom": "^7.6.2"
   },
   "devDependencies": {
