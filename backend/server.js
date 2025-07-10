@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
+import pdfSplitRoutes from './routes/pdfSplit.route.js';
 
 dotenv.config({ path: '.env' });
 
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/pdf-split", pdfSplitRoutes);
 
 // Start server
 app.listen(PORT, async () => {
