@@ -13,15 +13,12 @@ export const verifyToken = (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized - Invalid token" });
     }
 
-    // Ensure req.user is properly set
+    // Ensure req.user is properly set for all controller expectations
     req.userId = decoded.userId; // Attach user info to request object
-    req.user = { 
-<<<<<<< HEAD
-      _id: decoded.userId,  // This is what the controller expects
-=======
->>>>>>> cccbcd8ad28449916d6ddc487e1f5c6b01e4a5af
-      userId: decoded.userId,
-      id: decoded.userId // Add id as well for compatibility
+    req.user = {
+      _id: decoded.userId,      // For controllers expecting _id
+      userId: decoded.userId,  // For controllers expecting userId
+      id: decoded.userId       // For compatibility
     };
     
     console.log('Token verified successfully, req.user:', req.user); // Debug log
