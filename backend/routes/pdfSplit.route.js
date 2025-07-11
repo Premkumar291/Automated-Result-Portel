@@ -6,6 +6,7 @@ const router = express.Router();
 const upload = multer(); // In-memory storage
 
 // Upload and split PDF
+// Can include autoDeleteHours in the request body to customize auto-delete time
 router.post('/upload', upload.single('pdf'), uploadAndSplitPDF);
 // List semester PDFs for an upload
 router.get('/:uploadId', getSemesterPDFs);

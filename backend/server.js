@@ -6,7 +6,7 @@ import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
 import pdfSplitRoutes from './routes/pdfSplit.route.js';
 
-dotenv.config({ path: '.env' });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
