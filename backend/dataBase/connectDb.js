@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
+import { initGridFS } from '../utils/gridfsConfig.js';
 
+// MongoDB connection with GridFS initialization
 export const connectDb = async () => {
   try {
     // Check if MONGO_URI is defined
@@ -21,8 +23,14 @@ export const connectDb = async () => {
       connectTimeoutMS: 10000,
       // Retry configuration
       retryWrites: true
-    });   
+    });
+    
+    // Initialize GridFS
+    const { gfs, gridFSBucket } = initGridFS(conn.connection);
+    console.log('GridFS initialized successfully');
+    
     console.log(`MongoDB connected successfully: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
     console.error(`MongoDB connection error: ${error.message}`);
     console.error('Full error details:', error);

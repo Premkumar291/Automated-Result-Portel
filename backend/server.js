@@ -5,6 +5,8 @@ import cors from 'cors';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
 import pdfSplitRoutes from './routes/pdfSplit.route.js';
+import gridFSPdfRoutes from './routes/gridFSPdfSplit.route.js';
+import { scheduleCleanup } from './utils/cleanupExpiredPDFs.js';
 
 dotenv.config();
 
@@ -30,9 +32,13 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/pdf-split", pdfSplitRoutes);
+app.use("/api/pdf", gridFSPdfRoutes);
 
 // Start server
 app.listen(PORT, async () => {
   await connectDb();
   console.log(`Server is running on http://localhost:${PORT}`);
+  
+  // Schedule cleanup of expired PDFs (run every 30 minutes)
+  scheduleCleanup(30);
 });

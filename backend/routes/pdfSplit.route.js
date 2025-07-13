@@ -1,18 +1,18 @@
 import express from 'express';
-import { uploadAndSplitPDF, getSemesterPDFs, downloadSemesterPDF, deleteSemesterPDFs } from '../controller/pdfSplit.controller.js';
-import multer from 'multer';
+import { validConfidenceLevels, mapConfidenceThreshold } from '../controller/pdfSplit.controller.js';
 
 const router = express.Router();
-const upload = multer(); // In-memory storage
 
-// Upload and split PDF
-// Can include autoDeleteHours in the request body to customize auto-delete time
-router.post('/upload', upload.single('pdf'), uploadAndSplitPDF);
-// List semester PDFs for an upload
-router.get('/:uploadId', getSemesterPDFs);
-// Download a specific semester PDF
-router.get('/:uploadId/:semester', downloadSemesterPDF);
-// Delete all semester PDFs for an upload
-router.delete('/:uploadId', deleteSemesterPDFs);
+// Route to get valid confidence levels
+router.get('/confidence-levels', (req, res) => {
+  res.json({ validConfidenceLevels });
+});
+
+// Route to map a numeric threshold to a confidence level
+router.get('/map-confidence/:threshold', (req, res) => {
+  const { threshold } = req.params;
+  const mappedLevel = mapConfidenceThreshold(threshold);
+  res.json({ threshold, mappedLevel });
+});
 
 export default router;
