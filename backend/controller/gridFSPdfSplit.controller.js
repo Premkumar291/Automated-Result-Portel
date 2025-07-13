@@ -28,6 +28,10 @@ async function extractPageTexts(pdfBuffer) {
 async function saveToGridFS(buffer, filename, metadata) {
   return new Promise((resolve, reject) => {
     const gridFSBucket = getGridFSBucket();
+     if (!gridFSBucket) {
+      return reject(new Error('GridFS bucket not initialized'));
+    }
+    
     const readableStream = new Readable();
     readableStream.push(buffer);
     readableStream.push(null);
@@ -35,6 +39,9 @@ async function saveToGridFS(buffer, filename, metadata) {
     const uploadStream = gridFSBucket.openUploadStream(filename, {
       metadata
     });
+    
+    // Store the file ID before piping
+    const fileId = uploadStream.id;
 
     readableStream.pipe(uploadStream);
 
@@ -42,8 +49,13 @@ async function saveToGridFS(buffer, filename, metadata) {
       reject(error);
     });
 
-    uploadStream.on('finish', (file) => {
-      resolve(file);
+    uploadStream.on('finish', () => {
+      // Create a file object with the necessary properties
+      resolve({
+        _id: fileId,
+        filename: filename,
+        metadata: metadata
+      });
     });
   });
 }
