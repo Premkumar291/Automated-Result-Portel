@@ -36,6 +36,11 @@ async function saveToGridFS(buffer, filename, metadata) {
       return reject(new Error('GridFS bucket not initialized'));
     }
     
+    // Ensure filename has .pdf extension
+    if (!filename.toLowerCase().endsWith('.pdf')) {
+      filename = `${filename}.pdf`;
+    }
+    
     const readableStream = new Readable();
     readableStream.push(buffer);
     readableStream.push(null);
@@ -382,6 +387,7 @@ export const getSemesterPDFs = async (req, res) => {
 export const downloadSemesterPDFById = async (req, res) => {
   try {
     const { id } = req.params;
+    const forceDownload = req.query.download === 'true';
     
     // Find the metadata record
     const pdfMetadata = await GridFSSemesterPDF.findById(id);
@@ -393,9 +399,21 @@ export const downloadSemesterPDFById = async (req, res) => {
     const gridFSBucket = getGridFSBucket();
     const downloadStream = gridFSBucket.openDownloadStream(pdfMetadata.fileId);
     
-    // Set headers
+    // Ensure filename has .pdf extension
+    let filename = pdfMetadata.filename;
+    if (!filename.toLowerCase().endsWith('.pdf')) {
+      filename = `${filename}.pdf`;
+    }
+    
+    // Set headers with explicit MIME type
     res.set('Content-Type', 'application/pdf');
-    res.set('Content-Disposition', `inline; filename="${pdfMetadata.filename}"`);
+    
+    // Set content disposition based on whether it's a download or view
+    if (forceDownload) {
+      res.set('Content-Disposition', `attachment; filename="${filename}"`);
+    } else {
+      res.set('Content-Disposition', `inline; filename="${filename}"`);
+    }
     
     // Pipe the file to the response
     downloadStream.pipe(res);
@@ -419,6 +437,7 @@ export const downloadSemesterPDFById = async (req, res) => {
 export const downloadSemesterPDF = async (req, res) => {
   try {
     const { uploadId, semester } = req.params;
+    const forceDownload = req.query.download === 'true';
     
     // Find the metadata record
     const pdfMetadata = await GridFSSemesterPDF.findOne({ 
@@ -434,9 +453,21 @@ export const downloadSemesterPDF = async (req, res) => {
     const gridFSBucket = getGridFSBucket();
     const downloadStream = gridFSBucket.openDownloadStream(pdfMetadata.fileId);
     
-    // Set headers
+    // Ensure filename has .pdf extension
+    let filename = pdfMetadata.filename;
+    if (!filename.toLowerCase().endsWith('.pdf')) {
+      filename = `${filename}.pdf`;
+    }
+    
+    // Set headers with explicit MIME type
     res.set('Content-Type', 'application/pdf');
-    res.set('Content-Disposition', `inline; filename="${pdfMetadata.filename}"`);
+    
+    // Set content disposition based on whether it's a download or view
+    if (forceDownload) {
+      res.set('Content-Disposition', `attachment; filename="${filename}"`);
+    } else {
+      res.set('Content-Disposition', `inline; filename="${filename}"`);
+    }
     
     // Pipe the file to the response
     downloadStream.pipe(res);

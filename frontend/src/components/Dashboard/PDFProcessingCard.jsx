@@ -111,7 +111,7 @@ export default function PDFProcessingCard() {
       // If specific PDF ID is provided, use it
       if (pdfId) {
         setDownloadingPdfId(pdfId);
-        window.open(`${API_URL}/pdf/view/${pdfId}`, '_blank');
+        window.open(`${API_URL}/pdf/view/${pdfId}?download=true`, '_blank');
         // Reset downloading state after a short delay
         setTimeout(() => setDownloadingPdfId(null), 500);
       } 
@@ -121,10 +121,10 @@ export default function PDFProcessingCard() {
         
         if (selectedPdf && selectedPdf.id) {
           // Use the ID-based endpoint
-          window.open(`${API_URL}/pdf/view/${selectedPdf.id}`, '_blank');
+          window.open(`${API_URL}/pdf/view/${selectedPdf.id}?download=true`, '_blank');
         } else {
           // Fallback to the uploadId/semester endpoint
-          window.open(`${API_URL}/pdf/${uploadId}/${selectedSemester}`, '_blank');
+          window.open(`${API_URL}/pdf/${uploadId}/${selectedSemester}?download=true`, '_blank');
         }
       }
     } catch (error) {
