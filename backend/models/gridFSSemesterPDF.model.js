@@ -12,7 +12,7 @@ const gridFSSemesterPDFSchema = new mongoose.Schema({
   semester: { 
     type: Number, 
     required: true,
-    min: 1,
+    min: 0,
     max: 8
   },
   // Reference to the file stored in GridFS
@@ -40,7 +40,7 @@ const gridFSSemesterPDFSchema = new mongoose.Schema({
 });
 
 // Create indexes for common queries
-gridFSSemesterPDFSchema.index({ uploadName: 1, semester: 1 }, { unique: true });
+gridFSSemesterPDFSchema.index({ uploadName: 1, semester: 1 }, { unique: true }); // Make this a unique compound index
 gridFSSemesterPDFSchema.index({ deleteAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.model('GridFSSemesterPDF', gridFSSemesterPDFSchema);

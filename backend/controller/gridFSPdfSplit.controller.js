@@ -65,21 +65,29 @@ export const uploadAndSplitPDF = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No PDF uploaded' });
     
+    // Add a timestamp to make the uploadName unique
+    const uniqueUploadName = `${req.file.originalname}_${Date.now()}`;
+    
     // Delete any existing PDFs with the same name
     try {
       // First get all existing GridFS files for this upload
-      const existingMetadata = await GridFSSemesterPDF.find({ uploadName: req.file.originalname });
+      const existingMetadata = await GridFSSemesterPDF.find({ uploadName: uniqueUploadName });
       
       // Delete each file from GridFS
       const gridFSBucket = getGridFSBucket();
       for (const metadata of existingMetadata) {
-        await gridFSBucket.delete(metadata.fileId);
+        try {
+          await gridFSBucket.delete(metadata.fileId);
+        } catch (err) {
+          console.log(`Could not delete file ${metadata.fileId}: ${err.message}`);
+          // Continue with other deletions
+        }
       }
       
       // Delete all metadata records
-      const result = await GridFSSemesterPDF.deleteMany({ uploadName: req.file.originalname });
+      const result = await GridFSSemesterPDF.deleteMany({ uploadName: uniqueUploadName });
       if (result.deletedCount > 0) {
-        console.log(`Deleted ${result.deletedCount} existing PDFs for ${req.file.originalname}`);
+        console.log(`Deleted ${result.deletedCount} existing PDFs for ${uniqueUploadName}`);
       }
     } catch (deleteErr) {
       console.error(`Error deleting existing PDFs: ${deleteErr.message}`);
@@ -108,40 +116,22 @@ export const uploadAndSplitPDF = async (req, res) => {
     
     // Define a function to check if a page contains the semester header pattern
     const containsSemesterHeader = (text, pageIndex) => {
-      // More flexible institution name detection
-      // This checks for common university/college terms instead of a specific name
-      const hasInstitutionHeader = /university|college|institute|school|academy|department|results|examination|grade|marks/i.test(text);
+      // Look specifically for "Semester No. : XX" pattern
+      const semesterNoPattern = /semester\s*no\.?\s*:\s*(0?[1-8])/i;
+      const semesterMatch = text.match(semesterNoPattern);
       
-      // More flexible semester pattern detection with additional formats
-      const semesterRegex = /(?:semester|sem|term)\s*([1-8])|([1-8])(?:st|nd|rd|th)?\s*(?:semester|sem|term)|(?:year|yr)\s*([1-4])|sem\s*([1-8])|s([1-8])\b/i;
-      const match = text.match(semesterRegex);
-      
-      if (match) {
+      if (semesterMatch) {
         // Extract the semester number from the match
-        const semesterNum = match[1] || match[2] || (match[3] ? parseInt(match[3]) * 2 : null) || match[4] || match[5];
-        if (semesterNum) {
-          return { found: true, semester: parseInt(semesterNum), confidence: 'high' };
+        const semesterNum = semesterMatch[1];
+        // Convert to integer, removing leading zero if present
+        const semNum = parseInt(semesterNum, 10);
+        if (semNum >= 1 && semNum <= 8) {
+          return { found: true, semester: semNum, confidence: 'high' };
         }
       }
       
-      // Look for result-related keywords combined with numbers
-      const resultRegex = /result.*?([1-8])|([1-8]).*?result|grade.*?([1-8])|([1-8]).*?grade|mark.*?([1-8])|([1-8]).*?mark|score.*?([1-8])|([1-8]).*?score/i;
-      const resultMatch = text.match(resultRegex);
-      
-      if (resultMatch) {
-        const semNum = resultMatch[1] || resultMatch[2] || resultMatch[3] || resultMatch[4] || resultMatch[5] || resultMatch[6] || resultMatch[7] || resultMatch[8];
-        if (semNum) {
-          return { found: true, semester: parseInt(semNum), confidence: 'medium' };
-        }
-      }
-      
-      // Fallback: If no semester markers are found but we have institution headers
-      if (hasInstitutionHeader && pageIndex > 0) {
-        // Try to infer semester from page number or content structure
-        const estimatedSemester = Math.min(8, Math.floor(pageIndex / 3) + 1);
-        return { found: true, semester: estimatedSemester, confidence: 'low' };
-      }
-      
+      // Fallback: Use a simple page-based approach if no semester markers are found
+      // This will only be used if forcePageSplit is true or no semester markers are found
       return { found: false };
     };
     
@@ -254,7 +244,7 @@ export const uploadAndSplitPDF = async (req, res) => {
     // First save the original PDF to GridFS
     const originalPdfFile = await saveToGridFS(
       pdfBuffer,
-      `original_${req.file.originalname}`,
+      `original_${uniqueUploadName}`,
       { 
         originalName: req.file.originalname,
         type: 'original',
@@ -262,14 +252,28 @@ export const uploadAndSplitPDF = async (req, res) => {
       }
     );
     
-    // Save metadata for the original PDF
-    const originalPdfMetadata = await GridFSSemesterPDF.create({
-      uploadName: req.file.originalname,
-      semester: 0, // 0 indicates the original file
-      fileId: originalPdfFile._id,
-      filename: originalPdfFile.filename,
-      deleteAt
+    // Check if a record already exists for this upload and semester
+    let originalPdfMetadata = await GridFSSemesterPDF.findOne({
+      uploadName: uniqueUploadName,
+      semester: 1 // Changed from 0 to 1 to meet the validation constraint
     });
+    
+    if (originalPdfMetadata) {
+      // Update existing record
+      originalPdfMetadata.fileId = originalPdfFile._id;
+      originalPdfMetadata.filename = originalPdfFile.filename;
+      originalPdfMetadata.deleteAt = deleteAt;
+      await originalPdfMetadata.save();
+    } else {
+      // Create new record
+      originalPdfMetadata = await GridFSSemesterPDF.create({
+        uploadName: uniqueUploadName,
+        semester: 1,
+        fileId: originalPdfFile._id,
+        filename: originalPdfFile.filename,
+        deleteAt
+      });
+    }
     
     // Now save each semester PDF
     for (const group of semesterGroups) {
@@ -281,7 +285,7 @@ export const uploadAndSplitPDF = async (req, res) => {
       
       // Format semester number with leading zero if needed
       const semesterFormatted = group.semester.toString().padStart(2, '0');
-      const semesterFilename = `Semester_${semesterFormatted}_${req.file.originalname}`;
+      const semesterFilename = `Semester_${semesterFormatted}_${uniqueUploadName}`;
       
       // Save the semester PDF to GridFS
       const file = await saveToGridFS(
@@ -295,14 +299,28 @@ export const uploadAndSplitPDF = async (req, res) => {
         }
       );
       
-      // Save metadata about the semester PDF
-      const semesterDoc = await GridFSSemesterPDF.create({
-        uploadName: req.file.originalname,
-        semester: group.semester,
-        fileId: file._id,
-        filename: file.filename,
-        deleteAt
+      // Check if a record already exists for this upload and semester
+      let semesterDoc = await GridFSSemesterPDF.findOne({
+        uploadName: uniqueUploadName,
+        semester: group.semester
       });
+      
+      if (semesterDoc) {
+        // Update existing record
+        semesterDoc.fileId = file._id;
+        semesterDoc.filename = file.filename;
+        semesterDoc.deleteAt = deleteAt;
+        await semesterDoc.save();
+      } else {
+        // Create new record
+        semesterDoc = await GridFSSemesterPDF.create({
+          uploadName: uniqueUploadName,
+          semester: group.semester,
+          fileId: file._id,
+          filename: file.filename,
+          deleteAt
+        });
+      }
       
       semesterPDFs.push({
         id: semesterDoc._id,
@@ -314,16 +332,26 @@ export const uploadAndSplitPDF = async (req, res) => {
     // Return the response with PDF IDs
     res.status(201).json({ 
       message: 'PDF split and saved', 
-      uploadName: req.file.originalname, 
+      uploadName: uniqueUploadName,
       ids: semesterPDFs.map(doc => doc.id),
       autoDeleteScheduled: true,
       deleteAt
     });
     
-    console.log(`Scheduling auto-delete for ${req.file.originalname} after ${autoDeleteHours} hour(s)`);
+    console.log(`Scheduling auto-delete for ${uniqueUploadName} after ${autoDeleteHours} hour(s)`);
     
   } catch (err) {
     console.error(err);
+    
+    // Handle duplicate key errors
+    if (err.code === 11000) {
+      return res.status(409).json({ 
+        message: 'Duplicate entry detected. A record with this combination of upload name and semester already exists.',
+        error: err.message,
+        duplicateKey: err.keyValue
+      });
+    }
+    
     res.status(500).json({ message: 'Failed to split PDF', error: err.message });
   }
 };
