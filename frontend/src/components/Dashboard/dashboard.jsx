@@ -104,8 +104,8 @@ const Dashboard = () => {
               </p>
             </div>
           </div>
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* PDF Processing Card - Full Width */}
+          <div className="mb-8">
             <PDFProcessingCard />
           </div>
           {/* User Info Card */}

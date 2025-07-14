@@ -4,12 +4,16 @@ import GridFSSemesterPDF from '../models/gridFSSemesterPDF.model.js';
 import pdfParseWrapper from '../utils/pdfParseWrapper.js';
 import mongoose from 'mongoose';
 import { Readable } from 'stream';
-import { validConfidenceLevels, mapConfidenceThreshold } from './pdfSplit.controller.js';
+
+// Define valid confidence levels for PDF splitting
+const validConfidenceLevels = {
+  'high': ['high'],
+  'medium': ['high', 'medium'],
+  'low': ['high', 'medium', 'low', 'fallback']
+};
 
 // Helper to extract text from each page using pdf-parse
 async function extractPageTexts(pdfBuffer) {
-  const data = await pdfParseWrapper(pdfBuffer, { pagerender: (pageData) => pageData.getTextContent() });
-  // pdf-parse returns all text, but we want per-page text
   // We'll use pdf-lib to get per-page buffers, then parse each
   const pdfDoc = await PDFDocument.load(pdfBuffer);
   const pageTexts = [];
@@ -182,11 +186,9 @@ export const uploadAndSplitPDF = async (req, res) => {
     // Sort the semester pages by semester number to ensure correct order
     semesterStartPages.sort((a, b) => a.semester - b.semester);
     
-    // Get confidence threshold from request or use default
-    // Convert numeric threshold (0.3-0.9) to string level ('high', 'medium', 'low')
-    const numericThreshold = req.body.confidenceThreshold || 0.5;
-    const confidenceThreshold = mapConfidenceThreshold(numericThreshold);
-    console.log(`Using confidence threshold: ${confidenceThreshold} (from numeric value: ${numericThreshold})`);
+    // Always use high confidence threshold (0.8)
+    const confidenceThreshold = 'high';
+    console.log(`Using confidence threshold: ${confidenceThreshold} (fixed value: 0.8)`);
     
     // Filter semester start pages based on confidence threshold
     const filteredSemesterStartPages = semesterStartPages.filter(page => 

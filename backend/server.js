@@ -4,7 +4,6 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
-import pdfSplitRoutes from './routes/pdfSplit.route.js';
 import gridFSPdfRoutes from './routes/gridFSPdfSplit.route.js';
 import { scheduleCleanup } from './utils/cleanupExpiredPDFs.js';
 
@@ -31,7 +30,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/pdf-split", pdfSplitRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
 
 // Start server

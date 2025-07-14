@@ -1,4 +1,4 @@
-  import { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Eye, Download } from "lucide-react";
@@ -13,8 +13,8 @@ export default function PDFProcessingCard() {
   const [selectedSemester, setSelectedSemester] = useState("");
   const [uploadId, setUploadId] = useState("");
   const [dragActive, setDragActive] = useState(false);
-  const [autoDeleteHours, setAutoDeleteHours] = useState(1);
-  const [confidenceThreshold, setConfidenceThreshold] = useState(0.7);
+  // Fixed auto-delete hours to 1
+  // Fixed confidence threshold value of 0.8
   const [viewingPdfId, setViewingPdfId] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
 
@@ -27,8 +27,10 @@ export default function PDFProcessingCard() {
     try {
       const formData = new FormData();
       formData.append("pdf", file);
-      formData.append("autoDeleteHours", autoDeleteHours.toString());
-      formData.append("confidenceThreshold", confidenceThreshold.toString()); // Use the confidence threshold from state
+      // Always use fixed auto-delete hours of 1
+      formData.append("autoDeleteHours", "1");
+      // Always use fixed confidence threshold of 0.8
+      formData.append("confidenceThreshold", "0.8");
       
       // Delete old PDFs before uploading new one
       if (uploadId) {
@@ -134,78 +136,19 @@ export default function PDFProcessingCard() {
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer">
-      <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mb-4">
-        <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </div>
+
       <h3 className="text-lg font-semibold text-gray-900 mb-2">Department Result PDF Splitter</h3>
       <p className="text-gray-600 mb-4">Upload a department result PDF and split it into 8 semester files.</p>
       
-      {/* Add auto-delete hours control */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <label htmlFor="autoDeleteHours" className="block mb-1 font-medium">
-            Auto-delete after (hours):
-          </label>
-          <div className="text-xs text-gray-500 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>Files will be automatically deleted after the specified time</span>
-          </div>
-        </div>
-        <input
-          type="number"
-          id="autoDeleteHours"
-          className="w-full p-2 border rounded-md"
-          value={autoDeleteHours}
-          onChange={(e) => setAutoDeleteHours(Math.max(1, parseInt(e.target.value) || 1))}
-          min="1"
-          max="168"
-        />
-        <div className="mt-1 text-xs text-gray-500">
-          {autoDeleteHours && (
-            <span>Files will be deleted after {autoDeleteHours} hour{autoDeleteHours > 1 ? 's' : ''} ({new Date(Date.now() + autoDeleteHours * 60 * 60 * 1000).toLocaleString()})</span>
-          )}
-        </div>
+      {/* Files will be automatically deleted after 1 hour */}
+      <div className="mb-4 text-xs text-gray-500 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>Files will be automatically deleted after 1 hour ({new Date(Date.now() + 60 * 60 * 1000).toLocaleString()})</span>
       </div>
       
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <label htmlFor="confidenceThreshold" className="block mb-1 font-medium">
-            Semester Detection Sensitivity:
-          </label>
-          <div className="text-xs text-gray-500 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Higher values require more precise semester markers</span>
-          </div>
-        </div>
-        <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-2">Low</span>
-          <input
-            type="range"
-            id="confidenceThreshold"
-            className="flex-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            min="0.3"
-            max="0.9"
-            step="0.1"
-            value={confidenceThreshold}
-            onChange={(e) => setConfidenceThreshold(parseFloat(e.target.value))}
-          />
-          <span className="text-xs text-gray-500 ml-2">High</span>
-        </div>
-        <div className="mt-1 text-xs text-gray-500 flex justify-between">
-          <span>Value: {confidenceThreshold.toFixed(1)}</span>
-          <span className="text-blue-600">
-            {confidenceThreshold <= 0.4 ? 'More splits (may include false positives)' : 
-             confidenceThreshold >= 0.8 ? 'Fewer splits (may miss some semesters)' : 
-             'Balanced detection'}
-          </span>
-        </div>
-      </div>
+
       
       <div
         onDragOver={handleDragOver}
@@ -287,18 +230,18 @@ export default function PDFProcessingCard() {
           </div>
         ) : semesterPDFs.length > 0 ? (
           /* List of semester PDFs with View icon */
-          <div className="mt-2 border rounded-lg overflow-hidden">
+          <div className="mt-2 rounded-lg overflow-hidden shadow-lg bg-white">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Semester</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filename</th>
-                  <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Semester</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filename</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white">
                 {semesterPDFs.map((pdf) => (
-                  <tr key={pdf.id} className="hover:bg-gray-50">
+                  <tr key={pdf.id} className="hover:bg-gray-50 border-b border-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className="font-medium">Semester {pdf.semester}</span>
                     </td>
@@ -310,7 +253,7 @@ export default function PDFProcessingCard() {
                         href={`${API_URL}/pdf/view/${pdf.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`inline-flex items-center px-3 py-1.5 ${viewingPdfId === pdf.id ? 'bg-blue-100' : 'bg-blue-50'} text-blue-700 rounded-md hover:bg-blue-100 mr-2 ${viewingPdfId === pdf.id ? 'cursor-wait' : ''}`}
+                        className={`inline-flex items-center px-3 py-1.5 ${viewingPdfId === pdf.id ? 'bg-blue-200' : 'bg-blue-100'} text-blue-700 rounded-md hover:bg-blue-200 mr-2 shadow-sm transition-all duration-200 ${viewingPdfId === pdf.id ? 'cursor-wait' : ''}`}
                         title="View PDF"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -335,7 +278,7 @@ export default function PDFProcessingCard() {
                       </a>
                       <button
                         onClick={() => handleDownload(pdf.id, pdf.semester)}
-                        className={`inline-flex items-center px-3 py-1.5 ${downloadingPdfId === pdf.id ? 'bg-gray-100' : 'bg-gray-50'} text-gray-700 rounded-md hover:bg-gray-100 ${downloadingPdfId === pdf.id ? 'cursor-wait' : ''}`}
+                        className={`inline-flex items-center px-3 py-1.5 ${downloadingPdfId === pdf.id ? 'bg-gray-200' : 'bg-gray-100'} text-gray-700 rounded-md hover:bg-gray-200 shadow-sm transition-all duration-200 ${downloadingPdfId === pdf.id ? 'cursor-wait' : ''}`}
                         title="Download PDF"
                         disabled={downloadingPdfId === pdf.id}
                       >
