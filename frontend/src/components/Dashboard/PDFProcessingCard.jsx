@@ -285,14 +285,16 @@ export default function PDFProcessingCard() {
                         <Download size={16} className="mr-1" />
                         <span>{downloadingPdfId === pdf.id ? 'Downloading...' : 'Download'}</span>
                       </button>
-                      <a 
-                        href={`/result-analysis?id=${pdf.id}&semester=${pdf.semester}`}
-                        className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 shadow-sm transition-all duration-200"
-                        title="Analyze Results"
-                      >
-                        <TrendingUp size={16} className="mr-1" />
-                        <span>Analyze</span>
-                      </a>
+                      <div className="relative inline-block">
+                        <a 
+                          href={`/result-analysis?id=${pdf.id}&semester=${pdf.semester}`}
+                          className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 shadow-sm transition-all duration-200"
+                          title="Analyze this semester's results"
+                        >
+                          <TrendingUp size={16} className="mr-1" />
+                          <span>Analyze</span>
+                        </a>
+                      </div>
                     </td>
                   </tr>
                 ))}
