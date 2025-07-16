@@ -6,16 +6,17 @@ import {
   VerifyEmailPage, 
   ForgotPassword,
   Dashboard,
-  PageNotFound 
+  PageNotFound,
+  ResultAnalysis
 } from "./components";
 
 // Layout wrapper component that applies different styles based on route
 function AppLayout({ children }) {
   const location = useLocation();
-  const isDashboard = location.pathname === '/dashboard';
+  const isFullWidthPage = location.pathname === '/dashboard' || location.pathname.includes('/result-analysis');
   
-  if (isDashboard) {
-    // Full-width layout for dashboard
+  if (isFullWidthPage) {
+    // Full-width layout for dashboard and result analysis pages
     return (
       <div className="min-h-screen w-full">
         {children}
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/result-analysis" element={<ResultAnalysis />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Toaster

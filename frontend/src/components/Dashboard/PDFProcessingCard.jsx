@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { Eye, Download } from "lucide-react";
+import { Eye, Download, TrendingUp } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
@@ -278,13 +278,21 @@ export default function PDFProcessingCard() {
                       </a>
                       <button
                         onClick={() => handleDownload(pdf.id, pdf.semester)}
-                        className={`inline-flex items-center px-3 py-1.5 ${downloadingPdfId === pdf.id ? 'bg-gray-200' : 'bg-gray-100'} text-gray-700 rounded-md hover:bg-gray-200 shadow-sm transition-all duration-200 ${downloadingPdfId === pdf.id ? 'cursor-wait' : ''}`}
+                        className={`inline-flex items-center px-3 py-1.5 ${downloadingPdfId === pdf.id ? 'bg-gray-200' : 'bg-gray-100'} text-gray-700 rounded-md hover:bg-gray-200 mr-2 shadow-sm transition-all duration-200 ${downloadingPdfId === pdf.id ? 'cursor-wait' : ''}`}
                         title="Download PDF"
                         disabled={downloadingPdfId === pdf.id}
                       >
                         <Download size={16} className="mr-1" />
                         <span>{downloadingPdfId === pdf.id ? 'Downloading...' : 'Download'}</span>
                       </button>
+                      <a 
+                        href={`/result-analysis?id=${pdf.id}&semester=${pdf.semester}`}
+                        className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 shadow-sm transition-all duration-200"
+                        title="Analyze Results"
+                      >
+                        <TrendingUp size={16} className="mr-1" />
+                        <span>Analyze</span>
+                      </a>
                     </td>
                   </tr>
                 ))}
