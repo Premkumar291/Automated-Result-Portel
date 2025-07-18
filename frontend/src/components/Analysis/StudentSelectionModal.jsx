@@ -87,8 +87,14 @@ export default function StudentSelectionModal({ isOpen, onClose, students, onSel
                               type="button"
                             >
                               <div>
-                                <div className={`font-medium ${isSelecting && selectedStudentIndex === index ? 'text-white' : 'text-gray-900'}`}>{student.name}</div>
-                                <div className={`text-sm ${isSelecting && selectedStudentIndex === index ? 'text-blue-100' : 'text-gray-500'}`}>{student.regNo}</div>
+                                <div className={`flex items-center space-x-2 ${isSelecting && selectedStudentIndex === index ? 'text-white' : 'text-gray-900'}`}>
+                                  <span className="font-medium">{student.regNo}</span>
+                                  <span className="text-sm">-</span>
+                                  <span className="font-medium">{student.name}</span>
+                                </div>
+                                <div className={`text-sm mt-1 ${isSelecting && selectedStudentIndex === index ? 'text-blue-100' : 'text-gray-500'}`}>
+                                  Click to select as starting point
+                                </div>
                               </div>
                               <div className={isSelecting && selectedStudentIndex === index ? 'text-white' : 'text-blue-500'}>
                                 {isSelecting && selectedStudentIndex === index ? (

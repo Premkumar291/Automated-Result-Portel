@@ -597,6 +597,68 @@ export default function ResultAnalysis() {
               </div>
             </div>
 
+            {/* Raw JSON Data Section */}
+            {analysisData && (
+              <div className="mt-8 bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="p-6 pb-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-xl font-semibold">Raw Analysis Data</h3>
+                      <p className="text-sm text-gray-500">Showing data from selected starting point onwards</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        // Create a filtered version of the data
+                        const filteredData = {
+                          ...analysisData,
+                          students: analysisData.students.slice(selectedStartIndex)
+                        };
+                        const jsonStr = JSON.stringify(filteredData, null, 2);
+                        const blob = new Blob([jsonStr], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `analysis_${semester}_from_${analysisData.students[selectedStartIndex]?.regNo}_${new Date().toISOString()}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                      Download JSON
+                    </button>
+                  </div>
+                  <div className="mt-4">
+                    <pre 
+                      className="text-xs font-mono bg-gray-50 p-4 rounded-lg overflow-x-auto whitespace-pre overflow-y-auto max-h-[500px]"
+                      style={{
+                        tabSize: 2,
+                        WebkitTextSizeAdjust: "100%",
+                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                      }}
+                    >
+                      {JSON.stringify(
+                        {
+                          ...analysisData,
+                          students: analysisData.students.slice(selectedStartIndex)
+                        }, 
+                        null, 
+                        2
+                      )
+                        .split('\n')
+                        .map((line, i) => (
+                          <div key={i} className="hover:bg-gray-100 py-0.5">
+                            {line}
+                          </div>
+                        ))
+                      }
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Performance Summary Section */}
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               {/* Section header */}

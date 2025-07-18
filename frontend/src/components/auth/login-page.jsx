@@ -87,7 +87,8 @@ const UserIcon = (
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-    />    <path
+    />
+    <path
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M4.5 19.5a8.25 8.25 0 0115 0"
