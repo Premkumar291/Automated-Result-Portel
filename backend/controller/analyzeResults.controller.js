@@ -43,6 +43,10 @@ export const analyzePDF = async (req, res) => {
       pageCount = pdfData.numpages;
     }
     
+    // Debugging: Log raw text for inspection
+    console.log('Debug: Raw textToAnalyze:', textToAnalyze);
+    console.log('Debug: Page count:', pageCount);
+    
     // Extract subject codes and student data
     const result = extractStudentDataAndSubjects(textToAnalyze);
     
@@ -54,6 +58,10 @@ export const analyzePDF = async (req, res) => {
       analyzedPage: page ? parseInt(page, 10) : null,
       uploadDate: pdfMetadata.uploadDate
     };
+    
+    // Debugging: Log final result summary
+    console.log('Debug: Total students parsed:', result.students.length);
+    console.log('Debug: Subject codes detected:', result.subjectCodes);
     
     res.json(result);
   } catch (err) {
@@ -83,6 +91,9 @@ async function extractSpecificPage(pdfBuffer, pageNum) {
     const pageBytes = await newPdf.save();
     const pageData = await pdfParseWrapper(pageBytes);
     
+    // Debugging: Log extracted page info
+    console.log('Debug: Extracted page text:', pageData.text);
+    
     return {
       text: pageData.text,
       pageCount: pageCount
@@ -96,45 +107,29 @@ async function extractSpecificPage(pdfBuffer, pageNum) {
 // Helper function to extract subject codes and student data from PDF text
 function extractStudentDataAndSubjects(text) {
   // Split the text into lines
-  const lines = text.split('\n').filter(line => line.trim() !== '');
-  
-  // Find the subject header line (contains subject codes)
-  let subjectHeaderIndex = -1;
+  const lines = text.split('\n').map(line => line.trim()).filter(line => line !== '');
+
+  // Debugging: Log line count and sample lines
+  console.log('Debug: Total lines extracted:', lines.length);
+  console.log('Debug: First 10 lines:', lines.slice(0, 10));
+
+  // Find and extract concatenated subject codes (dynamic count)
   let subjectCodes = [];
-  let subjectNames = {};
-  
-  // Look for a line that likely contains subject codes (typically uppercase with numbers)
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    // Subject codes typically follow a pattern like CS3351, CS3352, etc.
-    const subjectCodeMatches = line.match(/[A-Z]{2,}\d{4}/g);
-    
-    if (subjectCodeMatches && subjectCodeMatches.length > 1) {
-      subjectHeaderIndex = i;
-      subjectCodes = subjectCodeMatches;
-      
-      // Try to extract subject names from nearby lines
-      // This is a simplification - actual implementation may need more robust parsing
-      if (i > 0) {
-        const prevLine = lines[i-1].trim();
-        // Check if previous line might contain subject names
-        if (prevLine.length > 0 && !prevLine.match(/[A-Z]{2,}\d{4}/)) {
-          // Split the line by spaces or tabs and try to match with subject codes
-          const possibleNames = prevLine.split(/\s{2,}|\t/).filter(item => item.trim() !== '');
-          if (possibleNames.length === subjectCodes.length) {
-            for (let j = 0; j < subjectCodes.length; j++) {
-              subjectNames[subjectCodes[j]] = possibleNames[j].trim();
-            }
-          }
-        }
-      }
-      
-      break;
+  let subjectNames = {}; // Keeping for compatibility; enhance if needed
+  const subjectLine = lines.find(line => line.toLowerCase().includes('subject code'));
+  if (subjectLine) {
+    // Directly match all codes in the line (robust to spaces around " - >")
+    const codeMatches = subjectLine.match(/[A-Z]{2,}\d{4}/g);
+    if (codeMatches) {
+      subjectCodes = codeMatches;
     }
   }
-  
-  if (subjectHeaderIndex === -1 || subjectCodes.length === 0) {
-    // Return empty result instead of throwing error
+
+  // Debugging: Log subject detection
+  console.log('Debug: Detected subject line:', subjectLine || 'None');
+  console.log('Debug: Extracted subject codes:', subjectCodes);
+
+  if (subjectCodes.length === 0) {
     return {
       students: [],
       subjectCodes: [],
@@ -142,49 +137,58 @@ function extractStudentDataAndSubjects(text) {
       error: 'Could not find subject codes in the PDF'
     };
   }
-  
-  // Extract student data from lines after the subject header
+
+  // Define possible grade patterns (handles 1-4 char grades like "O", "A+", "U", "WH1")
+  const gradePattern = 'O|A\\+|A|B\\+|B|C|U|P|F|I|WH\\d*';
+  const trailingGradesRegex = new RegExp(`(${gradePattern})+$`, 'g'); // Matches consecutive grades at the end
+
+  // Extract students from lines that start with 12-digit regNo
   const students = [];
-  const regNoPattern = /\d{12}/; // Pattern for registration number (12 digits)
-  
-  for (let i = subjectHeaderIndex + 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    const regNoMatch = line.match(regNoPattern);
-    
+  lines.forEach(line => {
+    const regNoMatch = line.match(/^(\d{12})/);
     if (regNoMatch) {
-      const regNo = regNoMatch[0];
-      
-      // Extract student name (typically follows the reg no)
-      const lineAfterRegNo = line.substring(line.indexOf(regNo) + regNo.length).trim();
-      let name = '';
-      
-      // Name is typically the text before the grades
-      // This is a simplification - actual implementation may need more robust parsing
-      const nameEndIndex = lineAfterRegNo.search(/[A-Z]\+?|[A-Z]|U/);
-      if (nameEndIndex > 0) {
-        name = lineAfterRegNo.substring(0, nameEndIndex).trim();
+      const regNo = regNoMatch[1];
+      const rest = line.substring(12).trim(); // Everything after regNo
+
+      // Find the trailing consecutive grades sequence
+      const trailingMatch = rest.match(trailingGradesRegex);
+      if (!trailingMatch) return; // Skip if no trailing grades
+
+      const gradesString = trailingMatch[0]; // The clumped grades (e.g., "OAA+B+OOA+OA")
+
+      // Parse individual grades from gradesString
+      const extractedGrades = gradesString.match(new RegExp(gradePattern, 'g')) || [];
+      if (extractedGrades.length === 0) return;
+
+      // Cap at subjectCodes.length (handles partial/excess)
+      const cappedGrades = extractedGrades.slice(0, subjectCodes.length);
+
+      // Name is everything before the trailing gradesString
+      const gradesStartIndex = rest.lastIndexOf(gradesString);
+      let name = rest.substring(0, gradesStartIndex).trim();
+
+      // Fallback if index not found (rare, but clean up)
+      if (gradesStartIndex < 0) {
+        name = rest.replace(gradesString, '').trim();
       }
-      
-      // Extract grades for each subject
+
+      // Map grades to subjects (dynamic, handles partial)
       const grades = {};
       const gradePoints = {};
-      
-      // Extract grades from the line
-      const gradeMatches = lineAfterRegNo.match(/[A-Z]\+?|[A-Z]|U/g);
-      
-      if (gradeMatches && gradeMatches.length >= subjectCodes.length) {
-        for (let j = 0; j < subjectCodes.length; j++) {
-          const grade = gradeMatches[j];
-          grades[subjectCodes[j]] = grade;
-          
-          // Calculate grade points
-          gradePoints[subjectCodes[j]] = calculateGradePoints(grade);
+      cappedGrades.forEach((grade, index) => {
+        const subject = subjectCodes[index];
+        if (subject) {
+          grades[subject] = grade;
+          gradePoints[subject] = calculateGradePoints(grade);
         }
-        
-        // Calculate GPA
+      });
+
+      // Calculate GPA based on actual collected grades
+      const collectedGradesCount = Object.keys(gradePoints).length;
+      if (collectedGradesCount > 0) {
         const totalPoints = Object.values(gradePoints).reduce((sum, points) => sum + points, 0);
-        const gpa = totalPoints / subjectCodes.length;
-        
+        const gpa = totalPoints / collectedGradesCount;
+
         students.push({
           regNo,
           name,
@@ -193,9 +197,18 @@ function extractStudentDataAndSubjects(text) {
           gpa: parseFloat(gpa.toFixed(2))
         });
       }
+
+      // Debugging: Log each parsed student (limit to first few for brevity)
+      if (students.length <= 5) {
+        console.log('Debug: Parsed student:', { regNo, name, cappedGrades, gradesString });
+      }
     }
-  }
-  
+  });
+
+  // Debugging: Log total students and a sample
+  console.log('Debug: Total students extracted:', students.length);
+  console.log('Debug: Sample student (first one):', students[0] || 'None');
+
   return {
     students,
     subjectCodes,
@@ -214,7 +227,9 @@ function calculateGradePoints(grade) {
     'C': 5,
     'P': 4,
     'F': 0,
-    'U': 0
+    'U': 0,
+    'I': 0, // Inadequate attendance
+    'WH1': 0 // Example for withheld; add more if needed
   };
   
   return gradePointMap[grade] || 0;
