@@ -5,7 +5,7 @@ import cors from 'cors';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
 import gridFSPdfRoutes from './routes/gridFSPdfSplit.route.js';
-import analyzeResultsRoutes from './routes/analyzeResults.route.js';
+import pdfCoAnalysisRoutes from './routes/pdfCoAnalysis.route.js';
 import { scheduleCleanup } from './utils/cleanupExpiredPDFs.js';
 
 dotenv.config();
@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
-app.use("/api/analyze", analyzeResultsRoutes);
+app.use("/api/analyze", pdfCoAnalysisRoutes); // Using PDF.co as the primary analyzer
 
 // Start server
 app.listen(PORT, async () => {

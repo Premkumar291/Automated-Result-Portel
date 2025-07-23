@@ -1,12 +1,12 @@
 // External dependencies
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer, Tooltip } from "recharts";
-import { Users, BookOpen, TrendingUp, Award, ArrowLeft } from "lucide-react"
+import { Users, BookOpen, TrendingUp, Award, ArrowLeft, Zap } from "lucide-react"
 import { useEffect, useState, Fragment } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 
 // Internal dependencies
-import { analyzePDF } from "../../api/analyze"
+import { analyzePDFWithPdfCo } from "../../api/analyzePdfCo"
 import StudentSelectionModal from './StudentSelectionModal';
 
 /**
@@ -166,6 +166,9 @@ export default function ResultAnalysis() {
   
   // Semester information extracted from URL parameters
   const [semester] = useState(searchParams.get('semester'));
+  
+  // Tracks if PDF.co analysis is in progress
+  const [pdfCoLoading, setPdfCoLoading] = useState(false);
 
   /**
    * Fetches and processes PDF analysis data when the component mounts
@@ -182,6 +185,52 @@ export default function ResultAnalysis() {
    * Dependencies: pdfId, semester, navigate, searchParams
    * The effect re-runs if any of these dependencies change
    */
+  /**
+   * Refreshes the analysis using the PDF.co enhanced analysis
+   * Fetches new data when requested
+   */
+  const refreshAnalysis = async () => {
+    try {
+      // Reset states and show loading
+      setResultData(null);
+      setPdfCoLoading(true);
+      
+      // Get the page parameter from the URL if it exists
+      const page = searchParams.get('page');
+      
+      // Use PDF.co analysis method
+      const data = await analyzePDFWithPdfCo(pdfId, page);
+      
+      // Check if we have students data
+      if (!data.students || data.students.length === 0) {
+        toast.error('No student data found in this PDF. Please try another PDF or page.');
+        setPdfCoLoading(false);
+        return;
+      }
+      
+      // Update component state with fetched data
+      setAnalysisData(data);
+      setStudents(data.students);
+      setSubjectCodes(data.subjectCodes);
+      
+      // If we already had a selected index, reprocess with the new data
+      if (selectedStartIndex !== null) {
+        handleSelectStudent(selectedStartIndex);
+      } else {
+        setShowModal(true);
+      }
+      
+      // Show success message
+      toast.success('Analysis refreshed with enhanced PDF.co processing');
+      
+    } catch (error) {
+      console.error('Error refreshing analysis:', error);
+      toast.error(`Failed to refresh analysis. Please try again.`);
+    } finally {
+      setPdfCoLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Fetch data from API
     const fetchData = async () => {
@@ -196,8 +245,8 @@ export default function ResultAnalysis() {
         // Get the page parameter from the URL if it exists
         const page = searchParams.get('page');
         
-        // Pass the page parameter to the analyzePDF function
-        const data = await analyzePDF(pdfId, page);
+        // Use PDF.co enhanced analysis
+        const data = await analyzePDFWithPdfCo(pdfId, page);
         
         // Check if we have students data
         if (!data.students || data.students.length === 0) {
@@ -388,19 +437,49 @@ export default function ResultAnalysis() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="w-full space-y-4">
-        {/* Navigation - Back Button */}
-        <button 
-          onClick={() => navigate('/dashboard')} 
-          className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-        >
-          <ArrowLeft size={16} className="mr-1" />
-          <span>Back to Dashboard</span>
-        </button>
+        {/* Navigation and Controls Row */}
+        <div className="flex justify-between items-center">
+          {/* Back Button */}
+          <button 
+            onClick={() => navigate('/dashboard')} 
+            className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <ArrowLeft size={16} className="mr-1" />
+            <span>Back to Dashboard</span>
+          </button>
+          
+          {/* Refresh Analysis Button */}
+          {!loading && (
+            <div className="flex items-center space-x-2">
+              <button 
+                onClick={refreshAnalysis}
+                disabled={pdfCoLoading}
+                className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Refresh Analysis</span>
+                <Zap className="h-4 w-4 text-yellow-300" />
+              </button>
+              {pdfCoLoading && (
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500"></div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Page Header Section */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold text-gray-900">Result Analysis Dashboard</h1>
           <p className="text-gray-600">Comprehensive overview of Semester {semester} academic performance</p>
+          <div className="flex justify-center items-center space-x-2 mt-2">
+            <span className="text-xs text-gray-500">Processing method:</span>
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+              PDF.co Enhanced Analysis
+              <Zap className="inline-block ml-1 h-3 w-3 text-yellow-500" />
+            </span>
+          </div>
         </div>
 
         {/* Student Selection Modal - Conditionally rendered based on showModal state */}
