@@ -1,6 +1,5 @@
 // External dependencies
-import { PieChart, Pie, Cell, Legend, ResponsiveContainer, Tooltip } from "recharts";
-import { Users, BookOpen, TrendingUp, Award, ArrowLeft, Zap, RefreshCw } from "lucide-react"
+import { Users, BookOpen, TrendingUp, Award, ArrowLeft, Zap, RefreshCw, UserRound, BookText, PercentSquare } from "lucide-react"
 import { useEffect, useState, Fragment } from "react"
 import { useSearchParams, useNavigate, Link } from "react-router-dom"
 import { toast } from "react-hot-toast"
@@ -9,51 +8,9 @@ import { toast } from "react-hot-toast"
 import { analyzePDFWithPdfCo } from "../../api/analyzePdfCo"
 import StudentSelectionModal from './StudentSelectionModal';
 
-/**
- * Color palette for the pie chart segments
- * Using a consistent color scheme across the application
- * These colors are designed to be visually distinct and accessible
- */
-const COLORS = [
-  '#3366CC', // Rich Blue
-  '#00A278', // Teal
-  '#FFB900', // Amber
-  '#F25022', // Red Orange
-  '#7B61FF', // Purple
-  '#00B294', // Mint
-  '#E74856', // Red
-  '#00BCF2', // Sky Blue
-  '#FF8C00', // Dark Orange
-  '#525CE5', // Indigo
-  '#16C60C', // Green
-  '#B4009E'  // Magenta
-];
 
-/**
- * Transforms the raw result data into a format suitable for the subject-wise pie chart
- * 
- * @param {Object} resultData - The processed result data containing subject performance metrics
- * @param {Array<Object>} resultData.subjectWiseResults - Array of subject performance objects
- * @param {string} resultData.subjectWiseResults[].subject - Subject code or name
- * @param {number} resultData.subjectWiseResults[].passPercentage - Percentage of students who passed
- * @param {number} resultData.subjectWiseResults[].passedStudents - Number of students who passed
- * @param {number} resultData.subjectWiseResults[].totalStudents - Total number of students
- * @returns {Array<Object>} Formatted data array for the pie chart with name, value, count and total properties
- */
-const createSubjectPieData = (resultData) => {
-  // Return empty array if resultData is missing or has no subjectWiseResults
-  if (!resultData || !resultData.subjectWiseResults) {
-    return [];
-  }
-  
-  // Transform each subject result into the format expected by the pie chart
-  return resultData.subjectWiseResults.map(subject => ({
-    name: subject.subject,         // Subject code/name for the chart label
-    value: subject.passPercentage, // Pass percentage for the chart segment size
-    count: subject.passedStudents, // Number of passed students for tooltip/legend
-    total: subject.totalStudents   // Total students for tooltip/legend
-  }));
-};
+
+
 
 /**
  * ResultAnalysis Component
@@ -690,9 +647,6 @@ export default function ResultAnalysis() {
     return <LoadingSpinner />;
   }
 
-  // Create pie data from result data
-  const subjectPieData = resultData ? createSubjectPieData(resultData) : [];
-
   /**
    * Main component render method
    * Renders the entire Result Analysis Dashboard with all its sections
@@ -761,36 +715,40 @@ export default function ResultAnalysis() {
       ) : (
         <>
           {/* Key metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* Total Students */}
-            <div className="bg-white shadow-sm rounded-lg p-6">
-              <p className="text-sm font-medium text-gray-500 truncate">Total Students</p>
-              <p className="mt-1 text-3xl font-semibold text-gray-900">{resultData.totalStudents}</p>
+            <div className="bg-blue-50 shadow-sm rounded-lg p-6 flex items-center">
+              <div className="bg-blue-500 p-3 rounded-full mr-4">
+                <UserRound className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-blue-700 truncate">Total Students</p>
+                <p className="mt-1 text-3xl font-semibold text-gray-900">{resultData.totalStudents}</p>
+              </div>
             </div>
 
             {/* Total Subjects */}
-            <div className="bg-white shadow-sm rounded-lg p-6">
-              <p className="text-sm font-medium text-gray-500 truncate">Total Subjects</p>
-              <p className="mt-1 text-3xl font-semibold text-gray-900">{resultData.totalSubjects}</p>
+            <div className="bg-purple-50 shadow-sm rounded-lg p-6 flex items-center">
+              <div className="bg-purple-500 p-3 rounded-full mr-4">
+                <BookText className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-purple-700 truncate">Total Subjects</p>
+                <p className="mt-1 text-3xl font-semibold text-gray-900">{resultData.totalSubjects}</p>
+              </div>
             </div>
 
             {/* Overall Pass Percentage */}
-            <div className="bg-white shadow-sm rounded-lg p-6">
-              <p className="text-sm font-medium text-gray-500 truncate">Overall Pass Percentage</p>
-              <p className="mt-1 text-3xl font-semibold text-gray-900">
-                {resultData.overallPassPercentage.toFixed(1)}%
-              </p>
-            </div>
-
-            {/* Top Performing Subject */}
-            <div className="bg-white shadow-sm rounded-lg p-6">
-              <p className="text-sm font-medium text-gray-500 truncate">Top Performing Subject</p>
-              <p className="mt-1 text-3xl font-semibold text-gray-900">
-                {resultData.subjectWiseResults.length > 0 ? 
-                  resultData.subjectWiseResults.reduce((prev, current) => 
-                    (prev.passPercentage > current.passPercentage) ? prev : current
-                  ).subject : 'N/A'}
-              </p>
+            <div className="bg-green-50 shadow-sm rounded-lg p-6 flex items-center">
+              <div className="bg-green-500 p-3 rounded-full mr-4">
+                <PercentSquare className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-green-700 truncate">Overall Pass Percentage</p>
+                <p className="mt-1 text-3xl font-semibold text-gray-900">
+                  {resultData.overallPassPercentage.toFixed(1)}%
+                </p>
+              </div>
             </div>
           </div>
 
@@ -804,48 +762,6 @@ export default function ResultAnalysis() {
             </div>
 
             <div className="p-6">
-              {/* Pie Chart */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4">Pass Percentage Distribution</h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={createSubjectPieData(resultData.subjectWiseResults)}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {createSubjectPieData(resultData.subjectWiseResults).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value, name) => [`${value.toFixed(1)}%`, name]}
-                        contentStyle={{ borderRadius: '0.375rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
-                      />
-                      <Legend 
-                        layout="vertical" 
-                        verticalAlign="middle" 
-                        align="right"
-                        formatter={(value) => {
-                          const subject = resultData.subjectWiseResults.find(s => s.subject === value);
-                          return (
-                            <span className="text-sm">
-                              {value} ({subject ? subject.passPercentage.toFixed(1) : 0}%)
-                            </span>
-                          );
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
               {/* Subject Performance Table */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">Detailed Subject Performance</h3>
@@ -1004,3 +920,4 @@ export default function ResultAnalysis() {
     </div>
   );
 }
+

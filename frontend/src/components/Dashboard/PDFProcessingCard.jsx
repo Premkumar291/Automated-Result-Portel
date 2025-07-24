@@ -125,9 +125,7 @@ export default function PDFProcessingCard() {
     }
   };
 
-  const handleSemesterChange = (e) => {
-    setSelectedSemester(e.target.value);
-  };
+
 
   const handleDownload = async (pdfId) => {
     try {

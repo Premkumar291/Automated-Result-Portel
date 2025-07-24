@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 
-export default function StudentSelectionModal({ isOpen, onClose, students, onSelectStudent }) {
+export default function StudentSelectionModal({ isOpen, students, onSelectStudent }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudentIndex, setSelectedStudentIndex] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
