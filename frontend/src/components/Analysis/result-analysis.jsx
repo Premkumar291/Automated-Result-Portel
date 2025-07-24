@@ -1,8 +1,8 @@
 // External dependencies
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer, Tooltip } from "recharts";
-import { Users, BookOpen, TrendingUp, Award, ArrowLeft, Zap } from "lucide-react"
+import { Users, BookOpen, TrendingUp, Award, ArrowLeft, Zap, RefreshCw } from "lucide-react"
 import { useEffect, useState, Fragment } from "react"
-import { useSearchParams, useNavigate } from "react-router-dom"
+import { useSearchParams, useNavigate, Link } from "react-router-dom"
 import { toast } from "react-hot-toast"
 
 // Internal dependencies
@@ -89,25 +89,262 @@ export default function ResultAnalysis() {
    * @param {number} props.subject.totalStudents - Total number of students
    * @returns {JSX.Element} A styled row showing subject performance metrics
    */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const SubjectPerformanceItem = ({ subject }) => (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:shadow-md transition-shadow duration-200">
-      <div className="flex-1">
-        <h3 className="font-semibold text-gray-900 text-lg">{subject.subject}</h3>
-        <p className="text-sm text-gray-600">
-          <span className="font-medium">{subject.passedStudents}</span>/<span>{subject.totalStudents}</span> students passed
-        </p>
-      </div>
-      <div className="flex items-center space-x-4">
-        <div className="w-32 bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-          <div
-            className={`h-3 rounded-full ${getPassPercentageColor(subject.passPercentage)}`}
-            style={{ width: `${subject.passPercentage}%`, transition: 'width 1s ease-in-out' }}
-          ></div>
+    <div className="flex flex-col p-4 bg-gray-50 rounded-lg hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-900 text-lg">{subject.subject}</h3>
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">{subject.passedStudents}</span>/<span>{subject.totalStudents}</span> students passed
+            {subject.emptyGrades > 0 && (
+              <span className="ml-2 text-amber-600">
+                ({subject.emptyGrades} students with empty grades)
+              </span>
+            )}
+          </p>
         </div>
-        <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-bold ${getPassPercentageColor(subject.passPercentage)} text-white shadow-sm`}>
-          {subject.passPercentage.toFixed(1)}%
-        </span>
+        <div className="flex items-center space-x-4">
+          <div className="w-32 bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+            <div
+              className={`h-3 rounded-full ${getPassPercentageColor(subject.passPercentage)}`}
+              style={{ width: `${subject.passPercentage}%`, transition: 'width 1s ease-in-out' }}
+            ></div>
+          </div>
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-bold ${getPassPercentageColor(subject.passPercentage)} text-white shadow-sm`}>
+            {subject.passPercentage.toFixed(1)}%
+          </span>
+        </div>
       </div>
+      
+      {/* Students with grades section */}
+      {subject.studentsWithGrades && subject.studentsWithGrades.length > 0 && (
+        <div className="mt-2 pt-2 border-t border-gray-200">
+          <p className="text-sm font-medium text-gray-700 mb-2">Students with grades:</p>
+          <div className="max-h-40 overflow-y-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reg No</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {subject.studentsWithGrades.map((student, idx) => (
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{student.regNo}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{student.name}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${student.grade === 'U' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                        {student.grade}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
   
@@ -313,12 +550,31 @@ export default function ResultAnalysis() {
     ).length;
     const overallPass = (passed / total) * 100;
     
-    // Calculate subject-wise pass percentages
+    // Find students with complete grade records (no empty grades for any subject)
+    const studentsWithCompleteGrades = selectedStudents.filter(student => {
+      return subjectCodes.every(code => student.grades[code]);
+    });
+    
+    // Calculate subject-wise pass percentages and track empty grades
     const subjectWiseResults = subjectCodes.map(code => {
-      // Count students who have a grade for this subject
+      // Count students who have a grade for this subject (not empty)
       const appeared = selectedStudents.filter(s => s.grades[code]).length;
+      
       // Count students who passed this subject (grade is not "U")
       const passed = selectedStudents.filter(s => s.grades[code] && s.grades[code] !== "U").length;
+      
+      // Count students with empty grades for this subject
+      const emptyGrades = selectedStudents.filter(s => !s.grades[code]).length;
+      
+      // Get list of students with grades for this subject
+      const studentsWithGrades = selectedStudents
+        .filter(s => s.grades[code])
+        .map(s => ({
+          regNo: s.regNo,
+          name: s.name,
+          grade: s.grades[code]
+        }));
+      
       // Calculate pass percentage, handling division by zero
       const passPercentage = appeared > 0 ? (passed / appeared) * 100 : 0;
       
@@ -327,7 +583,9 @@ export default function ResultAnalysis() {
         subject: code,
         passPercentage,
         totalStudents: appeared,
-        passedStudents: passed
+        passedStudents: passed,
+        emptyGrades,
+        studentsWithGrades
       };
     });
     
@@ -336,6 +594,11 @@ export default function ResultAnalysis() {
       totalStudents: total,
       totalSubjects: subjectCodes.length,
       overallPassPercentage: overallPass,
+      studentsWithCompleteGrades: studentsWithCompleteGrades.map(s => ({
+        regNo: s.regNo,
+        name: s.name,
+        grades: s.grades
+      })),
       subjectWiseResults
     });
   };
@@ -435,357 +698,309 @@ export default function ResultAnalysis() {
    * Renders the entire Result Analysis Dashboard with all its sections
    */
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="w-full space-y-4">
-        {/* Navigation and Controls Row */}
-        <div className="flex justify-between items-center">
-          {/* Back Button */}
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Navigation and controls */}
+      <div className="flex justify-between items-center mb-6">
+        <Link to="/dashboard" className="text-blue-600 hover:text-blue-800 flex items-center">
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back to Dashboard
+        </Link>
+        <button
+          onClick={refreshAnalysis}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center"
+          disabled={pdfCoLoading}
+        >
+          {pdfCoLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span className="ml-2">Processing...</span>
+            </>
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4 mr-1" />
+              Refresh Analysis
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Page header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Result Analysis</h1>
+        <p className="text-gray-600 mt-2">
+          Analyzing semester {semester} results from PDF ID: {pdfId}
+        </p>
+      </div>
+
+      {/* Student selection modal */}
+      <StudentSelectionModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        students={students}
+        onSelectStudent={handleSelectStudent}
+      />
+
+      {/* Main content */}
+      {pdfCoLoading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <LoadingSpinner />
+          <p className="mt-4 text-gray-600">Analyzing PDF results...</p>
+        </div>
+      ) : !resultData ? (
+        <div className="bg-white shadow-md rounded-lg p-6 text-center">
+          <p className="text-gray-600">
+            Select a starting student to view analysis
+          </p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
-            <ArrowLeft size={16} className="mr-1" />
-            <span>Back to Dashboard</span>
+            Select Student
           </button>
-          
-          {/* Refresh Analysis Button */}
-          {!loading && (
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={refreshAnalysis}
-                disabled={pdfCoLoading}
-                className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>Refresh Analysis</span>
-                <Zap className="h-4 w-4 text-yellow-300" />
-              </button>
-              {pdfCoLoading && (
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500"></div>
-              )}
+        </div>
+      ) : (
+        <>
+          {/* Key metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* Total Students */}
+            <div className="bg-white shadow-sm rounded-lg p-6">
+              <p className="text-sm font-medium text-gray-500 truncate">Total Students</p>
+              <p className="mt-1 text-3xl font-semibold text-gray-900">{resultData.totalStudents}</p>
+            </div>
+
+            {/* Total Subjects */}
+            <div className="bg-white shadow-sm rounded-lg p-6">
+              <p className="text-sm font-medium text-gray-500 truncate">Total Subjects</p>
+              <p className="mt-1 text-3xl font-semibold text-gray-900">{resultData.totalSubjects}</p>
+            </div>
+
+            {/* Overall Pass Percentage */}
+            <div className="bg-white shadow-sm rounded-lg p-6">
+              <p className="text-sm font-medium text-gray-500 truncate">Overall Pass Percentage</p>
+              <p className="mt-1 text-3xl font-semibold text-gray-900">
+                {resultData.overallPassPercentage.toFixed(1)}%
+              </p>
+            </div>
+
+            {/* Top Performing Subject */}
+            <div className="bg-white shadow-sm rounded-lg p-6">
+              <p className="text-sm font-medium text-gray-500 truncate">Top Performing Subject</p>
+              <p className="mt-1 text-3xl font-semibold text-gray-900">
+                {resultData.subjectWiseResults.length > 0 ? 
+                  resultData.subjectWiseResults.reduce((prev, current) => 
+                    (prev.passPercentage > current.passPercentage) ? prev : current
+                  ).subject : 'N/A'}
+              </p>
+            </div>
+          </div>
+
+          {/* Subject-wise Performance */}
+          <div className="mb-8 bg-white shadow-md rounded-lg overflow-hidden">
+            <div className="px-6 py-4 bg-indigo-600">
+              <h2 className="text-lg font-semibold text-white">Subject-wise Performance</h2>
+              <p className="text-indigo-100 text-sm">
+                Pass percentage for each subject
+              </p>
+            </div>
+
+            <div className="p-6">
+              {/* Pie Chart */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4">Pass Percentage Distribution</h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={createSubjectPieData(resultData.subjectWiseResults)}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {createSubjectPieData(resultData.subjectWiseResults).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value, name) => [`${value.toFixed(1)}%`, name]}
+                        contentStyle={{ borderRadius: '0.375rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+                      />
+                      <Legend 
+                        layout="vertical" 
+                        verticalAlign="middle" 
+                        align="right"
+                        formatter={(value) => {
+                          const subject = resultData.subjectWiseResults.find(s => s.subject === value);
+                          return (
+                            <span className="text-sm">
+                              {value} ({subject ? subject.passPercentage.toFixed(1) : 0}%)
+                            </span>
+                          );
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Subject Performance Table */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Detailed Subject Performance</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {resultData.subjectWiseResults.map((subject, index) => (
+                    <SubjectPerformanceItem key={index} subject={subject} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Display students with complete grade records */}
+          {resultData && resultData.studentsWithCompleteGrades && resultData.studentsWithCompleteGrades.length > 0 && (
+            <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
+              <div className="px-6 py-4 bg-indigo-600">
+                <h3 className="text-lg font-semibold text-white">Students With Complete Grade Records</h3>
+                <p className="text-indigo-100 text-sm">
+                  {resultData.studentsWithCompleteGrades.length} students have grades for all subjects
+                </p>
+              </div>
+              <div className="p-4 max-h-96 overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reg No</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      {subjectCodes.map(code => (
+                        <th key={code} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{code}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {resultData.studentsWithCompleteGrades.map((student, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{student.regNo}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{student.name}</td>
+                        {subjectCodes.map(code => (
+                          <td key={code} className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${student.grades[code] === 'U' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                              {student.grades[code]}
+                            </span>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Page Header Section */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900">Result Analysis Dashboard</h1>
-          <p className="text-gray-600">Comprehensive overview of Semester {semester} academic performance</p>
-          <div className="flex justify-center items-center space-x-2 mt-2">
-            <span className="text-xs text-gray-500">Processing method:</span>
-            <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-              PDF.co Enhanced Analysis
-              <Zap className="inline-block ml-1 h-3 w-3 text-yellow-500" />
-            </span>
-          </div>
-        </div>
-
-        {/* Student Selection Modal - Conditionally rendered based on showModal state */}
-        <StudentSelectionModal 
-          isOpen={showModal} 
-          onClose={handleCloseModal} 
-          students={students} 
-          onSelectStudent={handleSelectStudent} 
-        />
-
-        {/* Conditional Rendering based on loading and data state */}
-        {loading ? (
-          <LoadingSpinner />
-        ) : resultData ? (
-          <>
-            {/* Key Metrics Section - Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Total Students Card */}
-              <div className="bg-white rounded-lg shadow-sm border-l-4 border-l-blue-500 overflow-hidden">
-                <div className="p-4 flex flex-row items-center justify-between space-y-0 pb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Total Students</h3>
-                  <Users className="h-5 w-5 text-blue-500" /> {/* Icon from lucide-react */}
+          {analysisData && (
+            <div className="mt-8 bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="p-6 pb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-semibold">Raw Analysis Data</h3>
+                    <p className="text-sm text-gray-500">Showing data from selected starting point onwards</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      // Create a filtered version of the data
+                      const filteredData = {
+                        ...analysisData,
+                        students: analysisData.students.slice(selectedStartIndex)
+                      };
+                      const jsonStr = JSON.stringify(filteredData, null, 2);
+                      const blob = new Blob([jsonStr], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `analysis_${semester}_from_${analysisData.students[selectedStartIndex]?.regNo}_${new Date().toISOString()}.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Download JSON
+                  </button>
                 </div>
-                <div className="px-4 pb-4">
-                  <div className="text-3xl font-bold text-gray-900">{resultData.totalStudents}</div>
-                  <p className="text-xs text-gray-500 mt-1">Enrolled students</p>
-                </div>
-              </div>
-
-              {/* Total Subjects Card */}
-              <div className="bg-white rounded-lg shadow-sm border-l-4 border-l-green-500 overflow-hidden">
-                <div className="p-4 flex flex-row items-center justify-between space-y-0 pb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Total Subjects</h3>
-                  <BookOpen className="h-5 w-5 text-green-500" /> {/* Icon from lucide-react */}
-                </div>
-                <div className="px-4 pb-4">
-                  <div className="text-3xl font-bold text-gray-900">{resultData.totalSubjects}</div>
-                  <p className="text-xs text-gray-500 mt-1">Academic subjects</p>
-                </div>
-              </div>
-
-              {/* Overall Pass Percentage Card */}
-              <div className="bg-white rounded-lg shadow-sm border-l-4 border-l-purple-500 overflow-hidden">
-                <div className="p-4 flex flex-row items-center justify-between space-y-0 pb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Overall Pass Rate</h3>
-                  <TrendingUp className="h-5 w-5 text-purple-500" /> {/* Icon from lucide-react */}
-                </div>
-                <div className="px-4 pb-4">
-                  <div className="text-3xl font-bold text-gray-900">{resultData.overallPassPercentage}%</div>
-                  <p className="text-xs text-gray-500 mt-1">Average across all subjects</p>
-                </div>
-              </div>
-
-              {/* Top Performing Subject Card */}
-              <div className="bg-white rounded-lg shadow-sm border-l-4 border-l-orange-500 overflow-hidden">
-                <div className="p-4 flex flex-row items-center justify-between space-y-0 pb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Top Subject</h3>
-                  <Award className="h-5 w-5 text-orange-500" /> {/* Icon from lucide-react */}
-                </div>
-                <div className="px-4 pb-4">
-                  {/* Find the subject with the highest pass percentage using reduce */}
-                  <div className="text-lg font-bold text-gray-900">
-                    {
-                      resultData.subjectWiseResults.reduce((prev, current) =>
-                        prev.passPercentage > current.passPercentage ? prev : current,
-                      ).subject
+                <div className="mt-4">
+                  <pre 
+                    className="text-xs font-mono bg-gray-50 p-4 rounded-lg overflow-x-auto whitespace-pre overflow-y-auto max-h-[500px]"
+                    style={{
+                      tabSize: 2,
+                      WebkitTextSizeAdjust: "100%",
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                    }}
+                  >
+                    {JSON.stringify(
+                      {
+                        ...analysisData,
+                        students: analysisData.students.slice(selectedStartIndex)
+                      }, 
+                      null, 
+                      2
+                    )
+                      .split('\n')
+                      .map((line, i) => (
+                        <div key={i} className="hover:bg-gray-100 py-0.5">
+                          {line}
+                        </div>
+                      ))
                     }
-                  </div>
-                  {/* Display the highest pass percentage */}
-                  <p className="text-xs text-gray-500 mt-1">
-                    {Math.max(...resultData.subjectWiseResults.map((s) => s.passPercentage))}% pass rate
-                  </p>
+                  </pre>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Subject-wise Analysis */}
-            <div className="grid grid-cols-1 gap-4">
-              {/* Subject-wise Pass Percentage Pie Chart - Full Width */}
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                {/* Chart header section */}
-                <div className="p-6 pb-2">
-                  <h3 className="text-xl font-semibold">Subject-wise Pass Percentage</h3>
-                  <p className="text-sm text-gray-500">Visual representation of pass rates by subject</p>
-                </div>
+          {/* Performance Summary Section */}
+          <div className="mt-8 bg-white rounded-lg shadow-sm overflow-hidden">
+            {/* Section header */}
+            <div className="p-6 pb-2">
+              <h3 className="text-xl font-semibold">Performance Summary</h3>
+              <p className="text-sm text-gray-500">Key insights from the result analysis</p>
+            </div>
+            
+            {/* Summary statistics cards */}
+            <div className="p-6 pt-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Excellent performance category (90%+) */}
+                <SummaryStatItem 
+                  count={resultData.subjectWiseResults.filter((s) => s.passPercentage >= 90).length}
+                  label="Subjects with 90%+ pass rate"
+                  bgColor="bg-green-50"
+                  textColor="text-green-600"
+                  labelColor="text-green-700"
+                />
                 
-                {/* Chart container */}
-                <div className="p-6 pt-2">
-                  {/* Responsive container with full width */}
-                  <div className="mx-auto w-full" style={{ height: '500px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        {/* 
-                          Main Pie Chart Component
-                          - data: Array of objects with subject data
-                          - dataKey: Property to determine segment size (pass percentage)
-                          - nameKey: Property to use for segment labels (subject code)
-                          - cx/cy: Center position of the pie (50% centers it in the container)
-                          - outerRadius: Size of the pie chart
-                          - innerRadius: Creates the donut effect (empty center)
-                        */}
-                        <Pie
-                          data={subjectPieData}
-                          dataKey="value" 
-                          nameKey="name" 
-                          cx="40%"
-                          cy="50%"
-                          outerRadius="35%"
-                          innerRadius="20%" 
-                          fill="#8884d8"
-                          paddingAngle={3} 
-                          // Custom label function that shows subject code and pass percentage
-                          label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
-                          labelLine={{ stroke: '#ccc', strokeWidth: 1, strokeDasharray: '3 3' }}
-                        >
-                          {/* 
-                            Cell components define the color for each segment
-                            Uses the COLORS array and cycles through it if there are more segments than colors
-                          */}
-                          {subjectPieData.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={COLORS[index % COLORS.length]}
-                              stroke="#fff"
-                              strokeWidth={2}
-                            />
-                          ))}
-                        </Pie>
-                        
-                        {/* 
-                          Legend Component
-                          - formatter: Customizes the text shown in the legend
-                          - layout: Arranges legend items vertically
-                          - align/verticalAlign: Positions the legend on the right side, middle
-                        */}
-                        <Legend 
-                          formatter={(value, entry) => 
-                            // Format: "Subject: 85.5% (17/20)" - shows subject, pass rate, and passed/total
-                            `${value}: ${entry.payload.value.toFixed(1)}% (${entry.payload.count}/${entry.payload.total})`
-                          } 
-                          layout="vertical"
-                          align="right"
-                          verticalAlign="middle"
-                          wrapperStyle={{ paddingLeft: 30, right: 20, width: '30%', maxHeight: '80%', overflowY: 'auto' }}
-                          iconSize={10}
-                          iconType="circle"
-                        />
-                        
-                        {/* 
-                          Tooltip Component
-                          - Appears when hovering over a segment
-                          - formatter: Customizes the value display in the tooltip
-                          - labelFormatter: Customizes the label display in the tooltip
-                        */}
-                        <Tooltip 
-                          formatter={(value, name, props) => [
-                            `${value.toFixed(1)}%`, 
-                            'Pass Rate'
-                          ]} 
-                          labelFormatter={(name) => `Subject: ${name}`}
-                          contentStyle={{ 
-                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            padding: '10px'
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              {/* Subject-wise Performance Table Section */}
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                {/* Section header */}
-                <div className="p-6 pb-2">
-                  <h3 className="text-xl font-semibold">Subject-wise Performance</h3>
-                  <p className="text-sm text-gray-500">Detailed breakdown of pass percentages by subject</p>
-                </div>
+                {/* Good performance category (75-89%) */}
+                <SummaryStatItem 
+                  count={resultData.subjectWiseResults.filter((s) => s.passPercentage >= 75 && s.passPercentage < 90).length}
+                  label="Subjects with 75-89% pass rate"
+                  bgColor="bg-yellow-50"
+                  textColor="text-yellow-600"
+                  labelColor="text-yellow-700"
+                />
                 
-                {/* List of subject performance items */}
-                <div className="p-6 pt-2">
-                  <div className="space-y-4">
-                    {/* Map through each subject and render a performance item */}
-                    {resultData.subjectWiseResults.map((subject, index) => (
-                      <SubjectPerformanceItem 
-                        key={index} 
-                        subject={subject} 
-                      />
-                    ))}
-                  </div>
-                </div>
+                {/* Needs improvement category (<75%) */}
+                <SummaryStatItem 
+                  count={resultData.subjectWiseResults.filter((s) => s.passPercentage < 75).length}
+                  label="Subjects needing improvement"
+                  bgColor="bg-red-50"
+                  textColor="text-red-600"
+                  labelColor="text-red-700"
+                />
               </div>
             </div>
-
-            {/* Raw JSON Data Section */}
-            {analysisData && (
-              <div className="mt-8 bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="p-6 pb-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-xl font-semibold">Raw Analysis Data</h3>
-                      <p className="text-sm text-gray-500">Showing data from selected starting point onwards</p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        // Create a filtered version of the data
-                        const filteredData = {
-                          ...analysisData,
-                          students: analysisData.students.slice(selectedStartIndex)
-                        };
-                        const jsonStr = JSON.stringify(filteredData, null, 2);
-                        const blob = new Blob([jsonStr], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `analysis_${semester}_from_${analysisData.students[selectedStartIndex]?.regNo}_${new Date().toISOString()}.json`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                    >
-                      Download JSON
-                    </button>
-                  </div>
-                  <div className="mt-4">
-                    <pre 
-                      className="text-xs font-mono bg-gray-50 p-4 rounded-lg overflow-x-auto whitespace-pre overflow-y-auto max-h-[500px]"
-                      style={{
-                        tabSize: 2,
-                        WebkitTextSizeAdjust: "100%",
-                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                      }}
-                    >
-                      {JSON.stringify(
-                        {
-                          ...analysisData,
-                          students: analysisData.students.slice(selectedStartIndex)
-                        }, 
-                        null, 
-                        2
-                      )
-                        .split('\n')
-                        .map((line, i) => (
-                          <div key={i} className="hover:bg-gray-100 py-0.5">
-                            {line}
-                          </div>
-                        ))
-                      }
-                    </pre>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Performance Summary Section */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              {/* Section header */}
-              <div className="p-6 pb-2">
-                <h3 className="text-xl font-semibold">Performance Summary</h3>
-                <p className="text-sm text-gray-500">Key insights from the result analysis</p>
-              </div>
-              
-              {/* Summary statistics cards */}
-              <div className="p-6 pt-2">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Excellent performance category (90%+) */}
-                  <SummaryStatItem 
-                    count={resultData.subjectWiseResults.filter((s) => s.passPercentage >= 90).length}
-                    label="Subjects with 90%+ pass rate"
-                    bgColor="bg-green-50"
-                    textColor="text-green-600"
-                    labelColor="text-green-700"
-                  />
-                  
-                  {/* Good performance category (75-89%) */}
-                  <SummaryStatItem 
-                    count={resultData.subjectWiseResults.filter((s) => s.passPercentage >= 75 && s.passPercentage < 90).length}
-                    label="Subjects with 75-89% pass rate"
-                    bgColor="bg-yellow-50"
-                    textColor="text-yellow-600"
-                    labelColor="text-yellow-700"
-                  />
-                  
-                  {/* Needs improvement category (<75%) */}
-                  <SummaryStatItem 
-                    count={resultData.subjectWiseResults.filter((s) => s.passPercentage < 75).length}
-                    label="Subjects needing improvement"
-                    bgColor="bg-red-50"
-                    textColor="text-red-600"
-                    labelColor="text-red-700"
-                  />
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          /* Fallback message when no analysis data is available */
-          <div className="text-center py-12">
-            <p className="text-gray-500">No analysis data available. Please select a student to begin analysis.</p>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
-  )
+  );
 }
