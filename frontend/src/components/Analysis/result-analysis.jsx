@@ -4,11 +4,14 @@ import { useEffect, useState, Fragment } from "react"
 import { useSearchParams, useNavigate, Link } from "react-router-dom"
 import { toast } from "react-hot-toast"
 
+
 // Internal dependencies
 import { analyzePDFWithPdfCo } from "../../api/analyzePdfCo"
 import StudentSelectionModal from './StudentSelectionModal';
 
+
 export default function ResultAnalysis() {
+
 
   const SubjectPerformanceItem = ({ subject }) => (
     <div className="flex flex-col p-4 bg-gray-50 rounded-lg hover:shadow-md transition-shadow duration-200">
@@ -36,6 +39,7 @@ export default function ResultAnalysis() {
           </span>
         </div>
       </div>
+
 
       {/* Students with grades section */}
       {subject.studentsWithGrades && subject.studentsWithGrades.length > 0 && (
@@ -78,6 +82,7 @@ export default function ResultAnalysis() {
       <p className={`text-sm font-medium ${labelColor}`}>{label}</p>
     </div>
   );
+
 
   // React Router hooks for navigation and URL parameter access
   const [searchParams] = useSearchParams();
@@ -157,6 +162,7 @@ export default function ResultAnalysis() {
     }
   };
 
+
   useEffect(() => {
     // Fetch data from API
     const fetchData = async () => {
@@ -195,6 +201,7 @@ export default function ResultAnalysis() {
         navigate('/dashboard');
       }
     };
+
 
     // Execute the fetch function
     fetchData();
@@ -288,6 +295,7 @@ export default function ResultAnalysis() {
     });
   };
 
+
   const handleCloseModal = () => {
     console.log('handleCloseModal called, selectedStartIndex:', selectedStartIndex);
     if (selectedStartIndex === null) {
@@ -300,12 +308,14 @@ export default function ResultAnalysis() {
     }
   };
 
+
   const performanceStyles = {
     excellent: { color: "bg-green-500", badge: "default" },
     good: { color: "bg-blue-500", badge: "secondary" },
     average: { color: "bg-yellow-500", badge: "outline" },
     poor: { color: "bg-red-500", badge: "destructive" }
   };
+
 
   const getPerformanceCategory = (percentage) => {
     if (percentage >= 90) return "excellent";
@@ -314,9 +324,11 @@ export default function ResultAnalysis() {
     return "poor";
   };
 
+
   const getPassPercentageColor = (percentage) => {
     return performanceStyles[getPerformanceCategory(percentage)].color;
   };
+
 
   const LoadingSpinner = ({ message = "Loading analysis data..." }) => (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -327,9 +339,11 @@ export default function ResultAnalysis() {
     </div>
   );
 
+
   if (loading) {
     return <LoadingSpinner />;
   }
+
 
   /**
    * Main component render method
@@ -362,6 +376,7 @@ export default function ResultAnalysis() {
         </button>
       </div>
 
+
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Result Analysis</h1>
@@ -386,6 +401,7 @@ export default function ResultAnalysis() {
         )}
       </div>
 
+
       {/* Student selection modal */}
       <StudentSelectionModal
         isOpen={showModal}
@@ -393,6 +409,7 @@ export default function ResultAnalysis() {
         students={students}
         onSelectStudent={handleSelectStudent}
       />
+
 
       {/* Main content */}
       {pdfCoLoading ? (
@@ -430,6 +447,7 @@ export default function ResultAnalysis() {
               </div>
             </div>
 
+
             {/* Total Subjects */}
             <div className="bg-purple-50 shadow-sm rounded-lg p-6 flex items-center">
               <div className="bg-purple-500 p-3 rounded-full mr-4">
@@ -440,6 +458,7 @@ export default function ResultAnalysis() {
                 <p className="mt-1 text-3xl font-semibold text-gray-900">{resultData.totalSubjects}</p>
               </div>
             </div>
+
 
             {/* Overall Pass Percentage */}
             <div className="bg-green-50 shadow-sm rounded-lg p-6 flex items-center">
@@ -455,6 +474,7 @@ export default function ResultAnalysis() {
             </div>
           </div>
 
+
           {/* Subject-wise Performance */}
           <div className="mb-8 bg-white shadow-md rounded-lg overflow-hidden">
             <div className="px-6 py-4 bg-indigo-600">
@@ -463,6 +483,7 @@ export default function ResultAnalysis() {
                 Pass percentage for each subject
               </p>
             </div>
+
 
             <div className="p-6">
               {/* Subject Performance Table */}
@@ -476,6 +497,50 @@ export default function ResultAnalysis() {
               </div>
             </div>
           </div>
+
+          {/* New Card: All Students From Selected Starting Index */}
+          <div className="mb-8 bg-white shadow-md rounded-lg overflow-hidden">
+            <div className="px-6 py-4 bg-indigo-600">
+              <h3 className="text-lg font-semibold text-white">All Students From Selected Start</h3>
+              <p className="text-indigo-100 text-sm">
+                Showing {students.slice(selectedStartIndex).length} students starting from {students[selectedStartIndex]?.name} ({students[selectedStartIndex]?.regNo})
+              </p>
+            </div>
+            <div className="relative overflow-x-auto">
+              <div className="max-h-96 overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reg No</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      {subjectCodes.map(code => (
+                        <th key={code} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{code}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {students.slice(selectedStartIndex).map((student, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{student.regNo}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{student.name}</td>
+                        {subjectCodes.map(code => (
+                          <td key={code} className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              !student.grades[code] ? 'bg-gray-100 text-gray-800' :
+                              student.grades[code] === 'U' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                            }`}>
+                              {student.grades[code] || '-'}
+                            </span>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
 
           {/* Display students with complete grade records */}
           {resultData && resultData.studentsWithCompleteGrades && resultData.studentsWithCompleteGrades.length > 0 && (
@@ -516,6 +581,7 @@ export default function ResultAnalysis() {
               </div>
             </div>
           )}
+
 
           {analysisData && (
             <div className="mt-8 bg-white rounded-lg shadow-sm overflow-hidden">
@@ -596,6 +662,7 @@ export default function ResultAnalysis() {
               </div>
             </div>
           )}
+
 
           {/* Performance Summary Section */}
           <div className="mt-8 bg-white rounded-lg shadow-sm overflow-hidden">
