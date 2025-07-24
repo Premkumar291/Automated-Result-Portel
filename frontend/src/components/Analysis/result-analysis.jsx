@@ -8,242 +8,7 @@ import { toast } from "react-hot-toast"
 import { analyzePDFWithPdfCo } from "../../api/analyzePdfCo"
 import StudentSelectionModal from './StudentSelectionModal';
 
-
-
-
-
-/**
- * ResultAnalysis Component
- * 
- * A comprehensive dashboard for analyzing academic performance data extracted from PDF result documents.
- * This component provides visualizations and metrics for understanding student performance across subjects.
- * 
- * Features:
- * - Key metrics display (total students, subjects, pass rates)
- * - Subject-wise performance breakdown with progress bars
- * - Interactive pie charts for visualizing pass percentages
- * - Performance summary statistics by category
- * - Student selection functionality for analyzing specific subsets
- * 
- * The component handles:
- * - Loading states during data fetching
- * - Error handling with user-friendly messages
- * - Data processing and calculation of performance metrics
- * - Conditional rendering based on data availability
- * 
- * @returns {JSX.Element} A complete result analysis dashboard with visualizations and metrics
- */
 export default function ResultAnalysis() {
-  /**
-   * SubjectPerformanceItem Component
-   * Displays performance metrics for an individual subject with a progress bar
-   * 
-   * @param {Object} props - Component props
-   * @param {Object} props.subject - The subject data object
-   * @param {string} props.subject.subject - The subject code or name
-   * @param {number} props.subject.passPercentage - The percentage of students who passed
-   * @param {number} props.subject.passedStudents - Number of students who passed
-   * @param {number} props.subject.totalStudents - Total number of students
-   * @returns {JSX.Element} A styled row showing subject performance metrics
-   */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   const SubjectPerformanceItem = ({ subject }) => (
     <div className="flex flex-col p-4 bg-gray-50 rounded-lg hover:shadow-md transition-shadow duration-200">
@@ -271,7 +36,7 @@ export default function ResultAnalysis() {
           </span>
         </div>
       </div>
-      
+
       {/* Students with grades section */}
       {subject.studentsWithGrades && subject.studentsWithGrades.length > 0 && (
         <div className="mt-2 pt-2 border-t border-gray-200">
@@ -305,19 +70,6 @@ export default function ResultAnalysis() {
     </div>
   );
   
-  /**
-   * SummaryStatItem Component
-   * Displays a single statistic in a styled card format
-   * Used for key metrics in the performance summary section
-   * 
-   * @param {Object} props - Component props
-   * @param {string|number} props.count - The statistic value to display
-   * @param {string} props.label - The label describing the statistic
-   * @param {string} props.bgColor - CSS class for the background color
-   * @param {string} props.textColor - CSS class for the count text color
-   * @param {string} props.labelColor - CSS class for the label text color
-   * @returns {JSX.Element} A styled card displaying a statistic with its label
-   */
   const SummaryStatItem = ({ count, label, bgColor, textColor, labelColor }) => (
     <div className={`text-center p-5 ${bgColor} rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200`}>
       <div className={`text-3xl font-bold ${textColor} mb-2`}>
@@ -363,26 +115,6 @@ export default function ResultAnalysis() {
   
   // Tracks if PDF.co analysis is in progress
   const [pdfCoLoading, setPdfCoLoading] = useState(false);
-
-  /**
-   * Fetches and processes PDF analysis data when the component mounts
-   * 
-   * This effect:
-   * 1. Validates required URL parameters (pdfId and semester)
-   * 2. Retrieves the optional page parameter if present
-   * 3. Calls the analyzePDF API with appropriate parameters
-   * 4. Validates the returned data contains student information
-   * 5. Updates component state with the fetched data
-   * 6. Shows the student selection modal
-   * 7. Handles errors by displaying toast notifications and redirecting
-   * 
-   * Dependencies: pdfId, semester, navigate, searchParams
-   * The effect re-runs if any of these dependencies change
-   */
-  /**
-   * Refreshes the analysis using the PDF.co enhanced analysis
-   * Fetches new data when requested
-   */
   const refreshAnalysis = async () => {
     try {
       // Reset states and show loading
@@ -468,20 +200,6 @@ export default function ResultAnalysis() {
     fetchData();
   }, [pdfId, semester, navigate, searchParams]); // Re-run if these dependencies change
   
-  /**
-   * Processes student data starting from the selected index and calculates performance metrics
-   * 
-   * This function:
-   * 1. Validates the provided student index
-   * 2. Updates component state with the selected starting index
-   * 3. Extracts the subset of students to analyze (from selected index to end)
-   * 4. Calculates overall pass percentage (students who passed all subjects)
-   * 5. Calculates subject-wise performance metrics (pass rates per subject)
-   * 6. Updates the resultData state with all calculated metrics
-   * 
-   * @param {number} startIndex - The index of the first student to include in analysis
-   * @returns {void}
-   */
   const handleSelectStudent = (startIndex) => {
     console.log('handleSelectStudent called with startIndex:', startIndex);
     console.log('Current students array:', students);
@@ -499,6 +217,16 @@ export default function ResultAnalysis() {
     
     // Get the subset of students starting from the selected index
     const selectedStudents = students.slice(startIndex);
+    
+    // Show a toast notification to make it clear what's happening
+    const selectedStudent = students[startIndex];
+    toast.success(
+      <div>
+        <strong>Analysis starting from:</strong> {selectedStudent.name} ({selectedStudent.regNo})<br/>
+        <span className="text-sm">Analyzing {selectedStudents.length} of {students.length} students</span>
+      </div>,
+      { duration: 5000 }
+    );
     
     // Calculate overall pass percentage (students who passed all subjects)
     const total = selectedStudents.length;
@@ -560,16 +288,6 @@ export default function ResultAnalysis() {
     });
   };
 
-  /**
-   * Handles the closing of the student selection modal
-   * 
-   * This function:
-   * 1. Checks if a student has been selected (selectedStartIndex is not null)
-   * 2. If no student was selected, defaults to selecting the first student (index 0)
-   * 3. If a student was already selected, simply closes the modal
-   * 
-   * @returns {void}
-   */
   const handleCloseModal = () => {
     console.log('handleCloseModal called, selectedStartIndex:', selectedStartIndex);
     if (selectedStartIndex === null) {
@@ -582,18 +300,6 @@ export default function ResultAnalysis() {
     }
   };
 
-  /**
-   * Mapping of performance categories to their visual styles
-   * Used for consistent color coding across the dashboard
-   * 
-   * @type {Object.<string, {color: string, badge: string}>}
-   * @property {Object} excellent - Styles for 90% and above (green)
-   * @property {Object} good - Styles for 75-89% (blue)
-   * @property {Object} average - Styles for 60-74% (yellow)
-   * @property {Object} poor - Styles for below 60% (red)
-   * @property {string} *.color - The background color CSS class
-   * @property {string} *.badge - The badge variant name
-   */
   const performanceStyles = {
     excellent: { color: "bg-green-500", badge: "default" },
     good: { color: "bg-blue-500", badge: "secondary" },
@@ -601,12 +307,6 @@ export default function ResultAnalysis() {
     poor: { color: "bg-red-500", badge: "destructive" }
   };
 
-  /**
-   * Determines the performance category based on the pass percentage
-   * 
-   * @param {number} percentage - The pass percentage to categorize
-   * @returns {string} The performance category (excellent, good, average, or poor)
-   */
   const getPerformanceCategory = (percentage) => {
     if (percentage >= 90) return "excellent";
     if (percentage >= 75) return "good";
@@ -614,26 +314,10 @@ export default function ResultAnalysis() {
     return "poor";
   };
 
-  /**
-   * Gets the appropriate CSS background color class based on the pass percentage
-   * Uses the performanceStyles mapping and getPerformanceCategory function
-   * 
-   * @param {number} percentage - The pass percentage to determine the color for
-   * @returns {string} CSS class for the appropriate background color
-   */
   const getPassPercentageColor = (percentage) => {
     return performanceStyles[getPerformanceCategory(percentage)].color;
   };
 
-  /**
-   * LoadingSpinner Component
-   * Displays a centered loading spinner with a customizable message
-   * Used during data fetching and processing operations
-   * 
-   * @param {Object} props - Component props
-   * @param {string} [props.message="Loading analysis data..."] - The message to display below the spinner
-   * @returns {JSX.Element} A full-screen loading indicator with spinner and message
-   */
   const LoadingSpinner = ({ message = "Loading analysis data..." }) => (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
@@ -684,6 +368,22 @@ export default function ResultAnalysis() {
         <p className="text-gray-600 mt-2">
           Analyzing semester {semester} results from PDF ID: {pdfId}
         </p>
+        {selectedStartIndex !== null && students.length > 0 && (
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span>
+                <strong>Analysis Range:</strong> Starting from student {selectedStartIndex + 1} of {students.length} - 
+                <strong>{students[selectedStartIndex]?.name}</strong> ({students[selectedStartIndex]?.regNo})
+              </span>
+            </p>
+            <p className="text-xs text-blue-600 mt-1 ml-7">
+              Analyzing {students.length - selectedStartIndex} of {students.length} total students in the PDF
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Student selection modal */}
@@ -707,9 +407,12 @@ export default function ResultAnalysis() {
           </p>
           <button
             onClick={() => setShowModal(true)}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center"
           >
-            Select Student
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+            </svg>
+            Select Starting Student
           </button>
         </div>
       ) : (
@@ -820,14 +523,23 @@ export default function ResultAnalysis() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-xl font-semibold">Raw Analysis Data</h3>
-                    <p className="text-sm text-gray-500">Showing data from selected starting point onwards</p>
+                    <p className="text-sm text-gray-500">
+                      Showing data from selected starting point onwards
+                      <span className="ml-2 text-blue-600 font-medium">
+                        (Starting from student {selectedStartIndex + 1} of {analysisData.students.length})
+                      </span>
+                    </p>
                   </div>
                   <button
                     onClick={() => {
-                      // Create a filtered version of the data
+                      // Create a filtered version of the data without gradePoints
                       const filteredData = {
                         ...analysisData,
-                        students: analysisData.students.slice(selectedStartIndex)
+                        students: analysisData.students.slice(selectedStartIndex).map(student => {
+                          // Create a copy of the student without gradePoints
+                          const { ...studentWithoutGradePoints } = student;
+                          return studentWithoutGradePoints;
+                        })
                       };
                       const jsonStr = JSON.stringify(filteredData, null, 2);
                       const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -846,6 +558,12 @@ export default function ResultAnalysis() {
                   </button>
                 </div>
                 <div className="mt-4">
+                  <div className="bg-yellow-50 p-3 mb-3 rounded-md border border-yellow-200">
+                    <p className="text-sm text-yellow-700">
+                      <strong>Note:</strong> This view shows only the students starting from your selected student (index {selectedStartIndex}).
+                      The analysis results above are calculated using only these students, not the entire PDF.
+                    </p>
+                  </div>
                   <pre 
                     className="text-xs font-mono bg-gray-50 p-4 rounded-lg overflow-x-auto whitespace-pre overflow-y-auto max-h-[500px]"
                     style={{
@@ -857,7 +575,11 @@ export default function ResultAnalysis() {
                     {JSON.stringify(
                       {
                         ...analysisData,
-                        students: analysisData.students.slice(selectedStartIndex)
+                        students: analysisData.students.slice(selectedStartIndex).map(student => {
+                          // Create a copy of the student without gradePoints
+                          const { ...studentWithoutGradePoints } = student;
+                          return studentWithoutGradePoints;
+                        })
                       }, 
                       null, 
                       2
@@ -920,4 +642,3 @@ export default function ResultAnalysis() {
     </div>
   );
 }
-
