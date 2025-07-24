@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Eye, Download, TrendingUp } from "lucide-react";
@@ -17,6 +17,29 @@ export default function PDFProcessingCard() {
   // Fixed confidence threshold value of 0.8
   const [viewingPdfId, setViewingPdfId] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+
+  // Load existing PDFs when component mounts
+  useEffect(() => {
+    const fetchExistingPDFs = async () => {
+      try {
+        setLoadingSemesterList(true);
+        // Fetch the most recent PDFs
+        const response = await axios.get(`${API_URL}/pdf/recent`);
+        if (response.data && response.data.pdfs && response.data.pdfs.length > 0) {
+          setSemesterPDFs(response.data.pdfs);
+          setUploadId(response.data.uploadName);
+          toast.success(`Loaded ${response.data.pdfs.length} existing semester PDFs`);
+        }
+      } catch (error) {
+        console.error("Failed to load existing PDFs:", error);
+        // Don't show error toast as this is a background operation
+      } finally {
+        setLoadingSemesterList(false);
+      }
+    };
+
+    fetchExistingPDFs();
+  }, []);
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -303,43 +326,9 @@ export default function PDFProcessingCard() {
           </div>
         ) : (
           <div className="bg-gray-50 rounded-lg p-6 text-center">
-            {uploading ? (
-              <div className="flex flex-col items-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-                <p className="text-gray-600">Processing PDF...</p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-gray-600 mb-2">No semester PDFs available</p>
-                <p className="text-sm text-gray-500">Upload a PDF to split it into semester files</p>
-              </div>
-            )}
+            <p className="text-gray-500">No semester PDFs available. Upload a PDF to get started.</p>
           </div>
         )}
-          
-        {/* Keep the dropdown for backward compatibility */}
-        <div className="mt-4 hidden">
-          <label className="block mb-1 font-medium">Select Semester PDF:</label>
-          <select
-            value={selectedSemester}
-            onChange={handleSemesterChange}
-            className="border rounded px-2 py-1 mb-2"
-          >
-            <option value="">-- Select Semester --</option>
-            {semesterPDFs.map((pdf) => (
-              <option key={pdf.semester} value={pdf.semester}>
-                Semester {pdf.semester}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => handleDownload()}
-            disabled={!selectedSemester}
-            className="ml-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Download
-          </button>
-        </div>
       </div>
     </div>
   );

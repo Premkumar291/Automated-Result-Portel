@@ -517,3 +517,38 @@ export const deleteSemesterPDFs = async (req, res) => {
     res.status(500).json({ message: 'Failed to delete PDFs', error: err.message });
   }
 };
+
+// Get the most recent PDFs
+export const getRecentPDFs = async (req, res) => {
+  try {
+    // Find the most recent upload by sorting on createdAt in descending order
+    const mostRecentUpload = await GridFSSemesterPDF.findOne({})
+      .sort({ createdAt: -1 })
+      .select('uploadName');
+    
+    if (!mostRecentUpload) {
+      return res.json({ 
+        message: 'No PDFs found',
+        pdfs: []
+      });
+    }
+    
+    // Get all PDFs for this upload
+    const pdfs = await GridFSSemesterPDF.find({ 
+      uploadName: mostRecentUpload.uploadName,
+      semester: { $gt: 0 } // Exclude the original file (semester 0)
+    }).sort({ semester: 1 });
+    
+    res.json({
+      uploadName: mostRecentUpload.uploadName,
+      pdfs: pdfs.map(pdf => ({ 
+        id: pdf._id, 
+        semester: pdf.semester,
+        filename: pdf.filename
+      }))
+    });
+  } catch (err) {
+    console.error('Error fetching recent PDFs:', err);
+    res.status(500).json({ message: 'Failed to fetch recent PDFs', error: err.message });
+  }
+};

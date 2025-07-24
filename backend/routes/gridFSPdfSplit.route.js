@@ -5,7 +5,8 @@ import {
   getSemesterPDFs, 
   downloadSemesterPDF,
   downloadSemesterPDFById,
-  deleteSemesterPDFs 
+  deleteSemesterPDFs,
+  getRecentPDFs
 } from '../controller/gridFSPdfSplit.controller.js';
 
 const router = express.Router();
@@ -19,6 +20,9 @@ const upload = multer({
 
 // Route for uploading and splitting PDF
 router.post('/split', upload.single('pdf'), uploadAndSplitPDF);
+
+// Route for getting the most recent PDFs
+router.get('/recent', getRecentPDFs);
 
 // Route for getting all semester PDFs for an upload
 router.get('/:uploadId', getSemesterPDFs);
