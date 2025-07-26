@@ -34,11 +34,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
 app.use("/api/analyze", pdfCoAnalysisRoutes); // Using PDF.co as the primary analyzer
 
-<<<<<<< HEAD
-});
-
-//this is our project
-=======
 // Start server
 app.listen(PORT, async () => {
   await connectDb();
@@ -47,4 +42,3 @@ app.listen(PORT, async () => {
   // Schedule cleanup of expired PDFs (run every 30 minutes)
   scheduleCleanup(30);
 });
->>>>>>> Prem-dev
