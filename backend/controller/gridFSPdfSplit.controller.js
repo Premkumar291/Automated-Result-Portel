@@ -2,7 +2,6 @@ import { PDFDocument } from 'pdf-lib';
 import { getGridFSBucket, upload } from '../utils/gridfsConfig.js';
 import GridFSSemesterPDF from '../models/gridFSSemesterPDF.model.js';
 import pdfParseWrapper from '../utils/pdfParseWrapper.js';
-import mongoose from 'mongoose';
 import { Readable } from 'stream';
 
 // Define valid confidence levels for PDF splitting

@@ -1,10 +1,7 @@
-// Controller for handling JSON-based analysis of extracted PDF content
-import { parseFromStartIndex } from '../services/pdfAnalysisService.js';
 import { getGridFSBucket } from '../utils/gridfsConfig.js';
 import GridFSSemesterPDF from '../models/gridFSSemesterPDF.model.js';
 import mongoose from 'mongoose';
 import { ApiError, asyncHandler } from '../utils/errorHandler.js';
-import { extractTextPreview } from '../services/pdfAnalysisService.js';
 
 // POST /api/analyze/upload/:id/parse-json
 export const analyzeJsonFromSelection = asyncHandler(async (req, res) => {

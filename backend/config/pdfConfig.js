@@ -1,18 +1,8 @@
-/**
- * Configuration settings for PDF processing
- * Centralizes all PDF-related configuration options
- */
 
-/**
- * PDF parsing configuration
- */
 export const pdfParseConfig = {
-  // Maximum number of pages to process in a single request
-  // Set to null to process all pages
+  
   maxPages: null,
   
-  // Timeout for PDF parsing operations (in milliseconds)
-  // Prevents hanging on corrupt or extremely large PDFs
   parseTimeout: 30000, // 30 seconds
   
   // Whether to render images in PDFs (usually not needed for text extraction)
@@ -32,16 +22,12 @@ export const pdfParseConfig = {
   }
 };
 
-/**
- * Text extraction configuration
- */
+
 export const textExtractionConfig = {
-  // Minimum line length to consider for subject names
-  // Helps filter out noise in the PDF
+  
   minSubjectNameLength: 3,
   
-  // Maximum distance to look for subject names (in lines)
-  // How many lines before/after a subject code to search for the name
+
   subjectNameSearchDistance: 2,
   
   // Patterns for identifying different elements in the PDF
