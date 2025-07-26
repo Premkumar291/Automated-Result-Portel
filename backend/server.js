@@ -34,15 +34,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
 app.use("/api/analyze", pdfCoAnalysisRoutes); // Using PDF.co as the primary analyzer
 
-<<<<<<< HEAD
-app.use("/api/auth",authRoutes)
-
-//listening the server at start position with port 8080
-app.listen(PORT,async () => {
-=======
 // Start server
 app.listen(PORT, async () => {
->>>>>>> Prem-dev
   await connectDb();
   console.log(`Server is running on http://localhost:${PORT}`);
   

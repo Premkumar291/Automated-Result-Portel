@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import mongoose from "mongoose"; 
-=======
 import mongoose from 'mongoose';
 import { initGridFS } from '../utils/gridfsConfig.js';
->>>>>>> Prem-dev
 
 // MongoDB connection with GridFS initialization
 export const connectDb = async () => {

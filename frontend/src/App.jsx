@@ -34,7 +34,7 @@ function AppLayout({ children }) {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <Router>
       <AppLayout>
