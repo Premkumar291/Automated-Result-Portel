@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import mongoose from "mongoose"; 
+=======
+import mongoose from 'mongoose';
+import { initGridFS } from '../utils/gridfsConfig.js';
+>>>>>>> Prem-dev
 
+// MongoDB connection with GridFS initialization
 export const connectDb = async () => {
   try {
     // Check if MONGO_URI is defined
@@ -12,8 +18,23 @@ export const connectDb = async () => {
     console.log('Attempting to connect to MongoDB...');
     console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
     
-    const conn = await mongoose.connect(process.env.MONGO_URI);   
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000, // Increased from 5000ms
+      socketTimeoutMS: 45000,
+      maxIdleTimeMS: 30000,
+      connectTimeoutMS: 10000,
+      // Retry configuration
+      retryWrites: true
+    });
+    
+    // Initialize GridFS
+    const { gfs, gridFSBucket } = initGridFS(conn.connection);
+    console.log('GridFS initialized successfully');
+    
     console.log(`MongoDB connected successfully: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
     console.error(`MongoDB connection error: ${error.message}`);
     console.error('Full error details:', error);

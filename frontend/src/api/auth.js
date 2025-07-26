@@ -1,10 +1,8 @@
-// This file contains functions to handle authentication-related API calls.
+// Authentication API functions
+const API_URL = import.meta.env.VITE_API_URL;
 
-const apiUrl = "http://localhost:8080/api";
-
-// It includes functions for user signup and email verification.
 export const signup = async (formData) => {
-  const response = await fetch(`${apiUrl}/auth/signup`, {
+  const response = await fetch(`${API_URL}/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(formData),
@@ -19,13 +17,11 @@ export const signup = async (formData) => {
   return data;
 };
 
-
-// This function sends a request to verify the user's email using a verification code.
 export const login = async (formData) => {
-  const response = await fetch(`${apiUrl}/auth/login`, {
+  const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include", // Important for cookies!
+    credentials: "include",
     body: JSON.stringify(formData),
   });
   
@@ -40,15 +36,13 @@ export const login = async (formData) => {
 
 export const verifyEmail = async (code) => {
   try {
-    console.log('Sending verify email request:', { code });
-    const response = await fetch(`${apiUrl}/auth/verify-email`, {
+    const response = await fetch(`${API_URL}/auth/verify-email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
     });
     
     const data = await response.json();
-    console.log('Verify email response:', data);
     
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -61,18 +55,15 @@ export const verifyEmail = async (code) => {
   }
 };
 
-// This function sends a request to verify the user's email using a verification code.
 export const forgotPassword = async (email) => {
   try {
-    console.log('Sending forgot password request:', { email });
-    const response = await fetch(`${apiUrl}/auth/forgot-password`, {
+    const response = await fetch(`${API_URL}/auth/forgot-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
     
     const data = await response.json();
-    console.log('Forgot password response:', data);
     
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -85,19 +76,15 @@ export const forgotPassword = async (email) => {
   }
 };
 
-
-//// This function sends a request to verify the user's email using a verification code.
 export const verifyResetToken = async (email, code) => {
   try {
-    console.log('Sending verify reset token request:', { email, code });
-    const response = await fetch(`${apiUrl}/auth/verify-reset-token`, {
+    const response = await fetch(`${API_URL}/auth/verify-reset-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, code }),
     });
     
     const data = await response.json();
-    console.log('Verify reset token response:', data);
     
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -110,18 +97,15 @@ export const verifyResetToken = async (email, code) => {
   }
 };
 
-// This function sends a request to reset the user's password using a new password and verification code.
 export const resetPassword = async (email, code, newPassword) => {
   try {
-    console.log('Sending reset password request:', { email, code });
-    const response = await fetch(`${apiUrl}/auth/reset-password`, {
+    const response = await fetch(`${API_URL}/auth/reset-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, code, newPassword }),
     });
     
     const data = await response.json();
-    console.log('Reset password response:', data);
     
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -134,18 +118,15 @@ export const resetPassword = async (email, code, newPassword) => {
   }
 };
 
-// This function sends a request to logout the user
 export const logout = async () => {
   try {
-    console.log('Sending logout request');
-    const response = await fetch(`${apiUrl}/auth/logout`, {
+    const response = await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // Important for cookies!
+      credentials: "include",
     });
     
     const data = await response.json();
-    console.log('Logout response:', data);
     
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -158,18 +139,15 @@ export const logout = async () => {
   }
 };
 
-// This function checks if the user is authenticated
 export const checkAuth = async () => {
   try {
-    console.log('Checking authentication status');
-    const response = await fetch(`${apiUrl}/auth/check-auth`, {
+    const response = await fetch(`${API_URL}/auth/check-auth`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // Important for cookies!
+      credentials: "include",
     });
     
     const data = await response.json();
-    console.log('Check auth response:', data);
     
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
