@@ -7,15 +7,15 @@ import authRoutes from './routes/auth.route.js';
 import gridFSPdfRoutes from './routes/gridFSPdfSplit.route.js';
 import pdfCoAnalysisRoutes from './routes/pdfCoAnalysis.route.js';
 import { scheduleCleanup } from './utils/cleanupExpiredPDFs.js';
+import serverless from 'serverless-http';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8080 ;
 const URL = process.env.FRONTEND_URL;
 
 // Middleware
-app.use(express.json({ limit: '50mb' })); // Increased limit for large files
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(cors({
@@ -23,7 +23,7 @@ app.use(cors({
   credentials: true
 }));
 
-// In-memory session storage for temporary data (use Redis in production)
+// In-memory session storage for temporary data
 const tempSessionStorage = new Map();
 
 // Routes
@@ -33,13 +33,11 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
-app.use("/api/analyze", pdfCoAnalysisRoutes); // Using PDF.co as the primary analyzer
+app.use("/api/analyze", pdfCoAnalysisRoutes);
 
-// Start server
-app.listen(PORT, async () => {
-  await connectDb();
-  console.log(`Server is running on http://localhost:${PORT}`);
-  
-  // Schedule cleanup of expired PDFs (run every 30 minutes)
-  scheduleCleanup(30);
-});
+// Connect to DB and start cleanup (run once at cold start)
+await connectDb();
+scheduleCleanup(30); // runs every 30 minutes
+
+// Export the serverless handler
+export const handler = serverless(app);
