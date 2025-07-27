@@ -73,6 +73,25 @@ const EyeOffIcon = () => (
   </svg>
 )
 
+// Professional Person/Profile Icon - Full White color
+const PersonIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="32"
+    height="32"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#ffffff"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="text-white"
+  >
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+)
+
 const Login = () => {
   // All original state and logic preserved
   const [form, setForm] = useState({ email: "", password: "" })
@@ -92,6 +111,7 @@ const Login = () => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
+
     try {
       const data = await login(form)
       if (data.success) {
@@ -455,6 +475,84 @@ const Login = () => {
           0%, 100% { opacity: 0.2; }
           50% { opacity: 0.4; }
         }
+
+        /* Custom ACADEX Logo Styling */
+        .acadex-logo {
+          font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+          font-size: 3rem;
+          font-weight: 800;
+          letter-spacing: -0.01em;
+          line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.05em;
+          margin-bottom: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+          .acadex-logo {
+            font-size: 4rem;
+            justify-content: flex-start;
+            margin-bottom: 1.5rem;
+          }
+        }
+
+        /* Individual Letter Styling */
+        .acadex-logo span {
+          position: relative;
+          transition: all 0.2s ease;
+          cursor: default;
+          font-weight: 800;
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        .acadex-logo span:hover {
+          transform: translateY(-1px);
+        }
+
+        /* Modern Color Scheme */
+        .acadex-a1 {
+          color: #6366F1; /* Indigo - Knowledge & Wisdom */
+        }
+
+        .acadex-c {
+          color: #EF4444; /* Red - Energy & Action */
+        }
+
+        .acadex-a2 {
+          color: #F59E0B; /* Amber - Innovation & Creativity */
+        }
+
+        .acadex-d {
+          color: #8B5CF6; /* Purple - Excellence & Quality */
+        }
+
+        .acadex-e {
+          color: #10B981; /* Emerald - Growth & Success */
+        }
+
+        .acadex-x {
+          color: #F97316; /* Orange - Achievement & Results */
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+          .acadex-logo {
+            font-size: 2.5rem;
+            gap: 0.02em;
+            margin-bottom: 0.75rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .acadex-logo {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+          }
+        }
       `}</style>
 
       <div className="min-h-screen w-full bg-black font-sans flex items-center justify-center px-4 relative overflow-hidden cosmic-glow">
@@ -492,11 +590,17 @@ const Login = () => {
         {/* Main Content Container */}
         <div className="relative z-10 w-full max-w-6xl mx-auto flex items-center justify-center min-h-screen py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full">
-            {/* Left Side - Project Quote */}
-            <div className="text-center lg:text-left space-y-8">
-              <h1 className="text-4xl lg:text-6xl font-extrabold text-white leading-tight heading-sweep">ACADEX</h1>
-              <br />
-              <p className="text-xl lg:text-2xl text-gray-400 italic max-w-lg mx-auto lg:mx-0">
+            {/* Left Side - Project Quote with Custom ACADEX Design */}
+            <div className="text-center lg:text-left space-y-6">
+              <div className="acadex-logo">
+                <span className="acadex-a1">A</span>
+                <span className="acadex-c">C</span>
+                <span className="acadex-a2">A</span>
+                <span className="acadex-d">D</span>
+                <span className="acadex-e">E</span>
+                <span className="acadex-x">X</span>
+              </div>
+              <p className="text-lg lg:text-xl text-gray-400 italic max-w-lg mx-auto lg:mx-0">
                 Upload once. Let automation take over.
               </p>
             </div>
@@ -504,17 +608,10 @@ const Login = () => {
             {/* Right Side - Login Form (No Card) */}
             <div className="flex justify-center lg:justify-end">
               <div className="w-full max-w-md">
-                {/* Header */}
+                {/* Header - Logo without card background */}
                 <div className="text-center mb-12 space-y-4">
-                  <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mb-4 shadow-lg">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
+                  <div className="inline-flex items-center justify-center mb-6">
+                    <PersonIcon />
                   </div>
                   <h2 className="text-lg font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
                     Faculty Login
@@ -547,10 +644,9 @@ const Login = () => {
 
                 {/* Login Form */}
                 <form onSubmit={handleSubmit}>
-                  <div className="space-y-8">
+                  <div className="space-y-6">
                     {/* Email Input */}
                     <div className="space-y-3">
-                      <label className="text-sm font-semibold text-gray-200 ml-1 block">Email Address</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-400 transition-colors">
                           <MailIcon />
@@ -563,7 +659,7 @@ const Login = () => {
                           onChange={handleChange}
                           disabled={isLoading}
                           required
-                          className={`w-full h-14 pl-12 pr-4 bg-gray-800/60 border border-gray-600/50 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
+                          className={`w-full h-14 pl-12 pr-4 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
                             isLoading ? "cursor-not-allowed opacity-50" : ""
                           }`}
                           placeholder="  faculty@college.edu"
@@ -574,7 +670,6 @@ const Login = () => {
 
                     {/* Password Input */}
                     <div className="space-y-3">
-                      <label className="text-sm font-semibold text-gray-200 ml-1 block">Password</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-400 transition-colors">
                           <LockIcon />
@@ -587,10 +682,10 @@ const Login = () => {
                           onChange={handleChange}
                           disabled={isLoading}
                           required
-                          className={`w-full h-14 pl-12 pr-12 bg-gray-800/60 border border-gray-600/50 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
+                          className={`w-full h-14 pl-12 pr-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
                             isLoading ? "cursor-not-allowed opacity-50" : ""
                           }`}
-                          placeholder="  ••••••••"
+                          placeholder="  enter password"
                         />
                         <button
                           type="button"
@@ -616,20 +711,20 @@ const Login = () => {
                     </div>
                     <br />
 
-                    {/* Login Button */}
+                    {/* Simple Login Button */}
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className={`w-full h-14 font-bold text-sm rounded-xl transition-all duration-200 transform focus:outline-none focus:ring-2 focus:ring-blue-500/50 mt-8 ${
+                      className={`w-full h-12 font-medium text-sm rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-black mt-8 border ${
                         isLoading
-                          ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                          : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-blue-500/25"
+                          ? "bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300"
+                          : "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md active:bg-gray-200"
                       }`}
                     >
                       {isLoading ? (
                         <div className="flex items-center justify-center space-x-2">
                           <svg
-                            className="animate-spin h-4 w-4 text-white"
+                            className="animate-spin h-4 w-4 text-gray-500"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -651,17 +746,7 @@ const Login = () => {
                           <span>Authenticating...</span>
                         </div>
                       ) : (
-                        <span className="flex items-center justify-center space-x-2">
-                          <span>Access Dashboard</span>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M13 7l5 5m0 0l-5 5m5-5H6"
-                            />
-                          </svg>
-                        </span>
+                        <span>Access Dashboard</span>
                       )}
                     </button>
                   </div>
@@ -686,4 +771,3 @@ const Login = () => {
 }
 
 export default Login
-
