@@ -56,38 +56,17 @@ const LockIcon = () => (
   </svg>
 )
 
+// Professional SVG eye icons from Heroicons
+import { EyeIcon as HeroEyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"
+
+// Professional eye icon for password visibility
 const EyeIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-    <circle cx="12" cy="12" r="3"></circle>
-  </svg>
+  <HeroEyeIcon className="w-5 h-5 text-gray-400" />
 )
 
+// Professional eye-off icon for password visibility
 const EyeOffIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-    <line x1="1" y1="1" x2="23" y2="23"></line>
-  </svg>
+  <EyeSlashIcon className="w-5 h-5 text-gray-400" />
 )
 
 const CheckIcon = () => (
@@ -817,7 +796,7 @@ const ForgotPassword = () => {
                             onChange={handleChange}
                             disabled={loading}
                             required
-                            className={`w-full h-14 pl-12 pr-4 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
+                            className={`w-full h-14 pl-16 pr-6 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
                               loading ? "cursor-not-allowed opacity-50" : ""
                             }`}
                             placeholder="  faculty@college.edu"
@@ -880,10 +859,10 @@ const ForgotPassword = () => {
                             name="code"
                             value={form.code}
                             onChange={handleChange}
-                            placeholder="  Enter 6-digit code"
+                            placeholder="Enter 6-digit code"
                             maxLength={6}
                             pattern="[0-9]{6}"
-                            className="w-full h-14 pl-12 pr-4 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium text-center tracking-widest"
+                            className="w-full h-14 pl-16 pr-6 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium text-center tracking-widest"
                             required
                           />
                         </div>
@@ -949,17 +928,20 @@ const ForgotPassword = () => {
                             name="newPassword"
                             value={form.newPassword}
                             onChange={handleChange}
-                            placeholder="  enter new password"
-                            className="w-full h-14 pl-12 pr-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium"
+                            placeholder="enter new password"
+                            className="w-full h-14 pl-16 pr-16 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium"
                             required
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowNewPassword((prev) => !prev)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-blue-400 transition-colors focus:outline-none"
-                          >
-                            {showNewPassword ? <EyeOffIcon /> : <EyeIcon />}
-                          </button>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword((prev) => !prev)}
+                              className="text-gray-400 hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:ring-offset-1 focus:ring-offset-gray-800 rounded-full p-1.5 h-9 w-9 flex items-center justify-center"
+                              aria-label={showNewPassword ? "Hide password" : "Show password"}
+                            >
+                              {showNewPassword ? <EyeOffIcon /> : <EyeIcon />}
+                            </button>
+                          </div>
                         </div>
                       </div>
                       <br />
@@ -973,17 +955,20 @@ const ForgotPassword = () => {
                             name="confirmPassword"
                             value={form.confirmPassword}
                             onChange={handleChange}
-                            placeholder="  confirm new password"
-                            className="w-full h-14 pl-12 pr-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium"
+                            placeholder="confirm new password"
+                            className="w-full h-14 pl-16 pr-16 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium"
                             required
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword((prev) => !prev)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-blue-400 transition-colors focus:outline-none"
-                          >
-                            {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
-                          </button>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword((prev) => !prev)}
+                              className="text-gray-400 hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:ring-offset-1 focus:ring-offset-gray-800 rounded-full p-1.5 h-9 w-9 flex items-center justify-center"
+                              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                            >
+                              {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                            </button>
+                          </div>
                         </div>
                       </div>
                       <br />
