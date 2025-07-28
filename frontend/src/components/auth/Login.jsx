@@ -39,38 +39,17 @@ const LockIcon = () => (
   </svg>
 )
 
+// Professional SVG eye icons from Heroicons
+import { EyeIcon as HeroEyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"
+
+// Professional eye icon for password visibility
 const EyeIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-    <circle cx="12" cy="12" r="3"></circle>
-  </svg>
+  <HeroEyeIcon className="w-5 h-5 text-gray-400" />
 )
 
+// Professional eye-off icon for password visibility
 const EyeOffIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-    <line x1="1" y1="1" x2="23" y2="23"></line>
-  </svg>
+  <EyeSlashIcon className="w-5 h-5 text-gray-400" />
 )
 
 const Login = () => {
@@ -381,16 +360,19 @@ const Login = () => {
                             type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full h-12 pl-12 pr-12 bg-gray-800/60 border border-gray-600/50 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium"
+                            className="w-full h-12 pl-12 pr-16 bg-gray-800/60 border border-gray-600/50 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium"
                             placeholder="••••••••"
                           />
-                          <button
-                            type="button"
-                            onClick={togglePasswordVisibility}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-blue-400 transition-colors focus:outline-none"
-                          >
-                            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                          </button>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                            <button
+                              type="button"
+                              onClick={togglePasswordVisibility}
+                              className="text-gray-400 hover:text-blue-400 transition-colors focus:outline-none p-1 h-8 w-8 flex items-center justify-center"
+                              aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                              {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                            </button>
+                          </div>
                         </div>
                       </div>
 
