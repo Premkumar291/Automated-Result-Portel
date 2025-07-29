@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
-import Sidebar from "./Sidebar";
-import { MdMenu } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaChevronDown, FaChevronUp, FaEnvelope, FaPhone } from "react-icons/fa";
 import { BackgroundBeamsWithCollision } from "./ui/background-beams-with-collision";
 import { useTheme } from "../../context/ThemeContext";
 import { cn } from "@/lib/utils";
+import DashboardLayout from "./DashboardLayout";
 
 const HelpSupport = () => {
-  const [sidebarVisible, setSidebarVisible] = useState(false);
   const [openFAQ, setOpenFAQ] = useState(null);
   const { darkMode } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -46,47 +44,22 @@ const HelpSupport = () => {
   };
 
   return (
-    <div className="flex min-h-screen font-[Poppins] overflow-x-hidden relative">
-      <BackgroundBeamsWithCollision 
-        className={cn(
-          "absolute inset-0 z-0 transition-all duration-500",
-          darkMode ? "from-gray-950 to-gray-900" : "from-white to-neutral-100"
-        )}
-      />
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${
-          sidebarVisible ? "translate-x-0" : "-translate-x-full"
-        } ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}
-        style={{
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          boxShadow: darkMode 
-            ? "0 0 15px 2px rgba(76, 29, 149, 0.3)" 
-            : "0 0 15px rgba(0, 0, 0, 0.1)"
-        }}
-      >
-        <Sidebar onCloseSidebar={() => setSidebarVisible(false)} />
-      </div>
-
-      {/* Main Content */}
-      <motion.div
-        className="flex-1 p-6 relative z-10"
-        initial={{ opacity: 0, x: 60 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      >
-        {/* ☰ Icon */}
-        <div className="mb-4">
-          <motion.button
-            onClick={() => setSidebarVisible(!sidebarVisible)}
-            className={`text-2xl ${darkMode ? "text-white" : "text-gray-800"} p-2 rounded-full hover:bg-opacity-10 hover:bg-gray-500 transition-all`}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <MdMenu />
-          </motion.button>
-        </div>
+    <DashboardLayout>
+      <div className="relative">
+        <BackgroundBeamsWithCollision 
+          className={cn(
+            "absolute inset-0 z-0 transition-all duration-500",
+            darkMode ? "from-gray-950 to-gray-900" : "from-white to-neutral-100"
+          )}
+        />
+        
+        {/* Main Content */}
+        <motion.div
+          className="flex-1 p-6 relative z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
 
         <h2 className={`text-3xl font-bold mb-6 ${darkMode ? "text-white" : "text-gray-800"} bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500`}>🆘 Help & Support</h2>
 
@@ -171,8 +144,9 @@ const HelpSupport = () => {
             </div>
           </div>
         </motion.div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </DashboardLayout>
   );
 };
 

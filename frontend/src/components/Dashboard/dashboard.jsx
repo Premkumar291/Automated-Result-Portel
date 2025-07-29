@@ -1,9 +1,11 @@
 "use client"
+
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { logout, checkAuth } from "../../api/auth"
 import PDFProcessingCard from "./PDFProcessingCard"
 import { motion } from "framer-motion"
+import { ChevronLeft, ChevronRight, BarChart3, FileText, LogOut, Bell, Search } from "lucide-react"
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -11,9 +13,26 @@ const Dashboard = () => {
   const [user, setUser] = useState(null)
   const [userLoading, setUserLoading] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const [accountCardHovered, setAccountCardHovered] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true) // Changed to true - sidebar closed by default
+  const [activeItem, setActiveItem] = useState("Analysis")
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const gsapRef = useRef(null)
   const navigate = useNavigate()
+
+  // Sidebar navigation items - Updated with your specific options
+  const mainNavItems = [
+    {
+      name: "Analysis",
+      icon: BarChart3,
+      description: "Data analysis and insights",
+    },
+    {
+      name: "View Results",
+      icon: FileText,
+      description: "View processing results",
+    },
+  ]
 
   // ColourfulText Component (inline)
   const ColourfulText = ({ text, className = "" }) => {
@@ -53,6 +72,221 @@ const Dashboard = () => {
           </motion.span>
         ))}
       </span>
+    )
+  }
+
+  // Animated ACADEX Logo Component for Sidebar
+  const SidebarAcadexLogo = () => {
+    return (
+      <div className="acadex-logo text-lg">
+        <motion.span
+          className="acadex-a1"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          whileHover={{ scale: 1.1, rotate: 5 }}
+        >
+          A
+        </motion.span>
+        <motion.span
+          className="acadex-c"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          whileHover={{ scale: 1.1, rotate: -5 }}
+        >
+          C
+        </motion.span>
+        <motion.span
+          className="acadex-a2"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          whileHover={{ scale: 1.1, rotate: 5 }}
+        >
+          A
+        </motion.span>
+        <motion.span
+          className="acadex-d"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+          whileHover={{ scale: 1.1, rotate: -5 }}
+        >
+          D
+        </motion.span>
+        <motion.span
+          className="acadex-e"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.5 }}
+          whileHover={{ scale: 1.1, rotate: 5 }}
+        >
+          E
+        </motion.span>
+        <motion.span
+          className="acadex-x"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.6 }}
+          whileHover={{ scale: 1.1, rotate: -5 }}
+        >
+          X
+        </motion.span>
+      </div>
+    )
+  }
+
+  // Animated "A" Symbol Component for Sidebar
+  const AnimatedASymbol = () => {
+    return (
+      <motion.div
+        className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, #6366F1 0%, #EF4444 25%, #F59E0B 50%, #8B5CF6 75%, #10B981 100%)",
+        }}
+        initial={{ scale: 0.8, rotate: -10 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        whileHover={{
+          scale: 1.1,
+          rotate: 10,
+          boxShadow: "0 0 20px rgba(99, 102, 241, 0.5)",
+        }}
+      >
+        <motion.span
+          className="text-white text-sm font-bold"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          whileHover={{ scale: 1.2 }}
+        >
+          A
+        </motion.span>
+
+        {/* Animated background particles */}
+        <motion.div
+          className="absolute inset-0 opacity-30"
+          animate={{
+            background: [
+              "radial-gradient(circle at 20% 50%, #6366F1 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 50%, #EF4444 0%, transparent 50%)",
+              "radial-gradient(circle at 50% 20%, #F59E0B 0%, transparent 50%)",
+              "radial-gradient(circle at 50% 80%, #8B5CF6 0%, transparent 50%)",
+              "radial-gradient(circle at 20% 50%, #6366F1 0%, transparent 50%)",
+            ],
+          }}
+          transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+        />
+      </motion.div>
+    )
+  }
+
+  // Logout Confirmation Dialog Component
+  const LogoutDialog = () => {
+    if (!showLogoutDialog) return null
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+        <div
+          className={`${isDarkMode ? "dark-elevated-card" : "elevated-card"} p-6 max-w-md w-full mx-auto rounded-lg`}
+        >
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+              <LogOut className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}>Confirm Logout</h3>
+              <p className={`text-sm ${isDarkMode ? "text-gray-300" : "text-slate-600"}`}>
+                Are you sure you want to sign out?
+              </p>
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+            <button
+              onClick={handleConfirmLogout}
+              disabled={isLoading}
+              className={`flex-1 px-4 py-2 ${
+                isDarkMode ? "bg-white text-black hover:bg-gray-100" : "bg-black hover:bg-gray-800 text-white"
+              } font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded`}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                  <span>Signing out...</span>
+                </div>
+              ) : (
+                "Yes, Sign Out"
+              )}
+            </button>
+            <button
+              onClick={() => setShowLogoutDialog(false)}
+              disabled={isLoading}
+              className={`flex-1 px-4 py-2 ${
+                isDarkMode ? "bg-gray-700 text-white hover:bg-gray-600" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+              } font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded`}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Sidebar Navigation Item Component
+  const NavItem = ({ item, isActive, onClick }) => {
+    const Icon = item.icon
+
+    return (
+      <div className="relative group">
+        <button
+          onClick={() => onClick(item.name)}
+          className={`
+          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 
+          ${
+            isActive
+              ? isDarkMode
+                ? "bg-gray-900 text-white shadow-sm border border-gray-800"
+                : "bg-gray-100 text-gray-900 shadow-sm"
+              : isDarkMode
+                ? "text-gray-300 hover:bg-gray-900 hover:text-white"
+                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+          }
+          ${isCollapsed ? "justify-center px-2" : "justify-start"}
+        `}
+        >
+          <Icon
+            className={`
+            w-4 h-4 transition-colors duration-200 flex-shrink-0
+            ${
+              isActive
+                ? isDarkMode
+                  ? "text-white"
+                  : "text-gray-700"
+                : isDarkMode
+                  ? "text-gray-500 group-hover:text-white"
+                  : "text-gray-500 group-hover:text-gray-700"
+            }
+          `}
+          />
+
+          {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">{item.name}</span>}
+        </button>
+
+        {/* Tooltip for collapsed state */}
+        {isCollapsed && (
+          <div
+            className={`absolute left-full ml-2 top-1/2 -translate-y-1/2 ${
+              isDarkMode ? "bg-gray-900 text-white border border-gray-800" : "bg-gray-900 text-white"
+            } text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50`}
+          >
+            {item.name}
+            {item.description && <div className="text-gray-400 text-xs">{item.description}</div>}
+          </div>
+        )}
+      </div>
     )
   }
 
@@ -112,7 +346,7 @@ const Dashboard = () => {
     fetchUserData()
   }, [navigate])
 
-  const handleLogout = async () => {
+  const handleConfirmLogout = async () => {
     setIsLoading(true)
     setError("")
     try {
@@ -122,7 +356,12 @@ const Dashboard = () => {
       setError("Logout failed. Please try again.")
     } finally {
       setIsLoading(false)
+      setShowLogoutDialog(false)
     }
+  }
+
+  const handleLogoutClick = () => {
+    setShowLogoutDialog(true)
   }
 
   const toggleTheme = () => {
@@ -135,24 +374,49 @@ const Dashboard = () => {
     }
   }
 
+  const handleItemClick = (itemName) => {
+    setActiveItem(itemName)
+    setIsMobileOpen(false)
+  }
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed)
+  }
+
+  const toggleMobile = () => {
+    setIsMobileOpen(!isMobileOpen)
+  }
+
   if (userLoading) {
     return (
       <div
-        className={`min-h-screen flex items-center justify-center transition-all duration-700 ${isDarkMode ? "bg-black" : "bg-white"}`}
+        className={`min-h-screen flex items-center justify-center transition-all duration-700 ${
+          isDarkMode ? "bg-black" : "bg-white"
+        }`}
       >
         <div className="text-center">
           <div className="relative w-24 h-24 mx-auto mb-8">
             <div
-              className={`absolute inset-0 border-4 ${isDarkMode ? "border-purple-500" : "border-blue-200"} rounded-full animate-ping opacity-20`}
+              className={`absolute inset-0 border-4 ${
+                isDarkMode ? "border-purple-500" : "border-blue-200"
+              } rounded-full animate-ping opacity-20`}
             ></div>
             <div
-              className={`absolute inset-2 border-4 ${isDarkMode ? "border-purple-400" : "border-blue-400"} rounded-full animate-spin`}
+              className={`absolute inset-2 border-4 ${
+                isDarkMode ? "border-purple-400" : "border-blue-400"
+              } rounded-full animate-spin`}
             ></div>
             <div
-              className={`absolute inset-4 border-4 ${isDarkMode ? "border-purple-600" : "border-blue-600"} rounded-full animate-pulse`}
+              className={`absolute inset-4 border-4 ${
+                isDarkMode ? "border-purple-600" : "border-blue-600"
+              } rounded-full animate-pulse`}
             ></div>
             <div
-              className={`absolute inset-6 ${isDarkMode ? "bg-gradient-to-r from-purple-500 to-pink-600" : "bg-gradient-to-r from-blue-500 to-indigo-600"} rounded-full flex items-center justify-center`}
+              className={`absolute inset-6 ${
+                isDarkMode
+                  ? "bg-gradient-to-r from-purple-500 to-pink-600"
+                  : "bg-gradient-to-r from-blue-500 to-indigo-600"
+              } rounded-full flex items-center justify-center`}
             >
               <svg className="w-8 h-8 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -196,6 +460,7 @@ const Dashboard = () => {
           background: #ffffff;
           border-bottom: 1px solid #e5e7eb;
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+          min-height: 64px;
         }
         
         /* Dark Theme Navbar - Next Level Design */
@@ -207,6 +472,7 @@ const Dashboard = () => {
             0 1px 3px rgba(255, 255, 255, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.05);
           backdrop-filter: blur(20px);
+          min-height: 64px;
         }
         
         /* Enhanced Card Shadows - Light */
@@ -279,102 +545,6 @@ const Dashboard = () => {
             0 30px 80px rgba(0, 0, 0, 0.98),
             0 12px 40px rgba(255, 255, 255, 0.08),
             inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-        
-        /* Dark Theme Glitter Effects */
-        .dark-glitter-particle {
-          position: absolute;
-          width: 4px;
-          height: 4px;
-          background: rgba(139, 92, 246, 0.9);
-          border-radius: 50%;
-          animation: darkGlitterSparkle 2s ease-in-out infinite;
-          box-shadow: 0 0 8px rgba(139, 92, 246, 0.8);
-        }
-        @keyframes darkGlitterSparkle {
-          0%, 100% { 
-            opacity: 0; 
-            transform: scale(0) rotate(0deg); 
-            box-shadow: 0 0 8px rgba(139, 92, 246, 0.8);
-          }
-          50% { 
-            opacity: 1; 
-            transform: scale(2) rotate(180deg); 
-            box-shadow: 0 0 15px rgba(139, 92, 246, 1), 0 0 25px rgba(236, 72, 153, 0.5);
-          }
-        }
-        
-        /* Light Theme Glitter */
-        .glitter-particle {
-          position: absolute;
-          width: 4px;
-          height: 4px;
-          background: rgba(218, 165, 32, 0.8);
-          border-radius: 50%;
-          animation: glitterSparkle 2s ease-in-out infinite;
-          box-shadow: 0 0 6px rgba(218, 165, 32, 0.6);
-        }
-        .glitter-particle:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
-        .glitter-particle:nth-child(2) { top: 40%; left: 80%; animation-delay: 0.3s; }
-        .glitter-particle:nth-child(3) { top: 60%; left: 25%; animation-delay: 0.6s; }
-        .glitter-particle:nth-child(4) { top: 30%; left: 60%; animation-delay: 0.9s; }
-        .glitter-particle:nth-child(5) { top: 70%; left: 70%; animation-delay: 1.2s; }
-        .glitter-particle:nth-child(6) { top: 15%; left: 45%; animation-delay: 1.5s; }
-        .glitter-particle:nth-child(7) { top: 80%; left: 35%; animation-delay: 0.2s; }
-        .glitter-particle:nth-child(8) { top: 50%; left: 10%; animation-delay: 0.8s; }
-        .glitter-particle:nth-child(9) { top: 25%; left: 85%; animation-delay: 1.1s; }
-        .glitter-particle:nth-child(10) { top: 75%; left: 55%; animation-delay: 0.5s; }
-        .glitter-particle:nth-child(11) { top: 35%; left: 20%; animation-delay: 1.3s; }
-        .glitter-particle:nth-child(12) { top: 65%; left: 75%; animation-delay: 0.7s; }
-        @keyframes glitterSparkle {
-          0%, 100% { 
-            opacity: 0; 
-            transform: scale(0) rotate(0deg); 
-          }
-          50% { 
-            opacity: 1; 
-            transform: scale(1.5) rotate(180deg); 
-          }
-        }
-        
-        /* Glittering Effect Overlay */
-        .glitter-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          opacity: 0;
-          pointer-events: none;
-          z-index: 1;
-          transition: opacity 0.3s ease;
-        }
-        .glitter-overlay.active {
-          opacity: 1;
-        }
-        
-        /* Shimmer Effects */
-        .shimmer-line {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(218, 165, 32, 0.3), transparent);
-          animation: shimmerMove 3s ease-in-out infinite;
-        }
-        .dark-shimmer-line {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.3), transparent);
-          animation: shimmerMove 3s ease-in-out infinite;
-        }
-        @keyframes shimmerMove {
-          0% { left: -100%; }
-          100% { left: 100%; }
         }
         
         /* Corner Icons */
@@ -500,7 +670,6 @@ const Dashboard = () => {
         /* Custom ACADEX Logo Styling */
         .acadex-logo {
           font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-          font-size: 2rem;
           font-weight: 800;
           letter-spacing: -0.01em;
           line-height: 1;
@@ -545,205 +714,317 @@ const Dashboard = () => {
           color: rgba(255, 255, 255, 0.6);
         }
       `}</style>
-      <div className={`min-h-screen theme-transition ${isDarkMode ? "dark-bg" : "bg-white"}`}>
-        {/* Dynamic Navbar */}
-        <header
-          className={`animate-header fixed top-0 left-0 right-0 z-50 ${isDarkMode ? "dark-navbar" : "white-navbar"}`}
+
+      <div className={`min-h-screen theme-transition ${isDarkMode ? "dark-bg" : "bg-white"} flex`}>
+        {/* Mobile Overlay */}
+        {isMobileOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={toggleMobile} />}
+
+        {/* Sidebar */}
+        <div
+          className={`
+    ${isMobileOpen ? "translate-x-0" : isCollapsed ? "-translate-x-full" : "translate-x-0"}
+    lg:${isCollapsed ? "-translate-x-full" : "translate-x-0"}
+    fixed top-0 left-0 h-full z-50 
+    ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"} 
+    border-r shadow-lg transition-all duration-300 ease-in-out
+    ${isCollapsed ? "w-0 lg:w-0" : "w-72"}
+  `}
         >
-          <div className="max-w-7.2xl mx-auto px-8 py-2">
-            <div className="flex items-center justify-between">
-              {/* Brand Section */}
-              <div className="flex items-center space-x-6">
+          {/* Sidebar Header */}
+          <div
+            className={`
+    flex items-center ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b p-4
+    ${isCollapsed ? "justify-center" : "justify-between"}
+  `}
+          >
+            {!isCollapsed ? (
+              <div className="flex items-center gap-3">
+                <AnimatedASymbol />
                 <div>
-                  <div className="acadex-logo">
-                    <span className="acadex-a1">A</span>
-                    <span className="acadex-c">C</span>
-                    <span className="acadex-a2">A</span>
-                    <span className="acadex-d">D</span>
-                    <span className="acadex-e">E</span>
-                    <span className="acadex-x">X</span>
-                  </div>
+                  <SidebarAcadexLogo />
+                  <p className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Pro Plan</p>
                 </div>
               </div>
-              {/* Controls Section with Proper Gaps */}
-              <div className="flex items-center space-x-8">
-                {/* Theme Toggle - Proper gap */}
-                <button
-                  onClick={toggleTheme}
-                  className={`${isDarkMode ? "text-white hover:text-purple-300" : "text-black hover:text-gray-700"} transition-all duration-300`}
-                >
-                  {isDarkMode ? (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        fillRule="evenodd"
-                        d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
-                </button>
-                {/* User Profile - Proper gap */}
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <div
-                      className={`w-10 h-10 rounded-full bg-black text-white flex items-center justify-center ${isDarkMode ? "font-black text-base" : "font-bold text-sm"}`}
-                    >
-                      {user?.name?.charAt(0).toUpperCase() || "U"}
-                    </div>
-                    <div className="status-dot absolute -top-1 -right-1 w-3 h-3 rounded-full"></div>
+            ) : (
+              <AnimatedASymbol />
+            )}
+
+            {!isCollapsed && (
+              <button
+                onClick={toggleCollapse}
+                className={`
+      p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
+    `}
+              >
+                <ChevronLeft className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+              </button>
+            )}
+          </div>
+
+          {/* Expand Button for Collapsed State */}
+          {isCollapsed && (
+            <div className="p-2 flex justify-center">
+              <button
+                onClick={toggleCollapse}
+                className={`
+      p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
+    `}
+              >
+                <ChevronRight className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+              </button>
+            </div>
+          )}
+
+          {/* Search Bar */}
+          {!isCollapsed && (
+            <div className={`p-4 ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b`}>
+              <div className="relative">
+                <Search
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                    isDarkMode ? "text-gray-500" : "text-gray-400"
+                  }`}
+                />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className={`w-full pl-10 pr-4 py-2 text-sm ${
+                    isDarkMode
+                      ? "border-gray-700 bg-gray-900 text-white placeholder-gray-500"
+                      : "border-gray-200 bg-white"
+                  } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex-1 overflow-y-auto">
+            <div className={`p-3 space-y-1 ${isDarkMode ? "bg-black" : ""}`}>
+              {mainNavItems.map((item) => (
+                <NavItem key={item.name} item={item} isActive={activeItem === item.name} onClick={handleItemClick} />
+              ))}
+            </div>
+
+            {/* Separator */}
+            <div className={`mx-4 my-4 border-t ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}></div>
+
+            {/* Logout Button */}
+            <div className={`p-3 ${isDarkMode ? "bg-black" : ""}`}>
+              <button
+                onClick={handleLogoutClick}
+                disabled={isLoading}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                  isDarkMode
+                    ? "text-gray-300 hover:bg-gray-900 hover:text-red-300"
+                    : "text-gray-700 hover:bg-red-50 hover:text-red-700"
+                } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
+              >
+                <LogOut
+                  className={`w-4 h-4 transition-colors duration-200 flex-shrink-0 ${
+                    isDarkMode ? "text-gray-500 hover:text-red-300" : "text-gray-500 hover:text-red-700"
+                  }`}
+                />
+                {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">Sign Out</span>}
+              </button>
+            </div>
+          </div>
+
+          {/* Account Information Section */}
+          {!isCollapsed && (
+            <div className={`${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-t p-4`}>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-8 h-8 ${isDarkMode ? "bg-gray-800" : "bg-black"} rounded-full flex items-center justify-center`}
+                  >
+                    <span className="text-white text-sm font-medium">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
                   </div>
-                  <div className="hidden md:block">
-                    <p className={`font-semibold text-base ${isDarkMode ? "text-white" : "text-black"}`}>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${isDarkMode ? "text-white" : "text-gray-900"} truncate`}>
                       {user?.name || "User"}
                     </p>
-                    <p className={`text-xs mono font-medium ${isDarkMode ? "text-purple-300" : "text-black"}`}>
-                      Administrator
+                    <p className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"} truncate`}>
+                      {user?.email || "user@example.com"}
                     </p>
                   </div>
+                  <Bell className={`w-4 h-4 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`} />
                 </div>
-                {/* Logout Button - Dark Theme: White bg with Black text */}
-                <button
-                  onClick={handleLogout}
-                  disabled={isLoading}
-                  className={`px-4 py-2 ${isDarkMode ? "bg-white text-black hover:bg-gray-100" : "bg-black hover:bg-gray-800 text-white"} font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      <span>Signing out...</span>
+
+                {/* Account Status */}
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>Status</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="pulse-indicator w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className={`text-xs font-medium ${isDarkMode ? "text-green-400" : "text-green-600"}`}>
+                      ACTIVE
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-h-screen">
+          {/* Dynamic Navbar - ACADEX name hides when sidebar opens */}
+          <header className={`animate-header ${isDarkMode ? "dark-navbar" : "white-navbar"}`}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16">
+                {/* Left Section - Sidebar Toggle */}
+                <div className="flex items-center">
+                  {/* Advanced Sidebar Toggle Button */}
+                  <button
+                    onClick={toggleMobile}
+                    className={`lg:hidden p-2 rounded-lg ${
+                      isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+                    } transition-all duration-300 group mr-3`}
+                  >
+                    <div className="relative w-6 h-6 flex flex-col justify-center items-center">
+                      <span
+                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out ${isMobileOpen ? "rotate-45 translate-y-1.5" : ""}`}
+                      ></span>
+                      <span
+                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isMobileOpen ? "opacity-0" : ""}`}
+                      ></span>
+                      <span
+                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isMobileOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
+                      ></span>
                     </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </button>
+
+                  {/* Desktop Sidebar Toggle Button */}
+                  <button
+                    onClick={toggleCollapse}
+                    className={`hidden lg:flex items-center justify-center p-2 rounded-lg ${
+                      isDarkMode ? "hover:bg-gray-800 text-white" : "hover:bg-gray-100 text-gray-900"
+                    } transition-all duration-300 group mr-4`}
+                  >
+                    <div className="relative w-6 h-6 flex flex-col justify-center items-center">
+                      <span
+                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out ${isCollapsed ? "rotate-0" : "rotate-45 translate-y-1.5"}`}
+                      ></span>
+                      <span
+                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isCollapsed ? "opacity-100" : "opacity-0"}`}
+                      ></span>
+                      <span
+                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isCollapsed ? "rotate-0" : "-rotate-45 -translate-y-1.5"}`}
+                      ></span>
+                    </div>
+                  </button>
+
+                  {/* Brand Section - Show ACADEX name only when sidebar is collapsed */}
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      opacity: isCollapsed ? 1 : 0,
+                      scale: isCollapsed ? 1 : 0.8,
+                      x: isCollapsed ? 0 : -20,
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="flex items-center"
+                  >
+                    {isCollapsed && (
+                      <div className="acadex-logo text-2xl">
+                        <span className="acadex-a1">A</span>
+                        <span className="acadex-c">C</span>
+                        <span className="acadex-a2">A</span>
+                        <span className="acadex-d">D</span>
+                        <span className="acadex-e">E</span>
+                        <span className="acadex-x">X</span>
+                      </div>
+                    )}
+                  </motion.div>
+                </div>
+
+                {/* Right Section - Controls */}
+                <div className="flex items-center space-x-4">
+                  {/* Theme Toggle */}
+                  <button
+                    onClick={toggleTheme}
+                    className={`p-2 rounded-lg ${
+                      isDarkMode
+                        ? "text-white hover:bg-gray-800 hover:text-purple-300"
+                        : "text-black hover:bg-gray-100 hover:text-gray-700"
+                    } transition-all duration-300`}
+                  >
+                    {isDarkMode ? (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                          fillRule="evenodd"
+                          d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"
+                          clipRule="evenodd"
                         />
                       </svg>
-                      <span>Sign Out</span>
-                    </div>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
-        <br />
-        {/* Main Content with Top Padding for Fixed Navbar */}
-        <main className="relative z-10">
-          {/* Hero Welcome Section with New Font Style - No Background */}
-          <div className="animate-section py-20 flex items-center justify-center relative">
-            <div className="text-center space-y-6 relative z-20 px-8">
-              <motion.h1
-                className={`text-2xl relative z-20 md:text-4xl lg:text-7xl font-bold text-center ${isDarkMode ? "text-white" : "text-black"} font-sans tracking-tight`}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                Welcome back, <ColourfulText text={user?.name?.split(" ")[0] || "User"} />
-              </motion.h1>
-              <motion.p
-                className={`text-lg md:text-xl ${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-3xl mx-auto leading-relaxed`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.5 }}
-              >
-                Your advanced document processing environment is ready. Upload, analyze, and extract insights from your
-                documents with AI-powered precision.
-              </motion.p>
-            </div>
-          </div>
+                    )}
+                  </button>
 
-          <div className="max-w-7xl mx-auto px-8 pb-12">
-            {/* PDF Processing Section */}
-            <div className="animate-section mb-12">
-              <div className={`${isDarkMode ? "dark-elevated-card" : "elevated-card"} p-6 hover-lift`}>
-                <div className="flex items-center space-x-4 mb-6">
-                  <svg
-                    className={`w-8 h-8 float-element ${isDarkMode ? "text-white" : "text-purple-600"}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  <div>
-                    <h3 className={`text-2xl font-black ${isDarkMode ? "text-white" : "text-slate-900"}`}>
-                      Document Processing Engine
-                    </h3>
-                    <p className={`text-base ${isDarkMode ? "text-gray-300" : "text-slate-600"} mt-1`}>
-                      Advanced AI-powered PDF analysis, extraction, and processing capabilities
-                    </p>
+                  {/* User Profile */}
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div
+                        className={`w-10 h-10 rounded-full bg-black text-white flex items-center justify-center ${
+                          isDarkMode ? "font-black text-base" : "font-bold text-sm"
+                        }`}
+                      >
+                        {user?.name?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                      <div className="status-dot absolute -top-1 -right-1 w-3 h-3 rounded-full"></div>
+                    </div>
+                    <div className="hidden md:block">
+                      <p className={`font-semibold text-base ${isDarkMode ? "text-white" : "text-black"}`}>
+                        {user?.name || "User"}
+                      </p>
+                      <p className={`text-xs mono font-medium ${isDarkMode ? "text-purple-300" : "text-black"}`}>
+                        Administrator
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className={`${isDarkMode ? "dark-section-divider" : "section-divider"} mb-6`}></div>
-                {/* PDF Processing Component */}
-                <PDFProcessingCard />
               </div>
             </div>
-            {/* Account Information Panel with Dynamic Theme - NO GLOW in Dark Mode */}
-            <div className="animate-section">
-              <div
-                className={`${isDarkMode ? "dark-account-card" : "account-card"} p-6`}
-                onMouseEnter={() => setAccountCardHovered(true)}
-                onMouseLeave={() => setAccountCardHovered(false)}
-              >
-                {/* Corner Icons - Normal White in Dark Mode */}
-                <svg
-                  className={`corner-icon top-left ${isDarkMode ? "dark-corner-icon" : "light-corner-icon"}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-                </svg>
-                <svg
-                  className={`corner-icon top-right ${isDarkMode ? "dark-corner-icon" : "light-corner-icon"}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-                </svg>
-                <svg
-                  className={`corner-icon bottom-left ${isDarkMode ? "dark-corner-icon" : "light-corner-icon"}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-                </svg>
-                <svg
-                  className={`corner-icon bottom-right ${isDarkMode ? "dark-corner-icon" : "light-corner-icon"}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-                </svg>
+          </header>
 
-                {/* Dynamic Glittering Effect - REMOVED FROM BOTH THEMES */}
+          {/* Main Content with Top Padding for Fixed Navbar */}
+          <main className="relative z-10 flex-1">
+            {/* Hero Welcome Section with New Font Style - No Background */}
+            <div className="animate-section py-20 flex items-center justify-center relative">
+              <div className="text-center space-y-6 relative z-20 px-8">
+                <motion.h1
+                  className={`text-2xl relative z-20 md:text-4xl lg:text-7xl font-bold text-center ${
+                    isDarkMode ? "text-white" : "text-black"
+                  } font-sans tracking-tight`}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                >
+                  Welcome back, <ColourfulText text={user?.name?.split(" ")[0] || "User"} />
+                </motion.h1>
+                <motion.p
+                  className={`text-lg md:text-xl ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  } max-w-3xl mx-auto leading-relaxed`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                >
+                  Your advanced document processing environment is ready. Upload, analyze, and extract insights from
+                  your documents with AI-powered precision.
+                </motion.p>
+              </div>
+            </div>
 
-                {/* Content */}
-                <div className={`account-content ${isDarkMode ? "dark-content" : "light-content"}`}>
+            <div className="max-w-7xl mx-auto px-8 pb-12">
+              {/* PDF Processing Section */}
+              <div className="animate-section mb-12">
+                <div className={`${isDarkMode ? "dark-elevated-card" : "elevated-card"} p-6 hover-lift`}>
                   <div className="flex items-center space-x-4 mb-6">
                     <svg
-                      className={`w-6 h-6 float-element ${isDarkMode ? "text-white" : "text-blue-600"}`}
+                      className={`w-8 h-8 float-element ${isDarkMode ? "text-white" : "text-purple-600"}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -752,58 +1033,36 @@ const Dashboard = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900">Account Information</h3>
-                      <p className="text-sm mono text-slate-600">Your profile and system access details</p>
+                      <h3 className={`text-2xl font-black ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+                        Document Processing Engine
+                      </h3>
+                      <p className={`text-base ${isDarkMode ? "text-gray-300" : "text-slate-600"} mt-1`}>
+                        Advanced AI-powered PDF analysis, extraction, and processing capabilities
+                      </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className={`${isDarkMode ? "dark-accent-border" : "accent-border"} pl-4`}>
-                        <label className="text-xs font-bold mono uppercase tracking-wider text-slate-600">
-                          Full Name
-                        </label>
-                        <p className="text-lg font-bold mt-1 text-slate-900">{user?.name || "Not available"}</p>
-                      </div>
-                      <div className={`${isDarkMode ? "dark-accent-border" : "accent-border"} pl-4`}>
-                        <label className="text-xs font-bold mono uppercase tracking-wider text-slate-600">
-                          Email Address
-                        </label>
-                        <p className="text-lg font-bold mt-1 break-all text-slate-900">
-                          {user?.email || "Not available"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div className={`${isDarkMode ? "dark-accent-border" : "accent-border"} pl-4`}>
-                        <label className="text-xs font-bold mono uppercase tracking-wider text-slate-600">
-                          Account Status
-                        </label>
-                        <div className="flex items-center space-x-3 mt-1">
-                          <div className="pulse-indicator w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span className="text-lg font-bold text-green-500">ACTIVE</span>
-                        </div>
-                      </div>
-                      <div className={`${isDarkMode ? "dark-accent-border" : "accent-border"} pl-4`}>
-                        <label className="text-xs font-bold mono uppercase tracking-wider text-slate-600">
-                          Last Login
-                        </label>
-                        <p className="text-lg font-bold mt-1 mono text-slate-900">{new Date().toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
+                  <div className={`${isDarkMode ? "dark-section-divider" : "section-divider"} mb-6`}></div>
+                  {/* PDF Processing Component */}
+                  <PDFProcessingCard />
                 </div>
               </div>
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
+
+        {/* Logout Confirmation Dialog */}
+        <LogoutDialog />
+
         {/* Error Notification */}
         {error && (
           <div
-            className={`fixed bottom-8 right-8 z-50 ${isDarkMode ? "dark-elevated-card" : "elevated-card"} p-4 max-w-md hover-lift`}
+            className={`fixed bottom-8 right-8 z-50 ${
+              isDarkMode ? "dark-elevated-card" : "elevated-card"
+            } p-4 max-w-md hover-lift`}
           >
             <div className="flex items-start space-x-3">
               <div className="w-8 h-8 bg-red-500 flex items-center justify-center flex-shrink-0">
@@ -821,7 +1080,9 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={() => setError("")}
-                className={`${isDarkMode ? "text-gray-300 hover:text-white" : "text-slate-600 hover:text-slate-800"} transition-colors`}
+                className={`${
+                  isDarkMode ? "text-gray-300 hover:text-white" : "text-slate-600 hover:text-slate-800"
+                } transition-colors`}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path
@@ -840,3 +1101,4 @@ const Dashboard = () => {
 }
 
 export default Dashboard
+
