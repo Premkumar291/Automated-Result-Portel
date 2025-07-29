@@ -1,4 +1,3 @@
-// External dependencies
 import { Users, BookOpen, TrendingUp, Award, ArrowLeft, Zap, RefreshCw, UserRound, BookText, PercentSquare } from "lucide-react"
 import { useEffect, useState, Fragment } from "react"
 import { useSearchParams, useNavigate, Link } from "react-router-dom"
@@ -6,7 +5,7 @@ import { toast } from "react-hot-toast"
 
 
 // Internal dependencies
-import { analyzePDFWithPdfCo } from "../../api/analyzePdfCo"
+import { analyzePDFWithPdfCo } from "@/api/analyzePdfCo"
 import StudentSelectionModal from './StudentSelectionModal';
 
 

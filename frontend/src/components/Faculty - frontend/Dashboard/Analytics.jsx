@@ -3,7 +3,6 @@ import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
 import { motion } from "framer-motion";
 import { Bar, Pie } from "react-chartjs-2";
-import backgroundImage from "../../assets/background1.jpg";
 import {
   Chart as ChartJS,
   CategoryScale,

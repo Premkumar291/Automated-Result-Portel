@@ -2,7 +2,6 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
 import { motion } from "framer-motion";
-import backgroundImage from "../../assets/background1.jpg";
 
 const StudentList = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
@@ -36,7 +35,7 @@ const StudentList = () => {
     <div
       className="flex min-h-screen font-[Poppins] text-[#2e1065] overflow-x-hidden"
       style={{
-        backgroundImage: `url(${backgroundImage})`,
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
         backgroundAttachment: "fixed",

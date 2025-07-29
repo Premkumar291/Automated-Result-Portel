@@ -1,9 +1,10 @@
 "use client"
+
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import React, { useRef, useState, useEffect } from "react"
 
-export const BackgroundBeamsWithCollision = ({ children, className }) => {
+const BackgroundBeamsWithCollision = ({ children, className }) => {
   const containerRef = useRef(null)
   const parentRef = useRef(null)
 
@@ -225,3 +226,5 @@ const Explosion = ({ ...props }) => {
     </div>
   )
 }
+
+export default BackgroundBeamsWithCollision;

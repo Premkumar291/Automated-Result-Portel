@@ -3,11 +3,11 @@
 // Auth Components
 export * from './auth';
 
-// Dashboard Components  
-export * from './Dashboard';
+// Dashboard Components  from faculty
+export * from './Faculty - frontend/Dashboard';
 
-// Analysis Components
-export * from './Analysis';
+// Analysis Components from faculty
+export * from './Faculty - frontend/Analysis';
 
 // Other Components
 export { default as PageNotFound } from './pagenotfound/page-not-found';

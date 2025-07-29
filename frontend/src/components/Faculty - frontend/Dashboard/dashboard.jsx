@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { logout, checkAuth } from "../../api/auth"
+import { logout, checkAuth } from "@/api/auth"
 import PDFProcessingCard from "./PDFProcessingCard"
 import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight, BarChart3, FileText, LogOut, Bell, Search } from "lucide-react"

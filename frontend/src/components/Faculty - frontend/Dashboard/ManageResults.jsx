@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
+import Sidebar from "./Sidebar";
+import { useState, useRef } from "react";
 import {
   MdMenu,
   MdCloudUpload,
@@ -13,8 +14,7 @@ import {
   MdDownload,
   MdRefresh,
 } from "react-icons/md"
-import * as XLSX from "xlsx"
-import Sidebar from "./sidebar"
+import { read, utils, writeFile } from "xlsx"
 import {
   BarChart,
   Bar,
@@ -52,9 +52,9 @@ const ManageResults = () => {
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target.result)
-        const workbook = XLSX.read(data, { type: "array" })
+        const workbook = read(data, { type: "array" })
         const sheet = workbook.Sheets[workbook.SheetNames[0]]
-        const json = XLSX.utils.sheet_to_json(sheet, { defval: "" })
+        const json = utils.sheet_to_json(sheet, { defval: "" })
         setResults(json)
         setMessage("✅ File parsed successfully!")
       } catch {

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaChevronDown, FaChevronUp, FaEnvelope, FaPhone } from "react-icons/fa";
-import { BackgroundBeamsWithCollision } from "./ui/background-beams-with-collision";
-import { useTheme } from "../../context/ThemeContext";
-import { cn } from "@/lib/utils";
+import BackgroundBeamsWithCollision from "./ui/background-beams-with-collision";
+import { useTheme } from "@/context/ThemeContext";
+import { cn } from "../../../lib/utils";
 import DashboardLayout from "./DashboardLayout";
 
 const HelpSupport = () => {

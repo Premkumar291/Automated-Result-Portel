@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { useTheme } from "../../context/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
 import Sidebar from "./Sidebar";
 import { MdMenu } from "react-icons/md";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 
 const DashboardLayout = ({ children }) => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
