@@ -1,4 +1,3 @@
-"use client"
 
 import Sidebar from "./Sidebar";
 import { useState, useRef } from "react";
