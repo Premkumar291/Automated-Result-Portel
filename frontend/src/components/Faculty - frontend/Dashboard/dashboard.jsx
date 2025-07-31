@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { logout, checkAuth } from "@/api/auth"
@@ -161,7 +162,6 @@ const Dashboard = () => {
         >
           A
         </motion.span>
-
         {/* Animated background particles */}
         <motion.div
           className="absolute inset-0 opacity-30"
@@ -183,7 +183,6 @@ const Dashboard = () => {
   // Logout Confirmation Dialog Component
   const LogoutDialog = () => {
     if (!showLogoutDialog) return null
-
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
         <div
@@ -200,7 +199,6 @@ const Dashboard = () => {
               </p>
             </div>
           </div>
-
           <div className="flex space-x-4">
             <button
               onClick={handleConfirmLogout}
@@ -236,13 +234,12 @@ const Dashboard = () => {
   // Sidebar Navigation Item Component
   const NavItem = ({ item, isActive, onClick }) => {
     const Icon = item.icon
-
     return (
       <div className="relative group">
         <button
           onClick={() => onClick(item.name)}
           className={`
-          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 
+          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
           ${
             isActive
               ? isDarkMode
@@ -269,10 +266,8 @@ const Dashboard = () => {
             }
           `}
           />
-
           {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">{item.name}</span>}
         </button>
-
         {/* Tooltip for collapsed state */}
         {isCollapsed && (
           <div
@@ -377,12 +372,13 @@ const Dashboard = () => {
     setIsMobileOpen(false)
   }
 
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed)
-  }
-
-  const toggleMobile = () => {
-    setIsMobileOpen(!isMobileOpen)
+  // Unified toggle function for both mobile and desktop
+  const handleSidebarToggle = () => {
+    if (window.innerWidth < 1024) {
+      setIsMobileOpen(!isMobileOpen)
+    } else {
+      setIsCollapsed(!isCollapsed)
+    }
   }
 
   if (userLoading) {
@@ -440,7 +436,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <style>{`
+      <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap');
         
         * {
@@ -465,7 +461,7 @@ const Dashboard = () => {
         .dark-navbar {
           background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%);
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          box-shadow: 
+          box-shadow:
             0 4px 20px rgba(0, 0, 0, 0.8),
             0 1px 3px rgba(255, 255, 255, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -491,7 +487,7 @@ const Dashboard = () => {
           background: linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #1a1a1a 100%);
           backdrop-filter: blur(30px) saturate(200%);
           border: 1px solid rgba(255, 255, 255, 0.1);
-          box-shadow: 
+          box-shadow:
             0 20px 60px rgba(0, 0, 0, 0.9),
             0 8px 25px rgba(255, 255, 255, 0.05),
             inset 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -500,7 +496,7 @@ const Dashboard = () => {
         }
         .dark-elevated-card:hover {
           transform: translateY(-4px) scale(1.01);
-          box-shadow: 
+          box-shadow:
             0 30px 80px rgba(0, 0, 0, 0.95),
             0 12px 35px rgba(255, 255, 255, 0.08),
             inset 0 1px 0 rgba(255, 255, 255, 0.15),
@@ -514,14 +510,14 @@ const Dashboard = () => {
           position: relative;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
-          box-shadow: 
-            0 10px 30px rgba(0, 0, 0, 0.08), 
+          box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.08),
             0 4px 12px rgba(0, 0, 0, 0.05);
         }
         .account-card:hover {
           transform: translateY(-4px) scale(1.02);
-          box-shadow: 
-            0 20px 50px rgba(0, 0, 0, 0.1), 
+          box-shadow:
+            0 20px 50px rgba(0, 0, 0, 0.1),
             0 8px 25px rgba(0, 0, 0, 0.08);
         }
         
@@ -532,14 +528,14 @@ const Dashboard = () => {
           position: relative;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
-          box-shadow: 
+          box-shadow:
             0 20px 60px rgba(0, 0, 0, 0.95),
             0 8px 30px rgba(255, 255, 255, 0.05),
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         .dark-account-card:hover {
           transform: translateY(-6px) scale(1.03);
-          box-shadow: 
+          box-shadow:
             0 30px 80px rgba(0, 0, 0, 0.98),
             0 12px 40px rgba(255, 255, 255, 0.08),
             inset 0 1px 0 rgba(255, 255, 255, 0.15);
@@ -712,18 +708,18 @@ const Dashboard = () => {
           color: rgba(255, 255, 255, 0.6);
         }
       `}</style>
-
       <div className={`min-h-screen theme-transition ${isDarkMode ? "dark-bg" : "bg-white"} flex`}>
         {/* Mobile Overlay */}
-        {isMobileOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={toggleMobile} />}
-
+        {isMobileOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={handleSidebarToggle} />
+        )}
         {/* Sidebar */}
         <div
           className={`
     ${isMobileOpen ? "translate-x-0" : isCollapsed ? "-translate-x-full" : "translate-x-0"}
     lg:${isCollapsed ? "-translate-x-full" : "translate-x-0"}
-    fixed top-0 left-0 h-full z-50 
-    ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"} 
+    fixed top-0 left-0 h-full z-50
+    ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"}
     border-r shadow-lg transition-all duration-300 ease-in-out
     ${isCollapsed ? "w-0 lg:w-0" : "w-72"}
   `}
@@ -746,10 +742,9 @@ const Dashboard = () => {
             ) : (
               <AnimatedASymbol />
             )}
-
             {!isCollapsed && (
               <button
-                onClick={toggleCollapse}
+                onClick={handleSidebarToggle}
                 className={`
       p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
     `}
@@ -758,12 +753,13 @@ const Dashboard = () => {
               </button>
             )}
           </div>
-
-          {/* Expand Button for Collapsed State */}
+          {/* Expand Button for Collapsed State (only visible on desktop when collapsed) */}
           {isCollapsed && (
-            <div className="p-2 flex justify-center">
+            <div className="p-2 flex justify-center hidden lg:block">
+              {" "}
+              {/* Only show on desktop */}
               <button
-                onClick={toggleCollapse}
+                onClick={handleSidebarToggle}
                 className={`
       p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
     `}
@@ -772,7 +768,6 @@ const Dashboard = () => {
               </button>
             </div>
           )}
-
           {/* Search Bar */}
           {!isCollapsed && (
             <div className={`p-4 ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b`}>
@@ -794,7 +789,6 @@ const Dashboard = () => {
               </div>
             </div>
           )}
-
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto">
             <div className={`p-3 space-y-1 ${isDarkMode ? "bg-black" : ""}`}>
@@ -802,10 +796,8 @@ const Dashboard = () => {
                 <NavItem key={item.name} item={item} isActive={activeItem === item.name} onClick={handleItemClick} />
               ))}
             </div>
-
             {/* Separator */}
             <div className={`mx-4 my-4 border-t ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}></div>
-
             {/* Logout Button */}
             <div className={`p-3 ${isDarkMode ? "bg-black" : ""}`}>
               <button
@@ -826,7 +818,6 @@ const Dashboard = () => {
               </button>
             </div>
           </div>
-
           {/* Account Information Section */}
           {!isCollapsed && (
             <div className={`${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-t p-4`}>
@@ -847,7 +838,6 @@ const Dashboard = () => {
                   </div>
                   <Bell className={`w-4 h-4 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`} />
                 </div>
-
                 {/* Account Status */}
                 <div className="flex items-center justify-between">
                   <span className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>Status</span>
@@ -862,55 +852,40 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-h-screen">
           {/* Dynamic Navbar - ACADEX name hides when sidebar opens */}
           <header className={`animate-header ${isDarkMode ? "dark-navbar" : "white-navbar"}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-16">
-                {/* Left Section - Sidebar Toggle */}
+                {/* Left Section - Single Unified Sidebar Toggle */}
                 <div className="flex items-center">
-                  {/* Advanced Sidebar Toggle Button */}
+                  {/* Single Unified Sidebar Toggle Button */}
                   <button
-                    onClick={toggleMobile}
-                    className={`lg:hidden p-2 rounded-lg ${
-                      isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
-                    } transition-all duration-300 group mr-3`}
-                  >
-                    <div className="relative w-6 h-6 flex flex-col justify-center items-center">
-                      <span
-                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out ${isMobileOpen ? "rotate-45 translate-y-1.5" : ""}`}
-                      ></span>
-                      <span
-                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isMobileOpen ? "opacity-0" : ""}`}
-                      ></span>
-                      <span
-                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isMobileOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
-                      ></span>
-                    </div>
-                  </button>
-
-                  {/* Desktop Sidebar Toggle Button */}
-                  <button
-                    onClick={toggleCollapse}
-                    className={`hidden lg:flex items-center justify-center p-2 rounded-lg ${
+                    onClick={handleSidebarToggle}
+                    className={`flex items-center justify-center p-3 rounded-lg ${
                       isDarkMode ? "hover:bg-gray-800 text-white" : "hover:bg-gray-100 text-gray-900"
-                    } transition-all duration-300 group mr-4`}
+                    } transition-all duration-200 group mr-4`}
                   >
-                    <div className="relative w-6 h-6 flex flex-col justify-center items-center">
-                      <span
-                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out ${isCollapsed ? "rotate-0" : "rotate-45 translate-y-1.5"}`}
-                      ></span>
-                      <span
-                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isCollapsed ? "opacity-100" : "opacity-0"}`}
-                      ></span>
-                      <span
-                        className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isCollapsed ? "rotate-0" : "-rotate-45 -translate-y-1.5"}`}
-                      ></span>
-                    </div>
+                    {/* Dynamic Icon based on mobile/desktop and collapsed state */}
+                    {window.innerWidth < 1024 ? (
+                      <div className="relative w-6 h-6 flex flex-col justify-center items-center">
+                        <span
+                          className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out ${isMobileOpen ? "rotate-45 translate-y-1.5" : ""}`}
+                        ></span>
+                        <span
+                          className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isMobileOpen ? "opacity-0" : ""}`}
+                        ></span>
+                        <span
+                          className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isMobileOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
+                        ></span>
+                      </div>
+                    ) : isCollapsed ? (
+                      <ChevronRight className="w-6 h-6" />
+                    ) : (
+                      <ChevronLeft className="w-6 h-6" />
+                    )}
                   </button>
-
                   {/* Brand Section - Show ACADEX name only when sidebar is collapsed */}
                   <motion.div
                     initial={false}
@@ -934,7 +909,6 @@ const Dashboard = () => {
                     )}
                   </motion.div>
                 </div>
-
                 {/* Right Section - Controls */}
                 <div className="flex items-center space-x-4">
                   {/* Theme Toggle */}
@@ -960,7 +934,6 @@ const Dashboard = () => {
                       </svg>
                     )}
                   </button>
-
                   {/* User Profile */}
                   <div className="flex items-center space-x-3">
                     <div className="relative">
@@ -986,7 +959,6 @@ const Dashboard = () => {
               </div>
             </div>
           </header>
-
           {/* Main Content with Top Padding for Fixed Navbar */}
           <main className="relative z-10 flex-1">
             {/* Hero Welcome Section with New Font Style - No Background */}
@@ -1015,7 +987,6 @@ const Dashboard = () => {
                 </motion.p>
               </div>
             </div>
-
             <div className="max-w-7xl mx-auto px-8 pb-12">
               {/* PDF Processing Section */}
               <div className="animate-section mb-12">
@@ -1051,10 +1022,8 @@ const Dashboard = () => {
             </div>
           </main>
         </div>
-
         {/* Logout Confirmation Dialog */}
         <LogoutDialog />
-
         {/* Error Notification */}
         {error && (
           <div
@@ -1099,4 +1068,5 @@ const Dashboard = () => {
 }
 
 export default Dashboard
+
 
