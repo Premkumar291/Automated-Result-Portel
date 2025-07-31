@@ -951,7 +951,7 @@ const Dashboard = () => {
                         {user?.name || "User"}
                       </p>
                       <p className={`text-xs mono font-medium ${isDarkMode ? "text-purple-300" : "text-black"}`}>
-                        Administrator
+                        Faculty
                       </p>
                     </div>
                   </div>

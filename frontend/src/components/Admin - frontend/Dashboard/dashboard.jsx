@@ -1,8 +1,9 @@
 "use client"
-
 import { useState, useEffect, useRef } from "react"
+import { useNavigate } from "react-router-dom"
+import { logout, checkAuth } from "@/api/auth"
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, BarChart3, FileText, LogOut, Bell, Sun, Moon } from "lucide-react"
+import { ChevronLeft, ChevronRight, LogOut, Bell, Search, Users, UserPlus } from "lucide-react"
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -11,22 +12,23 @@ const Dashboard = () => {
   const [userLoading, setUserLoading] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(true) // Changed to true - sidebar closed by default
-  const [activeItem, setActiveItem] = useState("Faculty Creation") // Default to first item
+  const [activeItem, setActiveItem] = useState("Analysis")
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const gsapRef = useRef(null)
+  const navigate = useNavigate()
 
   // Sidebar navigation items - Updated with your specific options
   const mainNavItems = [
     {
       name: "Faculty Creation",
-      icon: BarChart3, // You can change this icon if you have a more suitable one
+      icon: Users, // Using Users icon for Faculty Creation
       description: "Create new faculty accounts",
     },
     {
       name: "Add Student",
-      icon: FileText, // You can change this icon if you have a more suitable one
-      description: "Add new student records",
+      icon: UserPlus, // Using UserPlus icon for Add Student
+      description: "Enroll new students",
     },
   ]
 
@@ -177,7 +179,7 @@ const Dashboard = () => {
     )
   }
 
-  // Logout Confirmation Dialog Component (inline)
+  // Logout Confirmation Dialog Component
   const LogoutDialog = () => {
     if (!showLogoutDialog) return null
     return (
@@ -228,7 +230,7 @@ const Dashboard = () => {
     )
   }
 
-  // Sidebar Navigation Item Component (inline)
+  // Sidebar Navigation Item Component
   const NavItem = ({ item, isActive, onClick }) => {
     const Icon = item.icon
     return (
@@ -236,32 +238,32 @@ const Dashboard = () => {
         <button
           onClick={() => onClick(item.name)}
           className={`
-            w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
-            ${
-              isActive
-                ? isDarkMode
-                  ? "bg-gray-900 text-white shadow-sm border border-gray-800"
-                  : "bg-gray-100 text-gray-900 shadow-sm"
-                : isDarkMode
-                  ? "text-gray-300 hover:bg-gray-900 hover:text-white"
-                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            }
-            ${isCollapsed ? "justify-center px-2" : "justify-start"}
-          `}
+          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+          ${
+            isActive
+              ? isDarkMode
+                ? "bg-gray-900 text-white shadow-sm border border-gray-800"
+                : "bg-gray-100 text-gray-900 shadow-sm"
+              : isDarkMode
+                ? "text-gray-300 hover:bg-gray-900 hover:text-white"
+                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+          }
+          ${isCollapsed ? "justify-center px-2" : "justify-start"}
+        `}
         >
           <Icon
             className={`
-              w-4 h-4 transition-colors duration-200 flex-shrink-0
-              ${
-                isActive
-                  ? isDarkMode
-                    ? "text-white"
-                    : "text-gray-700"
-                  : isDarkMode
-                    ? "text-gray-500 group-hover:text-white"
-                    : "text-gray-500 group-hover:text-gray-700"
-              }
-            `}
+            w-4 h-4 transition-colors duration-200 flex-shrink-0
+            ${
+              isActive
+                ? isDarkMode
+                  ? "text-white"
+                  : "text-gray-700"
+                : isDarkMode
+                  ? "text-gray-500 group-hover:text-white"
+                  : "text-gray-500 group-hover:text-gray-700"
+            }
+          `}
           />
           {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">{item.name}</span>}
         </button>
@@ -280,46 +282,69 @@ const Dashboard = () => {
     )
   }
 
-  // Initialize GSAP animations (removed GSAP specific animations, kept structure for potential future use)
+  // Initialize GSAP animations
   useEffect(() => {
     const loadGSAP = async () => {
-      // Removed GSAP script loading and animations to keep it self-contained and minimal
-      // If you want GSAP, you'll need to include it as an external script or npm package.
-      if (!userLoading) {
-        // Placeholder for any non-GSAP animations or effects
+      if (!window.gsap) {
+        const gsapScript = document.createElement("script")
+        gsapScript.src = "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"
+        document.head.appendChild(gsapScript)
+        await new Promise((resolve) => (gsapScript.onload = resolve))
+      }
+      if (window.gsap && !userLoading) {
+        const { gsap } = window
+        gsapRef.current = gsap
+        // Animate main sections
+        gsap.fromTo(
+          ".animate-section",
+          { y: 60, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1.2, stagger: 0.2, ease: "power3.out" },
+        )
+        gsap.fromTo(".animate-header", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" })
+        // Continuous animations
+        gsap.to(".pulse-indicator", {
+          scale: 1.2,
+          opacity: 0.6,
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "power2.inOut",
+        })
+        gsap.to(".float-element", {
+          y: -8,
+          duration: 3,
+          repeat: -1,
+          yoyo: true,
+          ease: "power1.inOut",
+          stagger: 0.5,
+        })
       }
     }
     loadGSAP()
   }, [userLoading])
 
-  // Fetch user data from sessionStorage
+  // Fetch user data
   useEffect(() => {
-    const loadUserData = () => {
-      const storedUserName = sessionStorage.getItem("loggedInUserName")
-      const storedUserEmail = sessionStorage.getItem("loggedInUserEmail") // Assuming email might also be stored
-
-      if (storedUserName) {
-        setUser({ name: storedUserName, email: storedUserEmail || "user@example.com" })
-      } else {
-        // Fallback if no stored user (e.g., direct access without login)
-        setUser({ name: "Guest", email: "guest@example.com" })
+    const fetchUserData = async () => {
+      try {
+        const response = await checkAuth()
+        setUser(response.user)
+      } catch {
+        navigate("/login")
+      } finally {
+        setUserLoading(false)
       }
-      setUserLoading(false)
     }
-    loadUserData()
-  }, [])
+    fetchUserData()
+  }, [navigate])
 
   const handleConfirmLogout = async () => {
     setIsLoading(true)
     setError("")
     try {
-      // Simulate logout API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      sessionStorage.removeItem("loggedInUserName") // Clear stored user name
-      sessionStorage.removeItem("loggedInUserEmail") // Clear stored user email
-      // Redirect to login page
-      window.location.href = "/login" // Direct page navigation
-    } catch (e) {
+      await logout()
+      navigate("/login")
+    } catch {
       setError("Logout failed. Please try again.")
     } finally {
       setIsLoading(false)
@@ -333,7 +358,12 @@ const Dashboard = () => {
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode)
-    // Removed GSAP animation for theme transition
+    if (gsapRef.current) {
+      gsapRef.current.to(".theme-transition", {
+        duration: 0.6,
+        ease: "power2.inOut",
+      })
+    }
   }
 
   const handleItemClick = (itemName) => {
@@ -358,7 +388,7 @@ const Dashboard = () => {
         }`}
       >
         <div className="text-center">
-          <div className={`relative w-24 h-24 mx-auto mb-8`}>
+          <div className="relative w-24 h-24 mx-auto mb-8">
             <div
               className={`absolute inset-0 border-4 ${
                 isDarkMode ? "border-purple-500" : "border-blue-200"
@@ -407,8 +437,6 @@ const Dashboard = () => {
     <>
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap');
-        
-        /* Global styles and font imports */
         * {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
@@ -418,7 +446,6 @@ const Dashboard = () => {
         .theme-transition {
           transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         /* Light Theme Navbar */
         .white-navbar {
           background: #ffffff;
@@ -426,7 +453,6 @@ const Dashboard = () => {
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
           min-height: 64px;
         }
-
         /* Dark Theme Navbar - Next Level Design */
         .dark-navbar {
           background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%);
@@ -438,7 +464,6 @@ const Dashboard = () => {
           backdrop-filter: blur(20px);
           min-height: 64px;
         }
-
         /* Enhanced Card Shadows - Light */
         .elevated-card {
           background: rgba(255, 255, 255, 0.9);
@@ -451,7 +476,6 @@ const Dashboard = () => {
           transform: translateY(-2px);
           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
         }
-
         /* Dark Theme Cards - Massive Innovation */
         .dark-elevated-card {
           background: linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #1a1a1a 100%);
@@ -472,7 +496,6 @@ const Dashboard = () => {
             inset 0 1px 0 rgba(255, 255, 255, 0.15),
             0 0 60px rgba(139, 92, 246, 0.2);
         }
-
         /* Account Card Light Theme - NO GLOW */
         .account-card {
           background: linear-gradient(135deg, #fefcf3 0%, #faf8f1 50%, #f7f5ef 100%);
@@ -490,7 +513,6 @@ const Dashboard = () => {
             0 20px 50px rgba(0, 0, 0, 0.1),
             0 8px 25px rgba(0, 0, 0, 0.08);
         }
-
         /* Account Card Dark Theme - Raw Black NO GLOW */
         .dark-account-card {
           background: linear-gradient(135deg, #000000 0%, #0d0d0d 25%, #1a1a1a 50%, #0d0d0d 75%, #000000 100%);
@@ -510,7 +532,6 @@ const Dashboard = () => {
             0 12px 40px rgba(255, 255, 255, 0.08),
             inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
-
         /* Corner Icons */
         .corner-icon {
           position: absolute;
@@ -523,7 +544,6 @@ const Dashboard = () => {
         .corner-icon.top-right { top: -10px; right: -10px; }
         .corner-icon.bottom-left { bottom: -10px; left: -10px; }
         .corner-icon.bottom-right { bottom: -10px; right: -10px; }
-
         /* Light Theme Corner Icons */
         .light-corner-icon {
           color: rgba(139, 69, 19, 0.5);
@@ -532,7 +552,6 @@ const Dashboard = () => {
           color: rgba(139, 69, 19, 0.7);
           transform: rotate(90deg) scale(1.1);
         }
-
         /* Dark Theme Corner Icons - Normal White */
         .dark-corner-icon {
           color: rgba(255, 255, 255, 0.6);
@@ -541,14 +560,12 @@ const Dashboard = () => {
           color: rgba(255, 255, 255, 0.9);
           transform: rotate(90deg) scale(1.2);
         }
-
         /* Content styling */
         .account-content {
           position: relative;
           z-index: 20;
           transition: all 0.3s ease;
         }
-
         /* Light Theme Content */
         .light-content {
           color: #1f2937;
@@ -571,7 +588,6 @@ const Dashboard = () => {
         .account-card:hover .light-content .accent-border {
           border-left-color: rgba(218, 165, 32, 0.8);
         }
-
         /* Dark Theme Content - Normal White Colors */
         .dark-content {
           color: #ffffff;
@@ -594,7 +610,6 @@ const Dashboard = () => {
         .dark-account-card:hover .dark-content .accent-border {
           border-left-color: rgba(255, 255, 255, 0.9);
         }
-
         .section-divider {
           background: linear-gradient(90deg, transparent, rgba(203, 213, 225, 0.4), transparent);
           height: 1px;
@@ -603,7 +618,6 @@ const Dashboard = () => {
           background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
           height: 1px;
         }
-
         .accent-border {
           border-left: 4px solid rgba(218, 165, 32, 0.6);
           transition: border-left-color 0.3s ease;
@@ -612,25 +626,22 @@ const Dashboard = () => {
           border-left: 4px solid rgba(255, 255, 255, 0.6);
           transition: all 0.3s ease;
         }
-
         .status-dot {
           background: #10b981;
           box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
           animation: statusPulse 2s infinite;
         }
         @keyframes statusPulse {
-          0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+          0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
           70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
           100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
-
         .hover-lift {
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .hover-lift:hover {
           transform: translateY(-2px);
         }
-
         /* Custom ACADEX Logo Styling */
         .acadex-logo {
           font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -658,15 +669,17 @@ const Dashboard = () => {
         .acadex-a1 { color: #6366F1; }
         .acadex-c { color: #EF4444; }
         .acadex-a2 { color: #F59E0B; }
+        }
+        .acadex-a1 { color: #6366F1; }
+        .acadex-c { color: #EF4444; }
+        .acadex-a2 { color: #F59E0B; }
         .acadex-d { color: #8B5CF6; }
         .acadex-e { color: #10B981; }
         .acadex-x { color: #F97316; }
-
         /* Dark Theme Background */
         .dark-bg {
           background: linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #111111 50%, #0a0a0a 75%, #000000 100%);
         }
-
         /* Dark Theme Text Colors */
         .dark-text-primary {
           color: #ffffff;
@@ -686,20 +699,20 @@ const Dashboard = () => {
         {/* Sidebar */}
         <div
           className={`
-            ${isMobileOpen ? "translate-x-0" : isCollapsed ? "-translate-x-full" : "translate-x-0"}
-            lg:${isCollapsed ? "-translate-x-full" : "translate-x-0"}
-            fixed top-0 left-0 h-full z-50
-            ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"}
-            border-r shadow-lg transition-all duration-300 ease-in-out
-            ${isCollapsed ? "w-0 lg:w-0" : "w-72"}
-          `}
+    ${isMobileOpen ? "translate-x-0" : isCollapsed ? "-translate-x-full" : "translate-x-0"}
+    lg:${isCollapsed ? "-translate-x-full" : "translate-x-0"}
+    fixed top-0 left-0 h-full z-50
+    ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"}
+    border-r shadow-lg transition-all duration-300 ease-in-out
+    ${isCollapsed ? "w-0 lg:w-0" : "w-72"}
+  `}
         >
           {/* Sidebar Header */}
           <div
             className={`
-              flex items-center ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b p-4
-              ${isCollapsed ? "justify-center" : "justify-between"}
-            `}
+    flex items-center ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b p-4
+    ${isCollapsed ? "justify-center" : "justify-between"}
+  `}
           >
             {!isCollapsed ? (
               <div className="flex items-center gap-3">
@@ -716,8 +729,8 @@ const Dashboard = () => {
               <button
                 onClick={handleSidebarToggle}
                 className={`
-                  p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
-                `}
+      p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
+    `}
               >
                 <ChevronLeft className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
               </button>
@@ -731,11 +744,32 @@ const Dashboard = () => {
               <button
                 onClick={handleSidebarToggle}
                 className={`
-                  p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
-                `}
+      p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
+    `}
               >
                 <ChevronRight className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
               </button>
+            </div>
+          )}
+          {/* Search Bar */}
+          {!isCollapsed && (
+            <div className={`p-4 ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b`}>
+              <div className="relative">
+                <Search
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                    isDarkMode ? "text-gray-500" : "text-gray-400"
+                  }`}
+                />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className={`w-full pl-10 pr-4 py-2 text-sm ${
+                    isDarkMode
+                      ? "border-gray-700 bg-gray-900 text-white placeholder-gray-500"
+                      : "border-gray-200 bg-white"
+                  } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+              </div>
             </div>
           )}
           {/* Navigation */}
@@ -747,25 +781,27 @@ const Dashboard = () => {
             </div>
             {/* Separator */}
             <div className={`mx-4 my-4 border-t ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}></div>
-            {/* Logout Button */}
-            <div className={`p-3 ${isDarkMode ? "bg-black" : ""}`}>
-              <button
-                onClick={handleLogoutClick}
-                disabled={isLoading}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                  isDarkMode
-                    ? "text-gray-300 hover:bg-gray-900 hover:text-red-300"
-                    : "text-gray-700 hover:bg-red-50 hover:text-red-700"
-                } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
-              >
+          </div>
+          {/* Logout Button (NEW POSITION) */}
+          <div className={`p-3 ${isDarkMode ? "bg-black" : ""}`}>
+            <button
+              onClick={handleLogoutClick}
+              disabled={isLoading}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                isDarkMode
+                  ? "text-gray-300 hover:bg-gray-900 hover:text-red-300"
+                  : "text-gray-700 hover:bg-red-50 hover:text-red-700"
+              } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
+            >
+              {!isCollapsed && (
                 <LogOut
                   className={`w-4 h-4 transition-colors duration-200 flex-shrink-0 ${
                     isDarkMode ? "text-gray-500 hover:text-red-300" : "text-gray-500 hover:text-red-700"
                   }`}
                 />
-                {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">Sign Out</span>}
-              </button>
-            </div>
+              )}
+              {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">Sign Out</span>}
+            </button>
           </div>
           {/* Account Information Section */}
           {!isCollapsed && (
@@ -869,7 +905,19 @@ const Dashboard = () => {
                         : "text-black hover:bg-gray-100 hover:text-gray-700"
                     } transition-all duration-300`}
                   >
-                    {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    {isDarkMode ? (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                          fillRule="evenodd"
+                          d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
                   </button>
                   {/* User Profile */}
                   <div className="flex items-center space-x-3">
@@ -924,12 +972,7 @@ const Dashboard = () => {
                 </motion.p>
               </div>
             </div>
-            <div className="max-w-7xl mx-auto px-8 pb-12">
-              {/* Main content area is now empty as requested */}
-              <div className="flex items-center justify-center h-64 text-2xl font-medium text-gray-400">
-                Your custom content goes here.
-              </div>
-            </div>
+            <div className="max-w-7xl mx-auto px-8 pb-12">{/* PDF Processing Section was here */}</div>
           </main>
         </div>
         {/* Logout Confirmation Dialog */}
@@ -978,4 +1021,5 @@ const Dashboard = () => {
 }
 
 export default Dashboard
+
 
