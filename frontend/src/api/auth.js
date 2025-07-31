@@ -55,6 +55,27 @@ export const verifyEmail = async (code) => {
   }
 };
 
+export const resendVerificationCode = async (email) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/resend-verification-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Resend verification code API error:', error);
+    throw error;
+  }
+};
+
 export const forgotPassword = async (email) => {
   try {
     const response = await fetch(`${API_URL}/auth/forgot-password`, {

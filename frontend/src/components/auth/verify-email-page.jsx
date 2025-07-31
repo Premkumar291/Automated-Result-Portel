@@ -1,7 +1,7 @@
-"use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { verifyEmail } from "../../api/auth"
+import { verifyEmail, checkAuth, resendVerificationCode } from "../../api/auth"
+import toast from "react-hot-toast"
 
 // Icons from reference UI (matching the login/signup style)
 const CodeIcon = () => (
@@ -45,9 +45,48 @@ const VerifyEmail = () => {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const email = location.state?.email
+  const email = location.state?.email || sessionStorage.getItem('verificationEmail')
+
+  // Auto-resend verification code when page loads
+  useEffect(() => {
+    const sendNewCode = async () => {
+      if (email) {
+        try {
+          await resendVerificationCode(email)
+          toast.success('A new verification code has been sent to your email.')
+        } catch (error) {
+          console.error('Failed to send verification code:', error)
+          // Don't show error toast on page load, just log it
+        }
+      }
+    }
+
+    sendNewCode()
+  }, [email])
+
+  // Manual resend function
+  const handleResend = async () => {
+    if (!email) {
+      toast.error('Email not found. Please try logging in again.')
+      navigate('/login')
+      return
+    }
+
+    setResending(true)
+    try {
+      await resendVerificationCode(email)
+      toast.success('A new verification code has been sent to your email.')
+      setError('') // Clear any existing errors
+    } catch (error) {
+      console.error('Resend failed:', error)
+      toast.error(error.message || 'Failed to resend verification code')
+    } finally {
+      setResending(false)
+    }
+  }
 
   // Original handleSubmit logic preserved
   const handleSubmit = async (e) => {
@@ -60,14 +99,40 @@ const VerifyEmail = () => {
       const data = await verifyEmail(code)
       if (data.success) {
         setSuccess("Email verified successfully! Redirecting to dashboard...")
-        setTimeout(() => {
-          navigate("/dashboard")
-        }, 2000)
+        toast.success("Email verified successfully!")
+        
+        // Check user role and redirect accordingly
+        try {
+          const authData = await checkAuth()
+          if (authData.success && authData.user) {
+            const userRole = authData.user.role
+            setTimeout(() => {
+              if (userRole === "admin") {
+                navigate("/admin-dashboard")
+              } else if (userRole === "faculty") {
+                navigate("/faculty-dashboard")
+              } else {
+                navigate("/login") // Fallback
+              }
+            }, 2000)
+          } else {
+            setTimeout(() => navigate("/login"), 2000)
+          }
+        } catch (authError) {
+          console.error("Auth check failed:", authError)
+          setTimeout(() => navigate("/login"), 2000)
+        }
       } else {
+        // Handle expired code case - backend sends new code automatically
+        if (data.codeExpired) {
+          toast.success("New verification code sent to your email!")
+          setCode("") // Clear the old code
+        }
         setError(data.message || "Verification failed")
       }
     } catch (err) {
       setError(err.message || "Network error occurred. Please try again.")
+      toast.error(err.message || "Verification failed")
     } finally {
       setLoading(false)
     }
@@ -658,8 +723,16 @@ const VerifyEmail = () => {
                 <div className="mt-10 text-center">
                   <span className="text-gray-400 text-sm">
                     Didn't receive the code?{" "}
-                    <button className="text-blue-400 font-semibold hover:text-blue-300 transition-colors">
-                      Resend
+                    <button 
+                      onClick={handleResend}
+                      disabled={resending}
+                      className={`font-semibold transition-colors ${
+                        resending 
+                          ? "text-gray-500 cursor-not-allowed" 
+                          : "text-blue-400 hover:text-blue-300"
+                      }`}
+                    >
+                      {resending ? "Sending..." : "Resend"}
                     </button>
                   </span>
                 </div>
@@ -672,4 +745,4 @@ const VerifyEmail = () => {
   )
 }
 
-export default VerifyEmail
+export default VerifyEmail;

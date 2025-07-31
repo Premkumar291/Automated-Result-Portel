@@ -4,6 +4,8 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { connectDb } from './dataBase/connectDb.js';
 import authRoutes from './routes/auth.route.js';
+import adminRoutes from './routes/admin.route.js';
+import protectedRoutes from './routes/protected.route.js';
 import gridFSPdfRoutes from './routes/gridFSPdfSplit.route.js';
 import pdfCoAnalysisRoutes from './routes/pdfCoAnalysis.route.js';
 import { scheduleCleanup } from './utils/cleanupExpiredPDFs.js';
@@ -31,6 +33,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/protected", protectedRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
 app.use("/api/analyze", pdfCoAnalysisRoutes); // Using PDF.co as the primary analyzer
 

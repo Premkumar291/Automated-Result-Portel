@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { login } from "../../api/auth"
+import toast from "react-hot-toast"
 
 // Icons from reference UI
 const MailIcon = () => (
@@ -85,7 +86,7 @@ const Login = () => {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  // Original handleSubmit logic preserved
+  // Updated handleSubmit with role-based redirection
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
@@ -93,13 +94,40 @@ const Login = () => {
 
     try {
       const data = await login(form)
+      
+      // Handle successful login
       if (data.success) {
-        navigate("/dashboard")
-      } else {
+        const { user } = data
+        
+        // Role-based redirection for verified users
+        if (user.role === "admin") {
+          toast.success(`Welcome back, ${user.name}! Redirecting to Admin Dashboard...`)
+          navigate("/admin-dashboard")
+        } else if (user.role === "faculty") {
+          toast.success(`Welcome back, ${user.name}! Redirecting to Faculty Dashboard...`)
+          navigate("/faculty-dashboard")
+        } else {
+          toast.error("Invalid user role")
+          setError("Invalid user role configuration")
+        }
+      } 
+      // Handle unverified user case
+      else if (data.needsVerification && data.user) {
+        toast.error("Please verify your email before logging in")
+        // Store user email for verification page
+        sessionStorage.setItem('verificationEmail', data.user.email)
+        navigate("/verify-email")
+        return
+      }
+      // Handle other login failures
+      else {
         setError(data.message || "Login failed")
+        toast.error(data.message || "Login failed")
       }
     } catch (err) {
+      console.error("Login error:", err)
       setError(err.message || "Network error occurred. Please try again.")
+      toast.error(err.message || "Login failed. Please try again.")
     } finally {
       setIsLoading(false)
     }

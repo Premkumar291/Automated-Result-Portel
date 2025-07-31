@@ -69,12 +69,9 @@ export const signup = async (req, res) => {
 
         
 
-        // JWT authentication and determine redirect based on role
+        // JWT authentication
         try {
-            generateTokenAndSetCookie(user._id, user.role, res);
-
-            
-
+            generateTokenAndSetCookie(newUser._id, newUser.role, res);
         } catch (jwtError) {
             console.error('JWT token generation failed:', jwtError);
             return res.status(500).json({
@@ -91,6 +88,7 @@ export const signup = async (req, res) => {
                 email: newUser.email,
                 name: newUser.name,
                 department: newUser.department,
+                role: newUser.role,
                 isVerified: newUser.isVerified
             }
         });
@@ -117,16 +115,50 @@ export const verifyEmail = async (req, res) => {
             });
         }
 
-        const user = await User.findOne({
+        // First, try to find user with valid (non-expired) token
+        let user = await User.findOne({
             verificationToken: code,
             verificationTokenExpiresAt: { $gt: Date.now() }
         });
 
         if (!user) {
-            console.log('Invalid or expired verification code:', code);
+            // Check if user exists with this code but token is expired
+            const expiredUser = await User.findOne({
+                verificationToken: code
+            });
+
+            if (expiredUser && !expiredUser.isVerified) {
+                console.log('Verification code expired, generating new one for:', expiredUser.email);
+                
+                // Generate new verification code
+                const newVerificationToken = generateVerificationCode();
+                expiredUser.verificationToken = newVerificationToken;
+                expiredUser.verificationTokenExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+                await expiredUser.save();
+
+                // Send new verification email
+                try {
+                    await sendEmail(
+                        expiredUser.email,
+                        "New Verification Code",
+                        `Your previous verification code expired. Your new verification code is: ${newVerificationToken}. It is valid for 10 minutes.`
+                    );
+                    console.log('New verification email sent to:', expiredUser.email);
+                } catch (emailError) {
+                    console.error('Failed to send new verification email:', emailError);
+                }
+
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Verification code expired. A new verification code has been sent to your email.",
+                    codeExpired: true
+                });
+            }
+
+            console.log('Invalid verification code:', code);
             return res.status(400).json({ 
                 success: false, 
-                message: "Invalid or expired verification code" 
+                message: "Invalid verification code" 
             });
         }
 
@@ -150,7 +182,15 @@ export const verifyEmail = async (req, res) => {
 
         res.status(200).json({ 
             success: true, 
-            message: "Email verified successfully" 
+            message: "Email verified successfully",
+            user: {
+                _id: user._id,
+                email: user.email,
+                name: user.name,
+                department: user.department,
+                role: user.role,
+                isVerified: user.isVerified
+            }
         });
 
     } catch (error) {
@@ -193,13 +233,21 @@ export const login = async (req,res) => {
             });
         }
 
-        // Check if user is verified
+        // Check if user is verified - allow login but indicate verification needed
         if (!user.isVerified) {
             console.log('Unverified user attempt to login:', email);
-            return res.status(400).json({ 
+            return res.status(200).json({ 
                 success: false, 
                 message: "Please verify your email before logging in",
-                needsVerification: true
+                needsVerification: true,
+                user: {
+                    _id: user._id,
+                    email: user.email,
+                    name: user.name,
+                    department: user.department,
+                    role: user.role,
+                    isVerified: user.isVerified
+                }
             });
         }
 
@@ -411,6 +459,72 @@ export const resetPassword = async (req, res) => {
 
 };
 
+// Resend verification code when user visits verify email page
+export const resendVerificationCode = async (req, res) => {
+    const { email } = req.body;
+    try {
+        console.log('Resend verification code request:', { email });
+
+        if (!email) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Email is required" 
+            });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            console.log('User not found for resend verification:', email);
+            return res.status(400).json({ 
+                success: false, 
+                message: "User not found" 
+            });
+        }
+
+        if (user.isVerified) {
+            console.log('User already verified:', email);
+            return res.status(400).json({ 
+                success: false, 
+                message: "Email is already verified" 
+            });
+        }
+
+        // Generate new verification code
+        const newVerificationToken = generateVerificationCode();
+        user.verificationToken = newVerificationToken;
+        user.verificationTokenExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+        await user.save();
+
+        // Send verification email
+        try {
+            await sendEmail(
+                user.email,
+                "New Verification Code",
+                `Your new verification code is: ${newVerificationToken}. It is valid for 10 minutes.`
+            );
+            console.log('New verification email sent to:', user.email);
+        } catch (emailError) {
+            console.error('Failed to send verification email:', emailError);
+            return res.status(500).json({ 
+                success: false, 
+                message: "Failed to send verification email" 
+            });
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            message: "New verification code sent to your email." 
+        });
+    } catch (error) {
+        console.error("Error during resend verification:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
 export const checkAuth = async (req, res) => {
     try {
         console.log('checkAuth called, req.userId:', req.userId);
@@ -450,6 +564,7 @@ export const checkAuth = async (req, res) => {
                 email: user.email,
                 name: user.name,
                 department: user.department,
+                role: user.role,
                 isVerified: user.isVerified
             }
         });

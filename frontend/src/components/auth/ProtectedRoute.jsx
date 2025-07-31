@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { checkAuth } from '@/api/auth';
+import { checkAuth } from '../../api/auth';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -45,9 +45,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Redirect to appropriate dashboard based on role
     if (user.role === 'faculty') {
-      return <Navigate to="/faculty/dashboard" replace />;
+      return <Navigate to="/faculty-dashboard" replace />;
     } else if (user.role === 'admin') {
-      return <Navigate to="/admin/dashboard" replace />;
+      return <Navigate to="/admin-dashboard" replace />;
     }
     return <Navigate to="/unauthorized" replace />;
   }

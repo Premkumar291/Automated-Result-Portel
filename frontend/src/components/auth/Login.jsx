@@ -1,7 +1,7 @@
-"use client"
-
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import { login } from "../../api/auth"
+import toast from "react-hot-toast"
 
 // Icons from reference UI
 const MailIcon = () => (
@@ -60,16 +60,52 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
-  // Original handleSubmit logic preserved
-  const handleSubmit = (e) => {
+  // Updated handleSubmit with role-based redirection
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email || !password) {
       setError("All fields are required")
       return
     }
-    console.log("Login Details:", { email, password })
-    setError("")
-    navigate("/manage-results") // ✅ Redirect after login
+
+    try {
+      setError("")
+      const response = await login({ email, password })
+      
+      // Handle successful login
+      if (response.success) {
+        const { user } = response
+        
+        // Role-based redirection for verified users
+        if (user.role === "admin") {
+          toast.success(`Welcome back, ${user.name}! Redirecting to Admin Dashboard...`)
+          navigate("/admin-dashboard")
+        } else if (user.role === "faculty") {
+          toast.success(`Welcome back, ${user.name}! Redirecting to Faculty Dashboard...`)
+          navigate("/faculty-dashboard")
+        } else {
+          toast.error("Invalid user role")
+          setError("Invalid user role configuration")
+        }
+      }
+      // Handle unverified user case
+      else if (response.needsVerification && response.user) {
+        toast.error("Please verify your email before logging in")
+        // Store user email for verification page
+        sessionStorage.setItem('verificationEmail', response.user.email)
+        navigate("/verify-email")
+        return
+      }
+      // Handle other login failures
+      else {
+        setError(response.message || "Login failed")
+        toast.error(response.message || "Login failed")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      setError(error.message || "Login failed. Please try again.")
+      toast.error(error.message || "Login failed. Please try again.")
+    }
   }
 
   const togglePasswordVisibility = () => {
