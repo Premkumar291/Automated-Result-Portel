@@ -24,6 +24,45 @@ The main server file (`server.js`) sets up an Express application with the follo
 - In-memory session storage (recommended to use Redis in production)
 - Scheduled cleanup for expired PDFs every 30 minutes
 
+## Role-Based Authentication
+
+The application implements a role-based access control (RBAC) system with two main roles:
+
+### User Roles
+- **Faculty**: Default role for teaching staff
+- **Admin**: Administrative role with extended privileges
+
+### Authentication Features
+- Role validation during signup and login
+- Role-based route protection
+- Separate dashboards for faculty and admin users
+- Comprehensive error handling and logging
+
+### Authentication Middleware
+
+Three levels of authentication middleware are provided:
+
+1. **verifyToken**: Basic authentication check
+   - Validates JWT token
+   - Extracts user information and role
+   - Required for all protected routes
+
+2. **verifyAdmin**: Admin-only route protection
+   - Requires valid JWT token
+   - Checks for admin role
+   - Guards admin-specific functionalities
+
+3. **verifyFaculty**: Faculty route protection
+   - Requires valid JWT token
+   - Checks for faculty role
+   - Guards faculty-specific functionalities
+
+### Error Handling
+- Comprehensive error messages
+- Role-specific access denial messages
+- Detailed console logging for debugging
+- Environment-based error detail exposure
+
 ## API Routes
 
 ### Base Route

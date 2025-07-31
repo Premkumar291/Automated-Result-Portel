@@ -5,9 +5,18 @@ import { sendEmail } from "../utils/sendEmail.js";
 import { User } from '../models/user.model.js';
 
 export const signup = async (req, res) => {
-    const { email, password, name, department } = req.body;
+    const { email, password, name, department, role } = req.body;
     try {
-        console.log('Signup request received:', { email, name, department });
+        console.log('Signup request received:', { email, name, department, role });
+
+        // Validate role if provided
+        if (role && !['faculty', 'admin'].includes(role)) {
+            console.log('Invalid role provided:', role);
+            return res.status(400).json({
+                success: false,
+                message: "Invalid role. Must be either 'faculty' or 'admin'"
+            });
+        }
 
         if (!email || !password || !name || !department) {
             console.log('Missing required fields');
@@ -34,9 +43,12 @@ export const signup = async (req, res) => {
             password: hashedPassword,
             name,
             department,
+            role: role || 'faculty', // Default to faculty if role not provided
             verificationToken,
             verificationTokenExpiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
         });
+        
+        console.log('Creating new user with role:', role || 'faculty');
 
         
         await newUser.save();
@@ -57,9 +69,12 @@ export const signup = async (req, res) => {
 
         
 
-        // JWT authentication
+        // JWT authentication and determine redirect based on role
         try {
-            generateTokenAndSetCookie(newUser._id, res);
+            generateTokenAndSetCookie(user._id, user.role, res);
+
+            
+
         } catch (jwtError) {
             console.error('JWT token generation failed:', jwtError);
             return res.status(500).json({
@@ -180,6 +195,7 @@ export const login = async (req,res) => {
 
         // Check if user is verified
         if (!user.isVerified) {
+            console.log('Unverified user attempt to login:', email);
             return res.status(400).json({ 
                 success: false, 
                 message: "Please verify your email before logging in",
@@ -187,8 +203,19 @@ export const login = async (req,res) => {
             });
         }
 
+        // Validate user role
+        if (!user.role || !['faculty', 'admin'].includes(user.role)) {
+            console.error('Invalid role found for user:', { email, role: user.role });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user role configuration"
+            });
+        }
+
+        console.log('User logged in successfully:', { email, role: user.role });
+
         try {
-            generateTokenAndSetCookie(user._id, res);
+            generateTokenAndSetCookie(user._id, user.role, res);
         } catch (jwtError) {
             console.error('JWT token generation failed:', jwtError);
             return res.status(500).json({
@@ -204,12 +231,13 @@ export const login = async (req,res) => {
 
         res.status(200).json({
             success: true,
-            message: "Login successful",
+            message: "Login successful with user role " + user.role ,
             user: {
                 _id: user._id,
                 email: user.email,
                 name: user.name,
                 department: user.department,
+                role: user.role,
                 isVerified: user.isVerified
             }
         });
