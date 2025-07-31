@@ -76,6 +76,7 @@ Three levels of authentication middleware are provided:
 - **POST /login** - Authenticates a user and returns a JWT token
 - **POST /logout** - Clears authentication cookies
 - **POST /verify-email** - Verifies a user's email with a verification code
+- **POST /resend-verification-code** - Resends a new verification code to user's email
 - **POST /forgot-password** - Sends a password reset token to the user's email
 - **POST /verify-reset-token** - Verifies a password reset token
 - **POST /reset-password** - Resets a user's password with a valid token
@@ -110,12 +111,31 @@ Three levels of authentication middleware are provided:
   8. Returns user data (excluding password)
 
 #### `verifyEmail`
-- **Purpose**: Verifies a user's email address
+- **Purpose**: Verifies a user's email address with enhanced expired code handling
 - **Process**:
   1. Validates verification code
   2. Finds user with matching code that hasn't expired
-  3. Marks user as verified
-  4. Sends confirmation email
+  3. If code is expired, automatically generates a new code and sends email
+  4. Marks user as verified if code is valid
+  5. Sends confirmation email
+  6. Returns user data with role information for proper redirection
+- **Enhanced Features**:
+  - Automatic handling of expired verification codes
+  - Seamless code regeneration and resending
+  - Role-based response for frontend redirection
+
+#### `resendVerificationCode`
+- **Purpose**: Generates and sends a new verification code to user's email
+- **Process**:
+  1. Validates user email
+  2. Checks if user exists and is not already verified
+  3. Generates new verification token with 10-minute expiry
+  4. Sends new verification email
+  5. Returns success confirmation
+- **Use Cases**:
+  - Manual resend requests from users
+  - Automatic resend when user visits verification page
+  - Recovery from expired or lost verification codes
 
 #### `login`
 - **Purpose**: Authenticates a user
@@ -314,14 +334,70 @@ Three levels of authentication middleware are provided:
 - **Purpose**: Schedules periodic cleanup
 - **Parameters**: `intervalMinutes`
 
+## Enhanced Email Verification System
+
+The application features a robust email verification system designed to handle expired codes gracefully and provide seamless user experience.
+
+### Key Features
+
+#### Automatic Code Regeneration
+- **Expired Code Detection**: When a user submits an expired verification code, the system automatically detects it
+- **Seamless Regeneration**: A new verification code is generated and sent immediately
+- **User-Friendly Messaging**: Clear feedback is provided about the code expiry and new code delivery
+
+#### Proactive Code Delivery
+- **Auto-Resend on Page Load**: When users visit the verification page, a fresh code is automatically sent
+- **Manual Resend Option**: Users can manually request new codes via a "Resend" button
+- **Smart Email Management**: Codes are only sent to verified email addresses in the system
+
+#### Enhanced User Experience
+- **Loading States**: Visual feedback during code sending and verification processes
+- **Toast Notifications**: Real-time success and error messages
+- **Input Validation**: Proper form validation and error handling
+- **Role-Based Redirection**: Automatic redirection to appropriate dashboards after verification
+
+### Technical Implementation
+
+#### Backend Features
+- **Dual Token Validation**: Checks both valid and expired tokens
+- **Automatic Email Dispatch**: Integrated email sending for new codes
+- **10-Minute Expiry**: Short expiry window for security
+- **Comprehensive Logging**: Detailed logging for debugging and monitoring
+
+#### Frontend Features
+- **Auto-Resend on Mount**: Fresh codes sent when component loads
+- **Session Storage Integration**: Remembers user email across pages
+- **Responsive UI**: Loading states and disabled buttons during operations
+- **Error Recovery**: Graceful handling of network and validation errors
+
+### Verification Flow
+
+1. **User Registration**: Account created with email verification required
+2. **Initial Code**: Verification code sent during signup
+3. **Page Visit**: Fresh code automatically sent when user visits verification page
+4. **Code Submission**: 
+   - If valid: User verified and redirected to dashboard
+   - If expired: New code generated and sent automatically
+   - If invalid: Error message displayed
+5. **Manual Resend**: Users can request new codes at any time
+6. **Role-Based Redirect**: Verified users redirected to appropriate dashboard (admin/faculty)
+
+### Error Handling
+
+- **Network Failures**: Graceful degradation with retry options
+- **Email Service Issues**: Logged errors with user-friendly messages
+- **Database Timeouts**: Proper error messages and recovery suggestions
+- **Invalid Tokens**: Clear distinction between expired and invalid codes
+
 ## Authentication Flow
 
 1. User registers with email, password, name, and department
-2. Verification email is sent with a token
-3. User verifies email with token
-4. User logs in with email and password
-5. JWT token is generated and set as cookies
-6. Protected routes verify token using middleware
+2. Verification email is sent with a token (10-minute expiry)
+3. User visits verification page → Fresh code automatically sent
+4. User verifies email with token (handles expired codes automatically)
+5. User logs in with email and password
+6. JWT token is generated and set as cookies
+7. Protected routes verify token using middleware
 
 ## PDF Processing Flow
 
