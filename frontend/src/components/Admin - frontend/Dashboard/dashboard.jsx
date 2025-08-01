@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { logout, checkAuth } from "@/api/auth"
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, LogOut, Bell, Search, Users, UserPlus } from "lucide-react"
+import { ChevronLeft, ChevronRight, LogOut, Bell, Users, UserPlus } from "lucide-react"
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -11,23 +11,23 @@ const Dashboard = () => {
   const [user, setUser] = useState(null)
   const [userLoading, setUserLoading] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const [isCollapsed, setIsCollapsed] = useState(true) // Changed to true - sidebar closed by default
-  const [activeItem, setActiveItem] = useState("Analysis")
+  const [isCollapsed, setIsCollapsed] = useState(true) // Sidebar closed by default
+  const [activeItem, setActiveItem] = useState("Faculty Creation")
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const gsapRef = useRef(null)
   const navigate = useNavigate()
 
-  // Sidebar navigation items - Updated with your specific options
+  // Sidebar navigation items
   const mainNavItems = [
     {
       name: "Faculty Creation",
-      icon: Users, // Using Users icon for Faculty Creation
+      icon: Users,
       description: "Create new faculty accounts",
     },
     {
       name: "Add Student",
-      icon: UserPlus, // Using UserPlus icon for Add Student
+      icon: UserPlus,
       description: "Enroll new students",
     },
   ]
@@ -46,7 +46,7 @@ const Dashboard = () => {
             key={index}
             style={{
               display: "inline-block",
-              background: "linear-gradient(90deg, #a855f7 0%, #8b5cf6 50%, #ec4899 100%)", // from-purple-500, via-violet-500, to-pink-500
+              background: "linear-gradient(90deg, #a855f7 0%, #8b5cf6 50%, #ec4899 100%)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               color: "transparent",
@@ -58,7 +58,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{
               duration: 0.5,
-              delay: index * 0.1, // stagger per letter
+              delay: index * 0.1,
               ease: "easeOut",
             }}
             whileHover={{
@@ -161,7 +161,6 @@ const Dashboard = () => {
         >
           A
         </motion.span>
-        {/* Animated background particles */}
         <motion.div
           className="absolute inset-0 opacity-30"
           animate={{
@@ -368,7 +367,10 @@ const Dashboard = () => {
 
   const handleItemClick = (itemName) => {
     setActiveItem(itemName)
-    setIsMobileOpen(false)
+    // Close mobile sidebar when an item is clicked
+    if (window.innerWidth < 1024) {
+      setIsMobileOpen(false)
+    }
   }
 
   // Unified toggle function for both mobile and desktop
@@ -432,6 +434,8 @@ const Dashboard = () => {
       </div>
     )
   }
+
+  const sidebarWidth = "18rem" // Corresponds to w-72
 
   return (
     <>
@@ -669,10 +673,6 @@ const Dashboard = () => {
         .acadex-a1 { color: #6366F1; }
         .acadex-c { color: #EF4444; }
         .acadex-a2 { color: #F59E0B; }
-        }
-        .acadex-a1 { color: #6366F1; }
-        .acadex-c { color: #EF4444; }
-        .acadex-a2 { color: #F59E0B; }
         .acadex-d { color: #8B5CF6; }
         .acadex-e { color: #10B981; }
         .acadex-x { color: #F97316; }
@@ -694,25 +694,30 @@ const Dashboard = () => {
       <div className={`min-h-screen theme-transition ${isDarkMode ? "dark-bg" : "bg-white"} flex`}>
         {/* Mobile Overlay */}
         {isMobileOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={handleSidebarToggle} />
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setIsMobileOpen(false)} />
         )}
+
         {/* Sidebar */}
-        <div
+        <motion.div
+          initial={false}
+          animate={{
+            width: isMobileOpen ? sidebarWidth : isCollapsed ? "0rem" : sidebarWidth,
+            x: isMobileOpen ? "0%" : isCollapsed ? "-100%" : "0%",
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
           className={`
-    ${isMobileOpen ? "translate-x-0" : isCollapsed ? "-translate-x-full" : "translate-x-0"}
-    lg:${isCollapsed ? "-translate-x-full" : "translate-x-0"}
-    fixed top-0 left-0 h-full z-50
-    ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"}
-    border-r shadow-lg transition-all duration-300 ease-in-out
-    ${isCollapsed ? "w-0 lg:w-0" : "w-72"}
-  `}
+            fixed top-0 left-0 h-full z-50
+            ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"}
+            border-r shadow-lg
+            flex flex-col
+          `}
         >
           {/* Sidebar Header */}
           <div
             className={`
-    flex items-center ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b p-4
-    ${isCollapsed ? "justify-center" : "justify-between"}
-  `}
+              flex items-center ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b p-4
+              ${isCollapsed ? "justify-center" : "justify-between"}
+            `}
           >
             {!isCollapsed ? (
               <div className="flex items-center gap-3">
@@ -725,53 +730,11 @@ const Dashboard = () => {
             ) : (
               <AnimatedASymbol />
             )}
-            {!isCollapsed && (
-              <button
-                onClick={handleSidebarToggle}
-                className={`
-      p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
-    `}
-              >
-                <ChevronLeft className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-              </button>
-            )}
+            {/* The collapse button inside the sidebar is removed, as the navbar button handles it */}
           </div>
-          {/* Expand Button for Collapsed State (only visible on desktop when collapsed) */}
-          {isCollapsed && (
-            <div className="p-2 flex justify-center hidden lg:block">
-              {" "}
-              {/* Only show on desktop */}
-              <button
-                onClick={handleSidebarToggle}
-                className={`
-      p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
-    `}
-              >
-                <ChevronRight className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-              </button>
-            </div>
-          )}
-          {/* Search Bar */}
-          {!isCollapsed && (
-            <div className={`p-4 ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b`}>
-              <div className="relative">
-                <Search
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                    isDarkMode ? "text-gray-500" : "text-gray-400"
-                  }`}
-                />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className={`w-full pl-10 pr-4 py-2 text-sm ${
-                    isDarkMode
-                      ? "border-gray-700 bg-gray-900 text-white placeholder-gray-500"
-                      : "border-gray-200 bg-white"
-                  } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                />
-              </div>
-            </div>
-          )}
+
+          {/* The expand button for collapsed state is removed, as the navbar button handles it */}
+
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto">
             <div className={`p-3 space-y-1 ${isDarkMode ? "bg-black" : ""}`}>
@@ -782,7 +745,8 @@ const Dashboard = () => {
             {/* Separator */}
             <div className={`mx-4 my-4 border-t ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}></div>
           </div>
-          {/* Logout Button (NEW POSITION) */}
+
+          {/* Logout Button */}
           <div className={`p-3 ${isDarkMode ? "bg-black" : ""}`}>
             <button
               onClick={handleLogoutClick}
@@ -803,6 +767,7 @@ const Dashboard = () => {
               {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">Sign Out</span>}
             </button>
           </div>
+
           {/* Account Information Section */}
           {!isCollapsed && (
             <div className={`${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-t p-4`}>
@@ -836,9 +801,12 @@ const Dashboard = () => {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
+
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-screen">
+        <div
+          className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${isCollapsed ? "lg:ml-0" : "lg:ml-72"}`}
+        >
           {/* Dynamic Navbar - ACADEX name hides when sidebar opens */}
           <header className={`animate-header ${isDarkMode ? "dark-navbar" : "white-navbar"}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -852,7 +820,7 @@ const Dashboard = () => {
                       isDarkMode ? "hover:bg-gray-800 text-white" : "hover:bg-gray-100 text-gray-900"
                     } transition-all duration-200 group mr-4`}
                   >
-                    {/* Dynamic Icon based on mobile/desktop and collapsed state */}
+                    {/* Hamburger icon for mobile, Chevron for desktop */}
                     {window.innerWidth < 1024 ? (
                       <div className="relative w-6 h-6 flex flex-col justify-center items-center">
                         <span
@@ -1021,5 +989,3 @@ const Dashboard = () => {
 }
 
 export default Dashboard
-
-

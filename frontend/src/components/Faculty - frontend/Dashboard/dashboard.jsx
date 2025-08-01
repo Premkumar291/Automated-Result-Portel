@@ -1,10 +1,13 @@
+
+
+
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { logout, checkAuth } from "@/api/auth"
 import PDFProcessingCard from "./PDFProcessingCard"
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, BarChart3, FileText, LogOut, Bell, Search } from "lucide-react"
+import { ChevronLeft, ChevronRight, BarChart3, FileText, LogOut, Bell } from "lucide-react" // Removed Search icon
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -249,7 +252,7 @@ const Dashboard = () => {
                 ? "text-gray-300 hover:bg-gray-900 hover:text-white"
                 : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
           }
-          ${isCollapsed ? "justify-center px-2" : "justify-start"}
+          ${isMobileOpen || !isCollapsed ? "justify-start" : "justify-center px-2"}
         `}
         >
           <Icon
@@ -266,7 +269,10 @@ const Dashboard = () => {
             }
           `}
           />
-          {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">{item.name}</span>}
+          {/* Only show text when sidebar is expanded */}
+          {(isMobileOpen || !isCollapsed) && (
+            <span className="text-sm font-medium flex-1 text-left truncate">{item.name}</span>
+          )}
         </button>
         {/* Tooltip for collapsed state */}
         {isCollapsed && (
@@ -369,7 +375,10 @@ const Dashboard = () => {
 
   const handleItemClick = (itemName) => {
     setActiveItem(itemName)
-    setIsMobileOpen(false)
+    // Close mobile sidebar when an item is clicked
+    if (window.innerWidth < 1024) {
+      setIsMobileOpen(false)
+    }
   }
 
   // Unified toggle function for both mobile and desktop
@@ -434,11 +443,12 @@ const Dashboard = () => {
     )
   }
 
+  const sidebarWidth = "18rem" // Corresponds to w-72
+
   return (
     <>
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap');
-        
         * {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
@@ -448,7 +458,6 @@ const Dashboard = () => {
         .theme-transition {
           transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
         /* Light Theme Navbar */
         .white-navbar {
           background: #ffffff;
@@ -456,7 +465,6 @@ const Dashboard = () => {
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
           min-height: 64px;
         }
-        
         /* Dark Theme Navbar - Next Level Design */
         .dark-navbar {
           background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%);
@@ -468,7 +476,6 @@ const Dashboard = () => {
           backdrop-filter: blur(20px);
           min-height: 64px;
         }
-        
         /* Enhanced Card Shadows - Light */
         .elevated-card {
           background: rgba(255, 255, 255, 0.9);
@@ -481,7 +488,6 @@ const Dashboard = () => {
           transform: translateY(-2px);
           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
         }
-        
         /* Dark Theme Cards - Massive Innovation */
         .dark-elevated-card {
           background: linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #1a1a1a 100%);
@@ -502,7 +508,6 @@ const Dashboard = () => {
             inset 0 1px 0 rgba(255, 255, 255, 0.15),
             0 0 60px rgba(139, 92, 246, 0.2);
         }
-        
         /* Account Card Light Theme - NO GLOW */
         .account-card {
           background: linear-gradient(135deg, #fefcf3 0%, #faf8f1 50%, #f7f5ef 100%);
@@ -520,7 +525,6 @@ const Dashboard = () => {
             0 20px 50px rgba(0, 0, 0, 0.1),
             0 8px 25px rgba(0, 0, 0, 0.08);
         }
-        
         /* Account Card Dark Theme - Raw Black NO GLOW */
         .dark-account-card {
           background: linear-gradient(135deg, #000000 0%, #0d0d0d 25%, #1a1a1a 50%, #0d0d0d 75%, #000000 100%);
@@ -540,7 +544,6 @@ const Dashboard = () => {
             0 12px 40px rgba(255, 255, 255, 0.08),
             inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
-        
         /* Corner Icons */
         .corner-icon {
           position: absolute;
@@ -553,7 +556,6 @@ const Dashboard = () => {
         .corner-icon.top-right { top: -10px; right: -10px; }
         .corner-icon.bottom-left { bottom: -10px; left: -10px; }
         .corner-icon.bottom-right { bottom: -10px; right: -10px; }
-        
         /* Light Theme Corner Icons */
         .light-corner-icon {
           color: rgba(139, 69, 19, 0.5);
@@ -562,7 +564,6 @@ const Dashboard = () => {
           color: rgba(139, 69, 19, 0.7);
           transform: rotate(90deg) scale(1.1);
         }
-        
         /* Dark Theme Corner Icons - Normal White */
         .dark-corner-icon {
           color: rgba(255, 255, 255, 0.6);
@@ -571,14 +572,12 @@ const Dashboard = () => {
           color: rgba(255, 255, 255, 0.9);
           transform: rotate(90deg) scale(1.2);
         }
-        
         /* Content styling */
         .account-content {
           position: relative;
           z-index: 20;
           transition: all 0.3s ease;
         }
-        
         /* Light Theme Content */
         .light-content {
           color: #1f2937;
@@ -601,7 +600,6 @@ const Dashboard = () => {
         .account-card:hover .light-content .accent-border {
           border-left-color: rgba(218, 165, 32, 0.8);
         }
-        
         /* Dark Theme Content - Normal White Colors */
         .dark-content {
           color: #ffffff;
@@ -624,7 +622,6 @@ const Dashboard = () => {
         .dark-account-card:hover .dark-content .accent-border {
           border-left-color: rgba(255, 255, 255, 0.9);
         }
-        
         .section-divider {
           background: linear-gradient(90deg, transparent, rgba(203, 213, 225, 0.4), transparent);
           height: 1px;
@@ -633,7 +630,6 @@ const Dashboard = () => {
           background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
           height: 1px;
         }
-        
         .accent-border {
           border-left: 4px solid rgba(218, 165, 32, 0.6);
           transition: border-left-color 0.3s ease;
@@ -642,7 +638,6 @@ const Dashboard = () => {
           border-left: 4px solid rgba(255, 255, 255, 0.6);
           transition: all 0.3s ease;
         }
-        
         .status-dot {
           background: #10b981;
           box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
@@ -653,14 +648,12 @@ const Dashboard = () => {
           70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
           100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
-        
         .hover-lift {
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .hover-lift:hover {
           transform: translateY(-2px);
         }
-        
         /* Custom ACADEX Logo Styling */
         .acadex-logo {
           font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -691,12 +684,10 @@ const Dashboard = () => {
         .acadex-d { color: #8B5CF6; }
         .acadex-e { color: #10B981; }
         .acadex-x { color: #F97316; }
-        
         /* Dark Theme Background */
         .dark-bg {
           background: linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #111111 50%, #0a0a0a 75%, #000000 100%);
         }
-        
         /* Dark Theme Text Colors */
         .dark-text-primary {
           color: #ffffff;
@@ -714,81 +705,50 @@ const Dashboard = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={handleSidebarToggle} />
         )}
         {/* Sidebar */}
-        <div
+        <motion.div
+          initial={false}
+          animate={{
+            width: isMobileOpen ? sidebarWidth : isCollapsed ? "0rem" : sidebarWidth,
+            x: isMobileOpen ? "0%" : isCollapsed ? "-100%" : "0%",
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
           className={`
-    ${isMobileOpen ? "translate-x-0" : isCollapsed ? "-translate-x-full" : "translate-x-0"}
-    lg:${isCollapsed ? "-translate-x-full" : "translate-x-0"}
-    fixed top-0 left-0 h-full z-50
-    ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"}
-    border-r shadow-lg transition-all duration-300 ease-in-out
-    ${isCollapsed ? "w-0 lg:w-0" : "w-72"}
-  `}
+            fixed top-0 left-0 h-full z-50
+            ${isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"}
+            border-r shadow-lg
+            flex flex-col
+          `}
         >
           {/* Sidebar Header */}
           <div
             className={`
-    flex items-center ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b p-4
-    ${isCollapsed ? "justify-center" : "justify-between"}
-  `}
+              flex items-center ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b p-4
+              ${isMobileOpen || !isCollapsed ? "justify-between" : "justify-center"}
+            `}
           >
-            {!isCollapsed ? (
+            {isMobileOpen || !isCollapsed ? ( // When sidebar is open (mobile or desktop)
               <div className="flex items-center gap-3">
                 <AnimatedASymbol />
                 <div>
                   <SidebarAcadexLogo />
                   <p className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Pro Plan</p>
                 </div>
-              </div>
+              </div> // When sidebar is collapsed (desktop)
             ) : (
               <AnimatedASymbol />
             )}
-            {!isCollapsed && (
+            {/* Close button for the sidebar, visible when sidebar is open */}
+            {(isMobileOpen || !isCollapsed) && (
               <button
                 onClick={handleSidebarToggle}
                 className={`
-      p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
-    `}
+                  p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
+                `}
               >
                 <ChevronLeft className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
               </button>
             )}
           </div>
-          {/* Expand Button for Collapsed State (only visible on desktop when collapsed) */}
-          {isCollapsed && (
-            <div className="p-2 flex justify-center hidden lg:block">
-              {" "}
-              {/* Only show on desktop */}
-              <button
-                onClick={handleSidebarToggle}
-                className={`
-      p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
-    `}
-              >
-                <ChevronRight className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-              </button>
-            </div>
-          )}
-          {/* Search Bar */}
-          {!isCollapsed && (
-            <div className={`p-4 ${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-b`}>
-              <div className="relative">
-                <Search
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                    isDarkMode ? "text-gray-500" : "text-gray-400"
-                  }`}
-                />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className={`w-full pl-10 pr-4 py-2 text-sm ${
-                    isDarkMode
-                      ? "border-gray-700 bg-gray-900 text-white placeholder-gray-500"
-                      : "border-gray-200 bg-white"
-                  } border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                />
-              </div>
-            </div>
-          )}
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto">
             <div className={`p-3 space-y-1 ${isDarkMode ? "bg-black" : ""}`}>
@@ -798,7 +758,10 @@ const Dashboard = () => {
             </div>
             {/* Separator */}
             <div className={`mx-4 my-4 border-t ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}></div>
-            {/* Logout Button */}
+          </div>
+
+          {/* Logout Button */}
+          {(isMobileOpen || !isCollapsed) && (
             <div className={`p-3 ${isDarkMode ? "bg-black" : ""}`}>
               <button
                 onClick={handleLogoutClick}
@@ -807,19 +770,20 @@ const Dashboard = () => {
                   isDarkMode
                     ? "text-gray-300 hover:bg-gray-900 hover:text-red-300"
                     : "text-gray-700 hover:bg-red-50 hover:text-red-700"
-                } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
+                } justify-start`}
               >
                 <LogOut
                   className={`w-4 h-4 transition-colors duration-200 flex-shrink-0 ${
                     isDarkMode ? "text-gray-500 hover:text-red-300" : "text-gray-500 hover:text-red-700"
                   }`}
                 />
-                {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">Sign Out</span>}
+                <span className="text-sm font-medium flex-1 text-left truncate">Sign Out</span>
               </button>
             </div>
-          </div>
+          )}
+
           {/* Account Information Section */}
-          {!isCollapsed && (
+          {(isMobileOpen || !isCollapsed) && (
             <div className={`${isDarkMode ? "border-gray-800 bg-black" : "border-gray-100"} border-t p-4`}>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -851,7 +815,7 @@ const Dashboard = () => {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-h-screen">
           {/* Dynamic Navbar - ACADEX name hides when sidebar opens */}
@@ -1068,5 +1032,3 @@ const Dashboard = () => {
 }
 
 export default Dashboard
-
-
