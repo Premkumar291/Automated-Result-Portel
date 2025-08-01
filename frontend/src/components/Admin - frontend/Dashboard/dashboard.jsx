@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom" // Import Link
 import { logout, checkAuth } from "@/api/auth"
 import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight, LogOut, Bell, Users, UserPlus } from "lucide-react"
@@ -10,9 +10,21 @@ const Dashboard = () => {
   const [error, setError] = useState("")
   const [user, setUser] = useState(null)
   const [userLoading, setUserLoading] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [isCollapsed, setIsCollapsed] = useState(true) // Sidebar closed by default
-  const [activeItem, setActiveItem] = useState("Faculty Creation")
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Get saved theme from localStorage or default to false (light mode)
+    const savedTheme = localStorage.getItem('darkMode')
+    return savedTheme !== null ? JSON.parse(savedTheme) : false
+  })
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    // Get saved state from localStorage or default to true (collapsed)
+    const savedState = localStorage.getItem('sidebarCollapsed')
+    return savedState !== null ? JSON.parse(savedState) : true
+  })
+  const [activeItem, setActiveItem] = useState(() => {
+    // Get saved active item from localStorage or default to "Faculty Creation"
+    const savedItem = localStorage.getItem('activeItem')
+    return savedItem || "Faculty Creation"
+  })
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const gsapRef = useRef(null)
@@ -24,11 +36,13 @@ const Dashboard = () => {
       name: "Faculty Creation",
       icon: Users,
       description: "Create new faculty accounts",
+      url: "/admin/createFaculty/create-faculty",
     },
     {
       name: "Add Student",
       icon: UserPlus,
       description: "Enroll new students",
+      url: "/admin/createFaculty/add-student", // URL for the Add Student page
     },
   ]
 
@@ -232,26 +246,10 @@ const Dashboard = () => {
   // Sidebar Navigation Item Component
   const NavItem = ({ item, isActive, onClick }) => {
     const Icon = item.icon
-    return (
-      <div className="relative group">
-        <button
-          onClick={() => onClick(item.name)}
+    const content = (
+      <>
+        <Icon
           className={`
-          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
-          ${
-            isActive
-              ? isDarkMode
-                ? "bg-gray-900 text-white shadow-sm border border-gray-800"
-                : "bg-gray-100 text-gray-900 shadow-sm"
-              : isDarkMode
-                ? "text-gray-300 hover:bg-gray-900 hover:text-white"
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          }
-          ${isCollapsed ? "justify-center px-2" : "justify-start"}
-        `}
-        >
-          <Icon
-            className={`
             w-4 h-4 transition-colors duration-200 flex-shrink-0
             ${
               isActive
@@ -263,9 +261,53 @@ const Dashboard = () => {
                   : "text-gray-500 group-hover:text-gray-700"
             }
           `}
-          />
-          {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">{item.name}</span>}
-        </button>
+        />
+        {!isCollapsed && <span className="text-sm font-medium flex-1 text-left truncate">{item.name}</span>}
+      </>
+    )
+
+    return (
+      <div className="relative group">
+        {item.url ? (
+          <Link
+            to={item.url}
+            onClick={() => onClick(item.name)}
+            className={`
+              w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+              ${
+                isActive
+                  ? isDarkMode
+                    ? "bg-gray-900 text-white shadow-sm border border-gray-800"
+                    : "bg-gray-100 text-gray-900 shadow-sm"
+                  : isDarkMode
+                    ? "text-gray-300 hover:bg-gray-900 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }
+              ${isCollapsed ? "justify-center px-2" : "justify-start"}
+            `}
+          >
+            {content}
+          </Link>
+        ) : (
+          <button
+            onClick={() => onClick(item.name)}
+            className={`
+              w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+              ${
+                isActive
+                  ? isDarkMode
+                    ? "bg-gray-900 text-white shadow-sm border border-gray-800"
+                    : "bg-gray-100 text-gray-900 shadow-sm"
+                  : isDarkMode
+                    ? "text-gray-300 hover:bg-gray-900 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }
+              ${isCollapsed ? "justify-center px-2" : "justify-start"}
+            `}
+          >
+            {content}
+          </button>
+        )}
         {/* Tooltip for collapsed state */}
         {isCollapsed && (
           <div
@@ -356,7 +398,11 @@ const Dashboard = () => {
   }
 
   const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
+    const newTheme = !isDarkMode
+    setIsDarkMode(newTheme)
+    // Save to localStorage
+    localStorage.setItem('darkMode', JSON.stringify(newTheme))
+    
     if (gsapRef.current) {
       gsapRef.current.to(".theme-transition", {
         duration: 0.6,
@@ -367,6 +413,9 @@ const Dashboard = () => {
 
   const handleItemClick = (itemName) => {
     setActiveItem(itemName)
+    // Save to localStorage
+    localStorage.setItem('activeItem', itemName)
+    
     // Close mobile sidebar when an item is clicked
     if (window.innerWidth < 1024) {
       setIsMobileOpen(false)
@@ -378,7 +427,10 @@ const Dashboard = () => {
     if (window.innerWidth < 1024) {
       setIsMobileOpen(!isMobileOpen)
     } else {
-      setIsCollapsed(!isCollapsed)
+      const newState = !isCollapsed
+      setIsCollapsed(newState)
+      // Save to localStorage
+      localStorage.setItem('sidebarCollapsed', JSON.stringify(newState))
     }
   }
 
@@ -989,3 +1041,5 @@ const Dashboard = () => {
 }
 
 export default Dashboard
+
+
