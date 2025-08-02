@@ -90,6 +90,21 @@ Three levels of authentication middleware are provided:
 - **GET /:uploadId/:semester** - Downloads a specific semester PDF by upload name and semester
 - **DELETE /:uploadId** - Deletes all semester PDFs for a specific upload
 
+### Student Routes (`/api/student`)
+
+- **GET /departments**: Retrieves all departments with student counts (requires token)
+- **GET /search**: Searches students by name with optional department filtering (requires token)
+  - Params: `name`, optional `department`
+- **GET /department/:department**: Retrieves students in a specified department (requires token)
+  - Params: `department`
+- **GET /register/:registerNumber**: Retrieves a student by register number (requires token)
+  - Params: `registerNumber`
+- **POST /**: Creates a new student (Admin only)
+- **PUT /:id**: Updates a student's information (Admin only)
+  - Params: `id`
+- **DELETE /:id**: Deletes a student (Admin only)
+  - Params: `id`
+
 ### PDF Analysis Routes (`/api/analyze`)
 
 - **GET /upload/:id** - Analyzes a PDF using PDF.co API (supports optional page parameter)
@@ -242,6 +257,61 @@ Three levels of authentication middleware are provided:
   6. Parses CSV to structured JSON
   7. Returns analysis results
 
+### Student Controller (`controller/Admin/student.controller.js`)
+
+#### `createStudent`
+- **Purpose**: Creates a new student record
+- **Process**:
+  1. Validates required fields (email, registerNumber, name, department, etc.)
+  2. Checks for duplicate email, register number, or mobile number
+  3. Creates new student in database
+  4. Returns created student data
+
+#### `getStudentsByDepartment`
+- **Purpose**: Retrieves students filtered by department
+- **Process**:
+  1. Validates department parameter
+  2. Queries students by department with pagination
+  3. Returns student list with pagination info
+  4. Sorted alphabetically by name
+
+#### `searchStudentsByName`
+- **Purpose**: Searches students by name with optional department filtering
+- **Process**:
+  1. Validates search query (minimum 2 characters)
+  2. Performs case-insensitive name search
+  3. Applies department filter if provided
+  4. Returns matching students with pagination
+
+#### `getDepartments`
+- **Purpose**: Retrieves all departments with student counts
+- **Process**:
+  1. Aggregates student data by department
+  2. Counts students in each department
+  3. Returns department list with counts
+
+#### `getStudentByRegNumber`
+- **Purpose**: Finds a student by register number
+- **Process**:
+  1. Searches for student with matching register number
+  2. Returns student data if found
+  3. Case-insensitive search
+
+#### `updateStudent` (Admin only)
+- **Purpose**: Updates student information
+- **Process**:
+  1. Validates student ID
+  2. Updates allowed fields
+  3. Runs validation on updated data
+  4. Returns updated student record
+
+#### `deleteStudent` (Admin only)
+- **Purpose**: Removes a student record
+- **Process**:
+  1. Finds student by ID
+  2. Deletes student from database
+  3. Returns deletion confirmation
+
 ## Middleware
 
 ### Token Verification (`verifyToken.js`)
@@ -268,6 +338,27 @@ Three levels of authentication middleware are provided:
   - `resetPasswordExpiresAt`: Date
   - `verificationToken`: String
   - `verificationTokenExpiresAt`: Date
+
+### Student Model (`student.model.js`)
+
+- **Fields**:
+  - `email`: String (required, unique, lowercase, validated)
+  - `registerNumber`: String (required, unique, uppercase)
+  - `name`: String (required, 2-100 characters)
+  - `department`: String (required, enum: CSE, ECE, EEE, MECH, CIVIL, IT, AIDS)
+  - `joiningYear`: Number (required, min: 2000, max: current year + 1)
+  - `passOutYear`: Number (required, min: 2000)
+  - `dateOfBirth`: Date (required)
+  - `mobileNumber`: String (required, unique, 10-digit validation)
+- **Validation**:
+  - Email format validation
+  - Pass out year must be after joining year
+  - Mobile number must be 10 digits
+  - Register number converted to uppercase
+- **Indexes**:
+  - Index on `department` for department-wise queries
+  - Text index on `name` for search functionality
+  - Unique indexes on `registerNumber`, `email`, `mobileNumber`
 
 ### GridFS Semester PDF Model (`gridFSSemesterPDF.model.js`)
 
