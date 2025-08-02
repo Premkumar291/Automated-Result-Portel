@@ -10,6 +10,8 @@ import {
   ResultAnalysis
 } from "./components";
 import AdminDashboard from "./components/Admin - frontend/Dashboard/dashboard";
+import AddStudentPage from "./components/Admin - frontend/createFaculty/add-student-page";
+import CreateFaculty from "./components/Admin - frontend/createFaculty/create-faculty";
 
 // Layout wrapper component that applies different styles based on route
 function AppLayout({ children }) {
@@ -45,6 +47,9 @@ function AppLayout({ children }) {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/faculty-dashboard" element={<FacultyDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/createFaculty/add-student" element={<AddStudentPage />} />
+          <Route path="/admin/createFaculty/create-faculty" element={<CreateFaculty />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/result-analysis" element={<ResultAnalysis />} />
