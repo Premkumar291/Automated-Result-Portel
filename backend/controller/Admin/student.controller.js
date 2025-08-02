@@ -285,6 +285,3 @@ export const deleteStudent = async (req, res) => {
         });
     }
 };
-
-// Legacy function - kept for backward compatibility
-export const getStudent = async (req, res) => {
