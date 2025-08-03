@@ -1,72 +1,118 @@
 import mongoose from "mongoose";
 
-const studentSchema = new mongoose.Schema({
-    email: { 
-        type: String, 
-        required: [true, 'Email is required'], 
-        unique: true,
-        lowercase: true,
-        match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please provide a valid email']
+const studentSchema = new mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: [true],
+      unique: true,
     },
-    registerNumber: { 
-        type: String, 
-        required: [true, 'Register number is required'], 
-        unique: true,
-        uppercase: true,
-        trim: true
+    rollNumber: {
+      type: String,
+      required: [true],
+      unique: true,
+      uppercase: true,
     },
-    name: { 
-        type: String, 
-        required: [true, 'Name is required'],
-        trim: true,
-        minlength: [2, 'Name must be at least 2 characters long'],
-        maxlength: [100, 'Name cannot exceed 100 characters']
+    typeOfAdmission: {
+      type: String,
+      required: [true],
+      enum: {
+        values: ["COUNSELLING", "MANAGEMENT"],
+      },
+      trim: true,
     },
-    department: { 
-        type: String, 
-        required: [true, 'Department is required'],
-        trim: true,
-        enum: {
-            values: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT', 'AIDS'],
-            message: 'Department must be one of: CSE, ECE, EEE, MECH, CIVIL, IT, AIDS'
-        }
+    modeOfAdmission: {
+      type: String,
+      enum: {
+        values: ["DIRECT"],
+      },
     },
-    joiningYear: { 
-        type: Number, 
-        required: [true, 'Joining year is required'],
-        min: [2000, 'Joining year must be after 2000'],
-        max: [new Date().getFullYear() + 1, 'Joining year cannot be in the future']
+    mediumOfInstruction: {
+      type: String,
+      enum: {
+        values: ["ENGLISH", "TAMIL"],
+      },
     },
-    passOutYear: { 
-        type: Number, 
-        required: [true, 'Pass out year is required'],
-        min: [2000, 'Pass out year must be after 2000']
+    registerNumber: {
+      type: String,
+      required: [true],
+      unique: true,
+      uppercase: true,
+      trim: true,
     },
-    dateOfBirth: { 
-        type: Date, 
-        required: [true, 'Date of birth is required']
+    name: {
+      type: String,
+      required: [true],
+      trim: true,
     },
-    mobileNumber: { 
-        type: String, 
-        required: [true, 'Mobile number is required'], 
-        unique: true,
-        match: [/^[0-9]{10}$/, 'Please provide a valid 10-digit mobile number']
-    }
-}, { 
-    timestamps: true
-});
+    gender: {
+      type: String,
+      enum: {
+        values: ["MALE", "FEMALE", "OTHER"],
+      },
+    },
+    fatherName: {
+      type: String,
+    },
+    motherName: {
+      type: String,
+    },
+    community: {
+      type: String,
+    },
+    aadaarNumber: {
+      type: String,
+      unique: true,
+      required: [true],
+    },
+    department: {
+      type: String,
+      required: [true],
+      trim: true,
+      enum: {
+        values: ["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "AIDS"],
+    
+      },
+    },
+    joiningYear: {
+      type: Number,
+      required: [true],
+      max: [
+        new Date().getFullYear() + 1,
+        "Joining year cannot be in the future",
+      ],
+    },
+    passOutYear: {
+      type: Number,
+      required: [true],
+    },
+    dateOfBirth: {
+      type: Date,
+      required: [true],
+    },
+    mobileNumber: {
+      type: String,
+      required: [true],
+      unique: true,
+      match: [/^[0-9]{10}$/, "Please provide a valid 10-digit mobile number"],
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 // Pre-save middleware to validate pass out year
-studentSchema.pre('save', function(next) {
-    if (this.passOutYear <= this.joiningYear) {
-        return next(new Error('Pass out year must be after joining year'));
-    }
-    next();
+studentSchema.pre("save", function (next) {
+  if (this.passOutYear <= this.joiningYear) {
+    return next(new Error("Pass out year must be after joining year"));
+  }
+  next();
 });
 
 // Indexes for better query performance - focused on department and name search
 studentSchema.index({ department: 1 });
-studentSchema.index({ name: 'text' });
+studentSchema.index({ name: "text" });
 studentSchema.index({ registerNumber: 1 });
 
-export const Student = mongoose.model('Student', studentSchema);
+export const Student = mongoose.model("Student", studentSchema);
