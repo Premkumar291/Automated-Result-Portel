@@ -70,8 +70,7 @@ const studentSchema = new mongoose.Schema(
       required: [true],
       trim: true,
       enum: {
-        values: ["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "AIDS"],
-    
+        values: ["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "others"],
       },
     },
     joiningYear: {

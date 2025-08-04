@@ -10,13 +10,13 @@ import {
   ResultAnalysis
 } from "./components";
 import AdminDashboard from "./components/Admin - frontend/Dashboard/dashboard";
-import AddStudentPage from "./components/Admin - frontend/createFaculty/add-student-page";
-import CreateFaculty from "./components/Admin - frontend/createFaculty/create-faculty";
+import AddStudentPage from "./components/Admin - frontend/creatingPages/add-student-page";
+import CreateFaculty from "./components/Admin - frontend/creatingPages/create-faculty";
 
 // Layout wrapper component that applies different styles based on route
 function AppLayout({ children }) {
   const location = useLocation();
-  const isFullWidthPage = location.pathname === '/faculty-dashboard' || location.pathname === '/admin-dashboard' || location.pathname.includes('/result-analysis');
+  const isFullWidthPage = location.pathname === '/faculty-dashboard' || location.pathname === '/admin-dashboard' || location.pathname.includes('/result-analysis') || location.pathname.includes('/add-student');
   
   if (isFullWidthPage) {
     // Full-width layout for dashboard and result analysis pages

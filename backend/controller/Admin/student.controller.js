@@ -1,27 +1,47 @@
 import { Student } from "../../models/student.model.js";   
 
 // Create a new student
-export const createStudent = async (req, res) => {
+export const createStudent = async (req, res) => { 
     try {
-        const { email, registerNumber, name, department, joiningYear, passOutYear, dateOfBirth, mobileNumber } = req.body;
+        const { 
+            email, 
+            rollNumber, 
+            typeOfAdmission, 
+            modeOfAdmission, 
+            mediumOfInstruction, 
+            registerNumber, 
+            name, 
+            gender, 
+            fatherName, 
+            motherName, 
+            community, 
+            aadaarNumber, 
+            department, 
+            joiningYear, 
+            passOutYear, 
+            dateOfBirth, 
+            mobileNumber 
+        } = req.body;
 
         // Validate required fields
-        if (!email || !registerNumber || !name || !department || !joiningYear || !passOutYear || !dateOfBirth || !mobileNumber) {
+        if (!email || !rollNumber || !registerNumber || !name || !department || !joiningYear || !passOutYear || !dateOfBirth || !mobileNumber || !typeOfAdmission || !aadaarNumber) {
             return res.status(400).json({
                 success: false,
-                message: 'All fields are required'
+                message: 'All required fields must be filled'
             });
         }
 
-        // Check if student already exists with same email or register number
+        // Check if student already exists with same email, register number, roll number, mobile number, or aadhaar
         const existingStudent = await Student.findOne({
-            $or: [{ email }, { registerNumber }, { mobileNumber }]
+            $or: [{ email }, { registerNumber }, { rollNumber }, { mobileNumber }, { aadaarNumber }]
         });
 
         if (existingStudent) {
             let field = 'email';
             if (existingStudent.registerNumber === registerNumber) field = 'register number';
+            if (existingStudent.rollNumber === rollNumber) field = 'roll number';
             if (existingStudent.mobileNumber === mobileNumber) field = 'mobile number';
+            if (existingStudent.aadaarNumber === aadaarNumber) field = 'Aadhaar number';
             
             return res.status(400).json({
                 success: false,
@@ -32,8 +52,17 @@ export const createStudent = async (req, res) => {
         // Create new student
         const student = new Student({
             email,
+            rollNumber,
+            typeOfAdmission,
+            modeOfAdmission: modeOfAdmission || 'DIRECT',
+            mediumOfInstruction,
             registerNumber,
             name,
+            gender,
+            fatherName,
+            motherName,
+            community,
+            aadaarNumber,
             department,
             joiningYear,
             passOutYear,
