@@ -6,9 +6,9 @@ import {
   VerifyEmailPage, 
   ForgotPassword,
   Dashboard as FacultyDashboard,
-  PageNotFound,
-  ResultAnalysis
+  PageNotFound
 } from "./components";
+import { ResultAnalysis } from "./components/Faculty - frontend/Analysis";
 import AdminDashboard from "./components/Admin - frontend/Dashboard/dashboard";
 import AddStudentPage from "./components/Admin - frontend/creatingPages/add-student-page";
 import CreateFaculty from "./components/Admin - frontend/creatingPages/create-faculty";
