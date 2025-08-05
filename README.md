@@ -1,3 +1,68 @@
+# Automated College Result Portal
+
+This project consists of a frontend and backend component designed to manage college results efficiently. Below are the key details for each section.
+
+## Backend
+
+### Technologies Used
+- Node.js
+- Express
+- MongoDB
+- Mongoose (for data modeling)
+- JWT (for authentication)
+
+### Key Features
+- **Authentication & Authorization**: Secure login and role-based access control (Admin and Faculty).
+- **PDF Processing**: Handles PDF uploads, splits them into sections, and stores them in MongoDB.
+- **Enhanced Error Handling**: Comprehensive error messages and logging.
+
+### Structure
+- **Controller**: Contains business logic.
+- **Database**: Connection setup.
+- **Middleware**: Authentication functions.
+- **Models**: Schema definitions.
+- **Routes**: API endpoints.
+- **Utils**: Helper functions.
+
+### Running the Backend
+- Install dependencies: `npm install`
+- Run development server: `npm run dev`
+- Start server: `npm start`
+- Ensure MongoDB is running and `.env` is configured.
+
+## Frontend
+
+### Technologies Used
+- React
+- Vite
+- TailwindCSS
+- React-Router
+
+### Key Features
+- **Responsive Design**: Built with TailwindCSS.
+- **Dynamic Transitions**: Use of Framer Motion for animations.
+- **API Integration**: Interacts with backend services for authentication and PDF analysis.
+
+### Structure
+- **Components**: UI elements.
+- **API**: Axios instances for backend communication.
+- **Styles**: TailwindCSS configuration.
+
+### Running the Frontend
+- Install dependencies: `npm install`
+- Run development server: `npm run dev`
+
+## Project Setup
+1. Clone this repository.
+2. Navigate to backend and frontend directories to install dependencies.
+3. Set up `.env` files in both directories as needed.
+4. Start both backend and frontend servers.
+
+## External API
+Integration with **PDF.co** is set for enhanced PDF analysis.
+
+Refer to the documentation folders for more detailed insights.
+
 # Backend Documentation for Automated Result Portal
 
 This documentation provides a detailed overview of the backend structure, routes, and functions for the Automated Result Portal application.

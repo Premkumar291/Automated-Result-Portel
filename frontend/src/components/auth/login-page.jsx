@@ -613,7 +613,7 @@ const Login = () => {
                     <PersonIcon />
                   </div>
                   <h2 className="text-lg font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
-                    Faculty Login
+                     Login with your Account
                   </h2>
                   <p className="text-gray-400 text-sm font-medium">Secure access to your dashboard</p>
                 </div>
