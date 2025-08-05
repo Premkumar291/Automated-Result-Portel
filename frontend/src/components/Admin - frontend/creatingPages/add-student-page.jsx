@@ -299,6 +299,7 @@ const AddStudentPage = () => {
                     <option value="MECH">Mechanical Engineering</option>
                     <option value="CIVIL">Civil Engineering</option>
                     <option value="IT">Information Technology</option>
+                    <option value="AUTO">Automobile Engineering</option>
                     <option value="others">Others</option>
                   </select>
                 </div>
