@@ -1,4 +1,4 @@
-# Automated College Result Portal
+# Acadex - An Academic Index
 
 This project consists of a frontend and backend component designed to manage college results efficiently. Below are the key details for each section.
 
