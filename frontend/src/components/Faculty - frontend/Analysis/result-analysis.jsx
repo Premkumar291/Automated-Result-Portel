@@ -1,4 +1,4 @@
-import { Users, BookOpen, TrendingUp, Award, ArrowLeft, Zap, RefreshCw, UserRound, BookText, PercentSquare } from "lucide-react"
+import { Users, BookOpen, TrendingUp, Award, ArrowLeft, Zap, RefreshCw, UserRound, BookText, PercentSquare, FileText, Download } from "lucide-react"
 import { useEffect, useState, Fragment } from "react"
 import { useSearchParams, useNavigate, Link } from "react-router-dom"
 import { toast } from "react-hot-toast"
@@ -356,23 +356,51 @@ export default function ResultAnalysis() {
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to Dashboard
         </Link>
-        <button
-          onClick={refreshAnalysis}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center"
-          disabled={pdfCoLoading}
-        >
-          {pdfCoLoading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span className="ml-2">Processing...</span>
-            </>
-          ) : (
-            <>
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Refresh Analysis
-            </>
+        <div className="flex gap-3">
+          {/* Generate Report Button - only show when we have result data */}
+          {resultData && (
+            <button
+              onClick={() => {
+                // Navigate to report generation page with analysis data
+                const reportData = {
+                  semester,
+                  pdfId,
+                  selectedStartIndex,
+                  analysisData: {
+                    ...analysisData,
+                    students: students.slice(selectedStartIndex),
+                    subjectCodes
+                  },
+                  resultData
+                };
+                // Store in sessionStorage to pass data
+                sessionStorage.setItem('reportGenerationData', JSON.stringify(reportData));
+                navigate('/generate-report');
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center"
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              Generate Report
+            </button>
           )}
-        </button>
+          <button
+            onClick={refreshAnalysis}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center"
+            disabled={pdfCoLoading}
+          >
+            {pdfCoLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span className="ml-2">Processing...</span>
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Refresh Analysis
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
 

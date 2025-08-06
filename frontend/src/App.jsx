@@ -9,6 +9,7 @@ import {
   PageNotFound
 } from "./components";
 import { ResultAnalysis } from "./components/Faculty - frontend/Analysis";
+import ReportGenerationPage from "./components/Faculty - frontend/ReportGenerationPage";
 import AdminDashboard from "./components/Admin - frontend/Dashboard/dashboard";
 import AddStudentPage from "./components/Admin - frontend/creatingPages/add-student-page";
 import CreateFaculty from "./components/Admin - frontend/creatingPages/create-faculty";
@@ -16,7 +17,7 @@ import CreateFaculty from "./components/Admin - frontend/creatingPages/create-fa
 // Layout wrapper component that applies different styles based on route
 function AppLayout({ children }) {
   const location = useLocation();
-  const isFullWidthPage = location.pathname === '/faculty-dashboard' || location.pathname === '/admin-dashboard' || location.pathname.includes('/result-analysis') || location.pathname.includes('/add-student');
+  const isFullWidthPage = location.pathname === '/faculty-dashboard' || location.pathname === '/admin-dashboard' || location.pathname.includes('/result-analysis') || location.pathname.includes('/add-student') || location.pathname.includes('/generate-report');
   
   if (isFullWidthPage) {
     // Full-width layout for dashboard and result analysis pages
@@ -53,6 +54,7 @@ function AppLayout({ children }) {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/result-analysis" element={<ResultAnalysis />} />
+          <Route path="/generate-report" element={<ReportGenerationPage />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Toaster

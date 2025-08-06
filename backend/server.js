@@ -8,8 +8,10 @@ import adminRoutes from './routes/admin.route.js';
 import protectedRoutes from './routes/protected.route.js';
 import gridFSPdfRoutes from './routes/gridFSPdfSplit.route.js';
 import pdfCoAnalysisRoutes from './routes/pdfCoAnalysis.route.js';
+import pdfReportRoutes from './routes/pdfReport.route.js';
 import { scheduleCleanup } from './utils/cleanupExpiredPDFs.js';
 import studentRoutes from './routes/student.route.js';
+
 dotenv.config();
 
 const app = express();
@@ -38,6 +40,7 @@ app.use("/api/protected", protectedRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/analyze", pdfCoAnalysisRoutes); // Using PDF.co as the primary analyzer
+app.use("/api/reports", pdfReportRoutes); // PDF report generation and management
 
 // Start server
 app.listen(PORT, async () => {
