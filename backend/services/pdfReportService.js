@@ -10,10 +10,12 @@ import { fileURLToPath } from 'url';
  */
 export class PDFReportService {
   constructor() {
-    this.pageWidth = 612; // A4 width in points
-    this.pageHeight = 792; // A4 height in points
+    this.pageWidth = 612; // A4 width in points (portrait)
+    this.pageHeight = 792; // A4 height in points (portrait)
+    this.landscapeWidth = 792; // A4 width in landscape
+    this.landscapeHeight = 612; // A4 height in landscape
     this.margin = 30;
-    this.contentWidth = this.pageWidth - (2 * this.margin);
+    this.contentWidth = this.pageWidth - (2 * this.margin); // Will be updated for landscape
   }
 
   /**
@@ -1109,11 +1111,16 @@ export class PDFReportService {
   async generateInstitutionalReport(reportData, outputPath) {
     return new Promise((resolve, reject) => {
       try {
+        // Use landscape orientation for institutional reports
         const doc = new PDFKit({
           size: 'A4',
+          layout: 'landscape',
           margin: this.margin,
           bufferPages: true
         });
+        
+        // Update content width for landscape mode
+        this.contentWidth = this.landscapeWidth - (2 * this.margin);
 
         const stream = fs.createWriteStream(outputPath);
         doc.pipe(stream);
@@ -1127,6 +1134,8 @@ export class PDFReportService {
         doc.end();
 
         stream.on('finish', () => {
+          // Restore portrait content width for other reports
+          this.contentWidth = this.pageWidth - (2 * this.margin);
           resolve(outputPath);
         });
 
