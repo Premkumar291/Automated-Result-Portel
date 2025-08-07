@@ -95,6 +95,44 @@ export const pdfReportsApi = {
   },
 
   /**
+   * Generate institutional format report matching the exact image format
+   * @param {Object} reportData - Institutional report generation data
+   * @param {string} reportData.department - Department name
+   * @param {string} reportData.semester - Semester information
+   * @param {string} reportData.academicYear - Academic year
+   * @param {Object} reportData.analysisData - Analysis data (optional)
+   * @param {string} reportData.instituteName - Institute name (optional)
+   * @param {string} reportData.instituteLocation - Institute location (optional)
+   * @returns {Promise} API response with institutional report generation details
+   */
+  async generateInstitutionalReport(reportData) {
+    try {
+      console.log('Generating institutional PDF report with data:', reportData);
+      
+      const response = await reportsApi.post('/generate-institutional', reportData);
+      
+      if (response.data.success) {
+        console.log('Institutional PDF report generated successfully:', response.data);
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'Failed to generate institutional PDF report');
+      }
+    } catch (error) {
+      console.error('Error generating institutional PDF report:', error);
+      
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      } else if (error.response?.status === 400) {
+        throw new Error('Invalid institutional report data. Please check all required fields.');
+      } else {
+        throw new Error('Failed to generate institutional PDF report. Please try again.');
+      }
+    }
+  },
+
+  /**
    * Get list of generated reports
    * @param {Object} options - Query options
    * @param {number} options.page - Page number (default: 1)
@@ -155,6 +193,29 @@ export const pdfReportsApi = {
    */
   getPreviewUrl(reportId) {
     return `${API_BASE_URL}/reports/preview/${reportId}`;
+  },
+
+  /**
+   * Preview a generated PDF report
+   * @param {string} reportId - Report ID
+   * @returns {Promise} Preview blob
+   */
+  async previewReport(reportId) {
+    try {
+      const response = await reportsApi.get(`/preview/${reportId}`, {
+        responseType: 'blob'
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error previewing report:', error);
+      
+      if (error.response?.status === 404) {
+        throw new Error('Report not found or has been deleted.');
+      } else {
+        throw new Error('Failed to preview report. Please try again.');
+      }
+    }
   },
 
   /**

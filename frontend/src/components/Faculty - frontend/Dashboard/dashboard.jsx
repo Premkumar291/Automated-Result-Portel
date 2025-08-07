@@ -983,15 +983,6 @@ const Dashboard = () => {
 {/* PDF Processing Component */}
                   <PDFProcessingCard />
 
-                  {/* Faculty Report Editor Component */}
-                  <div className="mt-8">
-                    <FacultyReportEditor
-                      analysisData={null} // Pass actual analysis data here
-                      semester="6" // Example semester
-                      academicYear="2024-2025" // Example academic year
-                      department="CSE" // Example department
-                    />
-                  </div>
                 </div>
               </div>
             </div>

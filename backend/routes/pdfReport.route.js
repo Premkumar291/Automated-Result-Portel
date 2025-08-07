@@ -15,6 +15,9 @@ router.post('/generate', verifyToken, PDFReportController.generateReport);
 // Generate an enhanced PDF report with more detailed template
 router.post('/generate-enhanced', verifyToken, PDFReportController.generateEnhancedReport);
 
+// Generate institutional format report matching the provided image
+router.post('/generate-institutional', verifyToken, PDFReportController.generateInstitutionalReport);
+
 // Download a generated PDF report
 router.get('/download/:reportId', verifyToken, PDFReportController.downloadReport);
 

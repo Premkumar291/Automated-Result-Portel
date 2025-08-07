@@ -437,12 +437,10 @@ export class PDFReportService {
         const stream = fs.createWriteStream(outputPath);
         doc.pipe(stream);
 
-        // Generate enhanced content
-        this.addEnhancedHeader(doc, reportData);
-        this.addDetailedFacultySection(doc, reportData, includeFormFields);
-        this.addBranchSection(doc, reportData, includeFormFields);
-        this.addEnhancedResultTable(doc, reportData);
-        this.addResultEvaluation(doc, reportData, includeFormFields);
+        // Generate enhanced content matching the provided image
+        this.addImageMatchingHeader(doc, reportData);
+        this.addImageMatchingFacultySection(doc, reportData);
+        this.addImageMatchingResultTable(doc, reportData);
 
         doc.end();
 
@@ -762,6 +760,241 @@ export class PDFReportService {
   }
 
   /**
+   * Header matching the provided image format exactly
+   */
+  addImageMatchingHeader(doc, reportData) {
+    // Add the exact title from the image
+    doc.fontSize(12)
+       .font('Helvetica-Bold')
+       .text('RESULT ANALYSIS REPORT', this.margin, 50, {
+         width: this.contentWidth,
+         align: 'center'
+       });
+
+    doc.moveDown(1.5);
+  }
+
+  /**
+   * Faculty section matching the image layout
+   */
+  addImageMatchingFacultySection(doc, reportData) {
+    const startY = doc.y;
+    const leftBoxWidth = 150;
+    const rightBoxWidth = this.contentWidth - leftBoxWidth - 20;
+    
+    // Left side boxes (as shown in image)
+    doc.rect(this.margin, startY, leftBoxWidth, 120)
+       .stroke();
+    
+    // Add left side labels
+    doc.fontSize(10)
+       .font('Helvetica-Bold')
+       .text('OFFICIAL STAFF CODE', this.margin + 5, startY + 10, {
+         width: leftBoxWidth - 10,
+         align: 'left'
+       });
+    
+    doc.rect(this.margin + 5, startY + 25, leftBoxWidth - 10, 20)
+       .stroke();
+    
+    doc.text('NAME OF STUDENT APPLIED', this.margin + 5, startY + 55, {
+       width: leftBoxWidth - 10,
+       align: 'left'
+     });
+    
+    doc.rect(this.margin + 5, startY + 70, leftBoxWidth - 10, 20)
+       .stroke();
+    
+    doc.text('NON STUDENT APPLIED', this.margin + 5, startY + 100, {
+       width: leftBoxWidth - 10,
+       align: 'left'
+     });
+    
+    // Right side - Main table area
+    const rightStartX = this.margin + leftBoxWidth + 20;
+    
+    // Add the main result table headers
+    doc.fontSize(8)
+       .font('Helvetica-Bold')
+       .text('DEGREE: B.TECH', rightStartX, startY + 10);
+    
+    doc.y = startY + 140;
+  }
+
+  /**
+   * Result table exactly matching the image format
+   */
+  addImageMatchingResultTable(doc, reportData) {
+    const { subjectResults, studentsData } = reportData;
+    const startY = doc.y;
+    
+    // Table dimensions matching the image
+    const tableWidth = this.contentWidth;
+    const headerHeight = 60;
+    const dataRowHeight = 25;
+    
+    // Column structure from the image
+    const slNoWidth = 40;
+    const regNoWidth = 80;
+    const nameWidth = 120;
+    const subjectColWidth = (tableWidth - slNoWidth - regNoWidth - nameWidth) / subjectResults.length;
+    
+    // Main table border
+    doc.rect(this.margin, startY, tableWidth, headerHeight + (dataRowHeight * 6))
+       .stroke();
+    
+    // Header section
+    this.addImageMatchingTableHeader(doc, startY, subjectResults, slNoWidth, regNoWidth, nameWidth, subjectColWidth, headerHeight);
+    
+    // Before Remedial Action section
+    let currentY = startY + headerHeight;
+    this.addRemedialSection(doc, currentY, 'BEFORE REMEDIAL ACTION', subjectResults, slNoWidth, regNoWidth, nameWidth, subjectColWidth, dataRowHeight);
+    
+    // After Remedial Action section  
+    currentY += dataRowHeight * 3;
+    this.addRemedialSection(doc, currentY, 'AFTER REMEDIAL ACTION', subjectResults, slNoWidth, regNoWidth, nameWidth, subjectColWidth, dataRowHeight);
+    
+    doc.y = startY + headerHeight + (dataRowHeight * 6) + 20;
+  }
+
+  /**
+   * Add table header exactly matching the image
+   */
+  addImageMatchingTableHeader(doc, startY, subjectResults, slNoWidth, regNoWidth, nameWidth, subjectColWidth, headerHeight) {
+    // Header background
+    doc.rect(this.margin, startY, this.margin + slNoWidth + regNoWidth + nameWidth + (subjectColWidth * subjectResults.length), headerHeight)
+       .fill('#F0F0F0')
+       .stroke();
+    
+    doc.fill('#000000');
+    
+    // Basic info headers
+    doc.fontSize(8)
+       .font('Helvetica-Bold')
+       .text('Sl', this.margin + 5, startY + 25, { width: slNoWidth - 10, align: 'center' })
+       .text('REG NO', this.margin + slNoWidth + 5, startY + 25, { width: regNoWidth - 10, align: 'center' })
+       .text('NAME OF THE STUDENT', this.margin + slNoWidth + regNoWidth + 5, startY + 25, { width: nameWidth - 10, align: 'center' });
+    
+    // Subject headers with faculty names
+    let currentX = this.margin + slNoWidth + regNoWidth + nameWidth;
+    subjectResults.forEach((subject, index) => {
+      // Subject code
+      doc.fontSize(7)
+         .font('Helvetica-Bold')
+         .text(subject.subjectCode || `CS20${index + 3}`, currentX + 2, startY + 5, {
+           width: subjectColWidth - 4,
+           align: 'center'
+         });
+      
+      // Faculty name (empty for now as requested)
+      doc.fontSize(6)
+         .text(reportData.facultyPerSubject?.[subject.subjectCode] || '', currentX + 2, startY + 15, {
+           width: subjectColWidth - 4,
+           align: 'center'
+         });
+      
+      // Subject name (empty area as requested)
+      doc.fontSize(6)
+         .text('', currentX + 2, startY + 25, {
+           width: subjectColWidth - 4,
+           align: 'center'
+         });
+      
+      // Course code
+      doc.fontSize(6)
+         .text(`${subject.subjectCode || 'COURSE'}`, currentX + 2, startY + 40, {
+           width: subjectColWidth - 4,
+           align: 'center'
+         });
+      
+      currentX += subjectColWidth;
+    });
+    
+    // Draw separators
+    this.drawImageMatchingSeparators(doc, startY, startY + headerHeight, slNoWidth, regNoWidth, nameWidth, subjectColWidth, subjectResults.length);
+  }
+
+  /**
+   * Add remedial action section (before/after)
+   */
+  addRemedialSection(doc, startY, sectionTitle, subjectResults, slNoWidth, regNoWidth, nameWidth, subjectColWidth, rowHeight) {
+    // Section title
+    doc.fontSize(8)
+       .font('Helvetica-Bold')
+       .text(sectionTitle, this.margin + 5, startY + 5);
+    
+    // Data rows
+    const rowLabels = ['TOTAL STUDENT', 'PASS', 'PERCENTAGE OF PASS'];
+    
+    rowLabels.forEach((label, rowIndex) => {
+      const currentY = startY + (rowIndex * rowHeight);
+      
+      // Row background
+      if (rowIndex % 2 === 1) {
+        doc.rect(this.margin, currentY, this.margin + slNoWidth + regNoWidth + nameWidth + (subjectColWidth * subjectResults.length), rowHeight)
+           .fill('#F9FAFB')
+           .stroke();
+        doc.fill('#000000');
+      }
+      
+      // Row label
+      doc.fontSize(7)
+         .font('Helvetica')
+         .text(label, this.margin + slNoWidth + 5, currentY + 8, {
+           width: regNoWidth + nameWidth - 10,
+           align: 'left'
+         });
+      
+      // Subject data
+      let currentX = this.margin + slNoWidth + regNoWidth + nameWidth;
+      subjectResults.forEach((subject) => {
+        let value = '';
+        
+        if (rowIndex === 0) { // Total students
+          value = subject.totalStudents.toString();
+        } else if (rowIndex === 1) { // Pass count
+          value = subject.passedStudents.toString();
+        } else if (rowIndex === 2) { // Pass percentage
+          value = subject.passPercentage.toFixed(1) + '%';
+        }
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .text(value, currentX + 2, currentY + 8, {
+             width: subjectColWidth - 4,
+             align: 'center'
+           });
+        
+        currentX += subjectColWidth;
+      });
+      
+      // Draw separators for this row
+      this.drawImageMatchingSeparators(doc, currentY, currentY + rowHeight, slNoWidth, regNoWidth, nameWidth, subjectColWidth, subjectResults.length);
+    });
+  }
+
+  /**
+   * Draw table separators matching the image
+   */
+  drawImageMatchingSeparators(doc, startY, endY, slNoWidth, regNoWidth, nameWidth, subjectColWidth, numSubjects) {
+    // Vertical separators
+    let x = this.margin + slNoWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+    
+    x += regNoWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+    
+    x += nameWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+    
+    // Subject column separators
+    for (let i = 0; i < numSubjects; i++) {
+      x += subjectColWidth;
+      doc.moveTo(x, startY).lineTo(x, endY).stroke();
+    }
+  }
+
+  /**
    * Add result evaluation section with editable fields
    */
   addResultEvaluation(doc, reportData, includeFormFields) {
@@ -868,6 +1101,475 @@ export class PDFReportService {
     
     doc.text('HOD Signature: ___________________________', this.margin, currentY)
        .text('Date: _______________', this.margin + 300, currentY);
+  }
+
+  /**
+   * Generate institutional report matching the exact format from the provided image
+   */
+  async generateInstitutionalReport(reportData, outputPath) {
+    return new Promise((resolve, reject) => {
+      try {
+        const doc = new PDFKit({
+          size: 'A4',
+          margin: this.margin,
+          bufferPages: true
+        });
+
+        const stream = fs.createWriteStream(outputPath);
+        doc.pipe(stream);
+
+        // Generate the institutional format report
+        this.addInstitutionalHeader(doc, reportData);
+        this.addDegreeAndBranchSection(doc, reportData);
+        this.addInstitutionalMainTable(doc, reportData);
+        this.addSummaryAndSignatures(doc, reportData);
+
+        doc.end();
+
+        stream.on('finish', () => {
+          resolve(outputPath);
+        });
+
+        stream.on('error', (error) => {
+          reject(error);
+        });
+
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  /**
+   * Add institutional header matching the image
+   */
+  addInstitutionalHeader(doc, reportData) {
+    // Main title
+    doc.fontSize(14)
+       .font('Helvetica-Bold')
+       .text('INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY - ERODE - 638 316', this.margin, 30, {
+         width: this.contentWidth,
+         align: 'center'
+       });
+
+    // Subtitle
+    doc.fontSize(12)
+       .font('Helvetica-Bold')
+       .text('RESULT ANALYSIS NOV/DEC 2024', this.margin, 50, {
+         width: this.contentWidth,
+         align: 'center'
+       });
+
+    doc.moveDown(1);
+  }
+
+  /**
+   * Add degree and branch section
+   */
+  addDegreeAndBranchSection(doc, reportData) {
+    const startY = doc.y;
+    
+    // Degree section
+    doc.fontSize(10)
+       .font('Helvetica-Bold')
+       .text('DEGREE: B.TECH', this.margin, startY);
+    
+    // Branch section - use actual department data
+    doc.text(`BRANCH: ${reportData.department || 'IT'}`, this.margin + 200, startY);
+    
+    // Semester section - use actual semester data
+    doc.text(`SEM: ${reportData.semester || 'I'}`, this.margin + 400, startY);
+
+    doc.moveDown(1.5);
+  }
+
+  /**
+   * Add the main institutional table matching the exact format
+   */
+  addInstitutionalMainTable(doc, reportData) {
+    const { subjectResults } = reportData;
+    const startY = doc.y;
+    const tableWidth = this.contentWidth;
+    const rowHeight = 25;
+    const headerRowHeight = 50;
+
+    // Column widths
+    const slNoWidth = 30;
+    const courseCodeWidth = 60;
+    const subjectNameWidth = 100;
+    const staffNameWidth = 100;
+    const deptWidth = 80;
+    const appearedWidth = 60;
+    const passedBeforeWidth = 60;
+    const passedAfterWidth = 60;
+    const passPercentBeforeWidth = 70;
+    const passPercentAfterWidth = 70;
+
+    // Table border
+    doc.rect(this.margin, startY, tableWidth, headerRowHeight + (rowHeight * 8))
+       .stroke();
+
+    // Header section
+    this.addInstitutionalTableHeader(doc, startY, headerRowHeight, {
+      slNoWidth, courseCodeWidth, subjectNameWidth, staffNameWidth, 
+      deptWidth, appearedWidth, passedBeforeWidth, passedAfterWidth, 
+      passPercentBeforeWidth, passPercentAfterWidth
+    });
+
+    // Data rows with actual subject data
+    let currentY = startY + headerRowHeight;
+    const maxRows = Math.max(subjectResults.length, 8); // Ensure at least 8 rows
+    
+    for (let i = 0; i < maxRows; i++) {
+      // Row background alternating
+      if (i % 2 === 1) {
+        doc.rect(this.margin, currentY, tableWidth, rowHeight)
+           .fill('#F9FAFB')
+           .stroke();
+        doc.fill('#000000');
+      } else {
+        doc.rect(this.margin, currentY, tableWidth, rowHeight)
+           .stroke();
+      }
+
+      // Row number
+      doc.fontSize(8)
+         .font('Helvetica')
+         .text((i + 1).toString(), this.margin + 2, currentY + 8, {
+           width: slNoWidth - 4,
+           align: 'center'
+         });
+
+      // Fill with actual data if available
+      if (i < subjectResults.length) {
+        const subject = subjectResults[i];
+        const facultyName = reportData.facultyAssignments?.[subject.subjectCode] || '';
+        
+        let currentX = this.margin + slNoWidth;
+        
+        // Course Code
+        doc.text(subject.subjectCode || '', currentX + 2, currentY + 8, {
+          width: courseCodeWidth - 4,
+          align: 'center'
+        });
+        currentX += courseCodeWidth;
+        
+        // Subject Name
+        doc.text(subject.subjectName || subject.subjectCode || '', currentX + 2, currentY + 8, {
+          width: subjectNameWidth - 4,
+          align: 'center'
+        });
+        currentX += subjectNameWidth;
+        
+        // Staff Name
+        doc.text(facultyName, currentX + 2, currentY + 8, {
+          width: staffNameWidth - 4,
+          align: 'center'
+        });
+        currentX += staffNameWidth;
+        
+        // Department
+        doc.text(reportData.department || '', currentX + 2, currentY + 8, {
+          width: deptWidth - 4,
+          align: 'center'
+        });
+        currentX += deptWidth;
+        
+        // Appeared
+        doc.text(subject.totalStudents?.toString() || '', currentX + 2, currentY + 8, {
+          width: appearedWidth - 4,
+          align: 'center'
+        });
+        currentX += appearedWidth;
+        
+        // Passed Before Revaluation
+        doc.text(subject.passedStudents?.toString() || '', currentX + 2, currentY + 8, {
+          width: passedBeforeWidth - 4,
+          align: 'center'
+        });
+        currentX += passedBeforeWidth;
+        
+        // Passed After Revaluation (same as before for now)
+        doc.text(subject.passedStudents?.toString() || '', currentX + 2, currentY + 8, {
+          width: passedAfterWidth - 4,
+          align: 'center'
+        });
+        currentX += passedAfterWidth;
+        
+        // Percentage Before Revaluation
+        doc.text(subject.passPercentage ? subject.passPercentage.toFixed(1) + '%' : '', currentX + 2, currentY + 8, {
+          width: passPercentBeforeWidth - 4,
+          align: 'center'
+        });
+        currentX += passPercentBeforeWidth;
+        
+        // Percentage After Revaluation (same as before for now)
+        doc.text(subject.passPercentage ? subject.passPercentage.toFixed(1) + '%' : '', currentX + 2, currentY + 8, {
+          width: passPercentAfterWidth - 4,
+          align: 'center'
+        });
+      }
+
+      // Draw column separators
+      this.drawInstitutionalColumnSeparators(doc, currentY, currentY + rowHeight, {
+        slNoWidth, courseCodeWidth, subjectNameWidth, staffNameWidth,
+        deptWidth, appearedWidth, passedBeforeWidth, passedAfterWidth,
+        passPercentBeforeWidth, passPercentAfterWidth
+      });
+
+      currentY += rowHeight;
+    }
+
+    doc.y = currentY + 20;
+  }
+
+  /**
+   * Add institutional table header
+   */
+  addInstitutionalTableHeader(doc, startY, headerHeight, columnWidths) {
+    const {
+      slNoWidth, courseCodeWidth, subjectNameWidth, staffNameWidth,
+      deptWidth, appearedWidth, passedBeforeWidth, passedAfterWidth,
+      passPercentBeforeWidth, passPercentAfterWidth
+    } = columnWidths;
+
+    // Header background
+    doc.rect(this.margin, startY, this.contentWidth, headerHeight)
+       .fill('#E5E7EB')
+       .stroke();
+    
+    doc.fill('#000000');
+
+    // Header text
+    doc.fontSize(8)
+       .font('Helvetica-Bold');
+
+    let currentX = this.margin;
+
+    // S.No
+    doc.text('S.NO', currentX + 2, startY + 20, {
+      width: slNoWidth - 4,
+      align: 'center'
+    });
+    currentX += slNoWidth;
+
+    // Course Code
+    doc.text('COURSE\nCODE', currentX + 2, startY + 15, {
+      width: courseCodeWidth - 4,
+      align: 'center'
+    });
+    currentX += courseCodeWidth;
+
+    // Subject Name
+    doc.text('NAME OF THE\nSUBJECT', currentX + 2, startY + 15, {
+      width: subjectNameWidth - 4,
+      align: 'center'
+    });
+    currentX += subjectNameWidth;
+
+    // Staff Name
+    doc.text('NAME OF THE STAFF\nHANDLED THE SUBJECT', currentX + 2, startY + 10, {
+      width: staffNameWidth - 4,
+      align: 'center'
+    });
+    currentX += staffNameWidth;
+
+    // Department
+    doc.text('DEPT M/\nTR OF\nSTAFF', currentX + 2, startY + 10, {
+      width: deptWidth - 4,
+      align: 'center'
+    });
+    currentX += deptWidth;
+
+    // Appeared
+    doc.text('APPEARED', currentX + 2, startY + 20, {
+      width: appearedWidth - 4,
+      align: 'center'
+    });
+    currentX += appearedWidth;
+
+    // Passed Before
+    doc.text('PASSED\nBEFORE\nREVALU-\nATION', currentX + 2, startY + 5, {
+      width: passedBeforeWidth - 4,
+      align: 'center'
+    });
+    currentX += passedBeforeWidth;
+
+    // Passed After
+    doc.text('PASSED\nAFTER\nREVALU-\nATION', currentX + 2, startY + 5, {
+      width: passedAfterWidth - 4,
+      align: 'center'
+    });
+    currentX += passedAfterWidth;
+
+    // Percentage Before
+    doc.text('PERCENTAGE\nOF PASS\nBEFORE\nREVALUATIO\nN', currentX + 2, startY + 5, {
+      width: passPercentBeforeWidth - 4,
+      align: 'center'
+    });
+    currentX += passPercentBeforeWidth;
+
+    // Percentage After
+    doc.text('PERCENTAGE\nOF PASS\nAFTER\nREVALUATION', currentX + 2, startY + 10, {
+      width: passPercentAfterWidth - 4,
+      align: 'center'
+    });
+
+    // Draw header column separators
+    this.drawInstitutionalColumnSeparators(doc, startY, startY + headerHeight, columnWidths);
+  }
+
+  /**
+   * Draw column separators for institutional table
+   */
+  drawInstitutionalColumnSeparators(doc, startY, endY, columnWidths) {
+    const {
+      slNoWidth, courseCodeWidth, subjectNameWidth, staffNameWidth,
+      deptWidth, appearedWidth, passedBeforeWidth, passedAfterWidth,
+      passPercentBeforeWidth, passPercentAfterWidth
+    } = columnWidths;
+
+    let x = this.margin + slNoWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+
+    x += courseCodeWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+
+    x += subjectNameWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+
+    x += staffNameWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+
+    x += deptWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+
+    x += appearedWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+
+    x += passedBeforeWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+
+    x += passedAfterWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+
+    x += passPercentBeforeWidth;
+    doc.moveTo(x, startY).lineTo(x, endY).stroke();
+  }
+
+  /**
+   * Add summary statistics and signature sections
+   */
+  addSummaryAndSignatures(doc, reportData) {
+    const startY = doc.y;
+    const summaryHeight = 60;
+
+    // Summary section box
+    doc.rect(this.margin, startY, this.contentWidth / 3, summaryHeight)
+       .stroke();
+
+    doc.fontSize(9)
+       .font('Helvetica-Bold')
+       .text('NO.OF STUDENTS APPEARED', this.margin + 5, startY + 5, {
+         width: (this.contentWidth / 3) - 10,
+         align: 'left'
+       });
+
+    // Box with actual data
+    doc.rect(this.margin + 5, startY + 20, (this.contentWidth / 3) - 15, 15)
+       .stroke();
+    
+    // Fill with actual total students
+    if (reportData.totalStudents > 0) {
+      doc.fontSize(10)
+         .font('Helvetica')
+         .text(reportData.totalStudents.toString(), this.margin + 10, startY + 26, {
+           width: (this.contentWidth / 3) - 25,
+           align: 'center'
+         });
+    }
+
+    doc.fontSize(9)
+       .font('Helvetica-Bold')
+       .text('NO.OF STUDENTS PASSED', this.margin + 5, startY + 40, {
+         width: (this.contentWidth / 3) - 10,
+         align: 'left'
+       });
+
+    // Box with actual data
+    doc.rect(this.margin + 5, startY + 50, (this.contentWidth / 3) - 15, 8)
+       .stroke();
+    
+    // Fill with calculated passed students count
+    if (reportData.totalStudents > 0) {
+      const overallPassed = Math.round((reportData.totalStudents * reportData.overallPassPercentage) / 100);
+      doc.fontSize(8)
+         .font('Helvetica')
+         .text(overallPassed.toString(), this.margin + 10, startY + 52, {
+           width: (this.contentWidth / 3) - 25,
+           align: 'center'
+         });
+    }
+
+    // Overall pass percentage label - positioned lower
+    const overallPassY = startY + summaryHeight + 10;
+    doc.fontSize(9)
+       .font('Helvetica-Bold')
+       .text('OVERALL PASS PERCENTAGE', this.margin, overallPassY);
+
+    doc.rect(this.margin + 5, overallPassY + 15, (this.contentWidth / 3) - 15, 15)
+       .stroke();
+    
+    // Fill with actual pass percentage
+    if (reportData.overallPassPercentage >= 0) {
+      doc.fontSize(10)
+         .font('Helvetica')
+         .text(`${reportData.overallPassPercentage.toFixed(1)}%`, this.margin + 10, overallPassY + 21, {
+           width: (this.contentWidth / 3) - 25,
+           align: 'center'
+         });
+    }
+
+    // Signature sections
+    const signaturesY = overallPassY + 50;
+    const signatureWidth = this.contentWidth / 3;
+
+    // Class Advisor
+    doc.fontSize(10)
+       .font('Helvetica-Bold')
+       .text('CLASS ADVISOR', this.margin, signaturesY, {
+         width: signatureWidth,
+         align: 'center'
+       });
+
+    // Head of Department
+    doc.text('HEAD OF THE DEPARTMENT', this.margin + signatureWidth, signaturesY, {
+      width: signatureWidth,
+      align: 'center'
+    });
+
+    // Principal
+    doc.text('PRINCIPAL', this.margin + (2 * signatureWidth), signaturesY, {
+      width: signatureWidth,
+      align: 'center'
+    });
+
+    // Signature lines
+    const signatureLineY = signaturesY + 60;
+    doc.fontSize(8)
+       .font('Helvetica')
+       .text('_________________', this.margin + 20, signatureLineY, {
+         width: signatureWidth - 40,
+         align: 'center'
+       })
+       .text('_________________', this.margin + signatureWidth + 20, signatureLineY, {
+         width: signatureWidth - 40,
+         align: 'center'
+       })
+       .text('_________________', this.margin + (2 * signatureWidth) + 20, signatureLineY, {
+         width: signatureWidth - 40,
+         align: 'center'
+       });
   }
 }
 

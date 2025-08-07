@@ -81,6 +81,19 @@ const reportTemplateSchema = new mongoose.Schema(
       name: String,
       grades: mongoose.Schema.Types.Mixed,
     }],
+    
+    // Faculty assignments per subject (for institutional reports)
+    facultyAssignments: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    
+    // Report type
+    reportType: {
+      type: String,
+      enum: ["standard", "enhanced", "institutional"],
+      default: "standard",
+    },
   },
   {
     timestamps: true,

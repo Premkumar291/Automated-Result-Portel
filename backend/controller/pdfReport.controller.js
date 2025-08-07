@@ -257,7 +257,8 @@ export class PDFReportController {
         analysisData,
         facultyId,
         subjectCode,
-        subjectName
+        subjectName,
+        facultyPerSubject
       } = req.body;
 
       // Validate required fields
@@ -294,6 +295,7 @@ export class PDFReportController {
         studentsData: processedData.studentsData,
         subjectCode: subjectCode || '',
         subjectName: subjectName || '',
+        facultyPerSubject: facultyPerSubject || {},
         reportType: 'enhanced'
       };
 
@@ -345,6 +347,157 @@ export class PDFReportController {
         success: false,
         message: 'Failed to generate enhanced PDF report',
         error: error.message
+      });
+    }
+  }
+
+  /**
+   * Generate institutional format report matching the exact image format
+   */
+  static async generateInstitutionalReport(req, res) {
+    try {
+      const { 
+        department, 
+        semester, 
+        academicYear,
+        analysisData,
+        facultyAssignments,
+        facultyId,
+        instituteName,
+        instituteLocation,
+        reportGeneratedAt,
+        reportType
+      } = req.body;
+
+      console.log('Received institutional report request:', {
+        department,
+        semester,
+        academicYear,
+        facultyAssignments,
+        analysisDataPresent: !!analysisData
+      });
+
+      // Validate required fields
+      if (!department || !semester || !academicYear) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields: department, semester, or academicYear'
+        });
+      }
+
+      // Validate faculty assignments if analysis data is provided
+      if (analysisData && analysisData.subjectCodes && (!facultyAssignments || Object.keys(facultyAssignments).length === 0)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Faculty assignments are required when analysis data is provided'
+        });
+      }
+
+      // Process analysis data if provided, otherwise create empty report
+      let processedData;
+      if (analysisData && analysisData.students && analysisData.subjectCodes) {
+        processedData = PDFReportController.processAnalysisData(analysisData);
+      } else {
+        // Create empty report structure for template
+        processedData = {
+          totalStudents: 0,
+          totalSubjects: 0,
+          overallPassPercentage: 0,
+          subjectResults: [],
+          studentsData: []
+        };
+      }
+      
+      // Prepare institutional report data
+      const reportData = {
+        instituteName: instituteName || 'INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY',
+        instituteLocation: instituteLocation || 'ERODE - 638 316',
+        department: department,
+        semester: semester,
+        academicYear: academicYear,
+        facultyId: facultyId || req.user?.id,
+        analysisDataId: `institutional_analysis_${Date.now()}`,
+        totalStudents: processedData.totalStudents,
+        totalSubjects: processedData.totalSubjects,
+        overallPassPercentage: processedData.overallPassPercentage,
+        subjectResults: processedData.subjectResults,
+        studentsData: processedData.studentsData,
+        facultyAssignments: facultyAssignments || {},
+        reportType: 'institutional',
+        generatedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase(),
+        reportGeneratedAt: reportGeneratedAt || new Date().toISOString()
+      };
+
+      // Generate unique filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').substring(0, 19);
+      const filename = `institutional_report_${department}_Sem${semester}_${academicYear.replace('-', '_')}_${timestamp}.pdf`;
+      const outputPath = path.join(__dirname, '../../uploads/reports', filename);
+
+      // Ensure reports directory exists
+      const reportsDir = path.dirname(outputPath);
+      if (!fs.existsSync(reportsDir)) {
+        fs.mkdirSync(reportsDir, { recursive: true });
+      }
+
+      console.log('Generating institutional PDF report at:', outputPath);
+
+      // Generate the institutional PDF report
+      const pdfPath = await pdfReportService.generateInstitutionalReport(reportData, outputPath);
+
+      console.log('PDF generated successfully at:', pdfPath);
+
+      // Save report metadata to database
+      const reportTemplate = new ReportTemplate({
+        facultyName: `${department} Faculty`, // Default faculty name for institutional reports
+        semester: reportData.semester,
+        academicYear: reportData.academicYear,
+        department: reportData.department,
+        facultyId: reportData.facultyId,
+        analysisDataId: reportData.analysisDataId,
+        totalStudents: reportData.totalStudents,
+        totalSubjects: reportData.totalSubjects,
+        overallPassPercentage: reportData.overallPassPercentage,
+        subjectResults: reportData.subjectResults,
+        studentsData: reportData.studentsData,
+        facultyAssignments: reportData.facultyAssignments,
+        reportType: reportData.reportType,
+        pdfPath: pdfPath,
+        generatedAt: new Date(),
+        status: 'completed'
+      });
+
+      await reportTemplate.save();
+
+      console.log('Report metadata saved to database with ID:', reportTemplate._id);
+
+      // Return success response
+      res.status(200).json({
+        success: true,
+        message: 'Institutional PDF report generated successfully',
+        data: {
+          reportId: reportTemplate._id,
+          filename: filename,
+          downloadUrl: `/api/reports/download/${reportTemplate._id}`,
+          previewUrl: `/api/reports/preview/${reportTemplate._id}`,
+          generatedAt: reportTemplate.generatedAt,
+          department: reportData.department,
+          semester: reportData.semester,
+          academicYear: reportData.academicYear,
+          reportType: 'institutional',
+          totalStudents: reportData.totalStudents,
+          totalSubjects: reportData.totalSubjects,
+          overallPassPercentage: reportData.overallPassPercentage
+        }
+      });
+
+    } catch (error) {
+      console.error('Error generating institutional PDF report:', error);
+      console.error('Error stack:', error.stack);
+      
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate institutional PDF report',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
       });
     }
   }

@@ -1,120 +1,209 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Users, BookOpen, CalendarDays, Settings, Edit3 } from 'lucide-react';
-import pdfReportsApi from '@/api/pdfReports';
+import { motion } from 'framer-motion';
+import { 
+  ArrowLeft, 
+  FileText, 
+  Building2, 
+  Download, 
+  Eye, 
+  User,
+  BookOpen,
+  AlertCircle,
+  CheckCircle,
+  Loader,
+  Users,
+  CalendarDays
+} from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { pdfReportsApi } from '../../api/pdfReports';
 
 // Report Generation Page
 function ReportGenerationPage() {
-  const [reportData, setReportData] = useState(null);
-  const [formData, setFormData] = useState({
-    facultyName: '',
-    semester: '',
-    academicYear: '',
-    department: 'CSE',
-    subjectCode: '',
-    subjectName: '',
-    reportType: 'standard' // 'standard' or 'enhanced'
-  });
-  const [loading, setLoading] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState('standard');
   const navigate = useNavigate();
+  
+  // State for storing report data from analysis
+  const [reportData, setReportData] = useState(null);
+  
+  // Department information
+  const [departmentInfo, setDepartmentInfo] = useState({
+    semester: '',
+    academicYear: new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
+    department: 'CSE'
+  });
+  
+  // Faculty assignments per subject
+  const [facultyAssignments, setFacultyAssignments] = useState({});
+  
+  // Loading state and form validation errors
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  
+  // Report generation state
+  const [generatedReport, setGeneratedReport] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
-    // Retrieve saved report generation data
+    // Retrieve saved report generation data from session storage
     const data = sessionStorage.getItem('reportGenerationData');
     if (data) {
       const parsedData = JSON.parse(data);
       setReportData(parsedData);
 
-      // Initialize form data with data from analysis
-      setFormData({
-        facultyName: '',
-        semester: parsedData.semester || '',
-        academicYear: new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
-        department: 'CSE'
-      });
+      // Initialize department info with data from analysis
+      setDepartmentInfo(prev => ({
+        ...prev,
+        semester: parsedData.semester || ''
+      }));
+
+      // Initialize faculty assignments object for all detected subjects
+      const initialAssignments = {};
+      if (parsedData.analysisData && parsedData.analysisData.subjectCodes) {
+        parsedData.analysisData.subjectCodes.forEach(subjectCode => {
+          initialAssignments[subjectCode] = '';
+        });
+      }
+      setFacultyAssignments(initialAssignments);
     } else {
-      toast.error('Failed to load report generation data.');
+      toast.error('No report generation data found. Please go back to analysis page.');
       navigate('/dashboard');
     }
   }, [navigate]);
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+  const handleDepartmentInfoChange = (field, value) => {
+    setDepartmentInfo(prev => ({
       ...prev,
       [field]: value
     }));
+    // Clear errors when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
   };
 
-  const handleGeneratePDF = async () => {
-    try {
-      if (!reportData) return;
+  const handleFacultyAssignmentChange = (subjectCode, facultyName) => {
+    setFacultyAssignments(prev => ({
+      ...prev,
+      [subjectCode]: facultyName
+    }));
+    // Clear errors when user starts typing
+    if (errors[`faculty_${subjectCode}`]) {
+      setErrors(prev => ({
+        ...prev,
+        [`faculty_${subjectCode}`]: ''
+      }));
+    }
+  };
 
-      // Validate required fields
-      if (!formData.facultyName.trim()) {
-        toast.error('Please enter faculty name');
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Validate department info
+    if (!departmentInfo.semester.trim()) {
+      newErrors.semester = 'Semester is required';
+    }
+    if (!departmentInfo.academicYear.trim()) {
+      newErrors.academicYear = 'Academic year is required';
+    }
+    if (!departmentInfo.department.trim()) {
+      newErrors.department = 'Department is required';
+    }
+
+    // Validate faculty assignments - all subjects must have faculty assigned
+    if (reportData && reportData.analysisData && reportData.analysisData.subjectCodes) {
+      reportData.analysisData.subjectCodes.forEach(subjectCode => {
+        if (!facultyAssignments[subjectCode] || !facultyAssignments[subjectCode].trim()) {
+          newErrors[`faculty_${subjectCode}`] = 'Faculty name is required for this subject';
+        }
+      });
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const goBackToAnalysis = () => {
+    if (reportData) {
+      navigate(`/result-analysis?id=${reportData.pdfId}&semester=${reportData.semester}`);
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      if (!reportData) {
+        toast.error('No report data available');
         return;
       }
-      if (!formData.semester.trim()) {
-        toast.error('Please enter semester');
-        return;
-      }
-      if (!formData.academicYear.trim()) {
-        toast.error('Please enter academic year');
-        return;
-      }
-      if (!formData.department.trim()) {
-        toast.error('Please select department');
+
+      // Validate the form
+      if (!validateForm()) {
+        toast.error('Please fill all required fields');
         return;
       }
 
       setLoading(true);
 
-      // Prepare the API request data in the format expected by the backend
-      const apiRequestData = {
-        facultyName: formData.facultyName.trim(),
-        semester: formData.semester.trim(),
-        academicYear: formData.academicYear.trim(),
-        department: formData.department,
+      // Prepare the API request data
+      const reportRequestData = {
+        // Department information
+        semester: departmentInfo.semester.trim(),
+        academicYear: departmentInfo.academicYear.trim(),
+        department: departmentInfo.department,
+        
+        // Analysis data from the previous analysis
         analysisData: {
           students: reportData.analysisData.students,
-          subjectCodes: reportData.analysisData.subjectCodes
+          subjectCodes: reportData.analysisData.subjectCodes,
+          totalStudents: reportData.resultData.totalStudents,
+          totalSubjects: reportData.resultData.totalSubjects,
+          overallPassPercentage: reportData.resultData.overallPassPercentage,
+          subjectWiseResults: reportData.resultData.subjectWiseResults
         },
-        reportType: selectedTemplate
+        
+        // Faculty assignments per subject
+        facultyAssignments: facultyAssignments,
+        
+        // Report metadata
+        reportGeneratedAt: new Date().toISOString(),
+        reportType: 'institutional' // Since this is an institutional report with subject-wise faculty assignments
       };
 
-      // Add enhanced fields if enhanced template is selected
-      if (selectedTemplate === 'enhanced') {
-        apiRequestData.subjectCode = formData.subjectCode.trim();
-        apiRequestData.subjectName = formData.subjectName.trim();
-      }
+      console.log('Generating report with data:', reportRequestData);
 
-      console.log('Sending API request with data:', apiRequestData);
-
-      // Generate PDF report via appropriate API endpoint
-      const response = selectedTemplate === 'enhanced' 
-        ? await pdfReportsApi.generateEnhancedReport(apiRequestData)
-        : await pdfReportsApi.generateReport(apiRequestData);
+      // Call the API to generate the institutional report
+      const response = await pdfReportsApi.generateInstitutionalReport(reportRequestData);
       
       if (response.success) {
-        toast.success('PDF report generated successfully!');
+        toast.success('Institutional report generated successfully!');
         
-        // Trigger download
-        if (response.data.downloadUrl) {
-          const downloadBlob = await pdfReportsApi.downloadReport(response.data.reportId);
-          const filename = `${formData.department}_Semester_${formData.semester}_${formData.academicYear}_Report.pdf`;
-          pdfReportsApi.triggerDownload(downloadBlob, filename);
-        }
+        // Store the generated report data for preview and download
+        setGeneratedReport({
+          reportId: response.data.reportId,
+          filename: response.data.filename || `${departmentInfo.department}_Sem${departmentInfo.semester}_${departmentInfo.academicYear}_Institutional_Report.pdf`,
+          previewUrl: response.data.previewUrl,
+          downloadUrl: response.data.downloadUrl,
+          generatedAt: response.data.generatedAt,
+          department: response.data.department || departmentInfo.department,
+          semester: response.data.semester || departmentInfo.semester,
+          academicYear: response.data.academicYear || departmentInfo.academicYear,
+          totalStudents: response.data.totalStudents,
+          totalSubjects: response.data.totalSubjects,
+          overallPassPercentage: response.data.overallPassPercentage
+        });
         
-        // Navigate back to analysis page
-        setTimeout(() => {
-          navigate('/result-analysis?id=' + reportData.pdfId + '&semester=' + reportData.semester);
-        }, 1000);
+        // Show preview options instead of auto-downloading
+        setShowPreview(true);
+      } else {
+        throw new Error(response.message || 'Failed to generate report');
       }
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error(error.message || 'Failed to generate PDF report');
+      console.error('Error generating institutional report:', error);
+      toast.error(error.message || 'Failed to generate institutional report. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -124,40 +213,56 @@ function ReportGenerationPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading report data...</p>
+          <Loader className="h-8 w-8 text-blue-600 mx-auto animate-spin" />
+          <p className="mt-2 text-gray-600">Loading report generation data...</p>
+          <p className="text-sm text-gray-500 mt-1">Please wait while we prepare the report form...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-50 py-8"
+    >
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Navigation */}
         <div className="flex justify-between items-center mb-6">
-          <Link 
-            to={`/result-analysis?id=${reportData.pdfId}&semester=${reportData.semester}`}
-            className="text-blue-600 hover:text-blue-800 flex items-center"
+          <button
+            onClick={goBackToAnalysis}
+            className="text-blue-600 hover:text-blue-800 flex items-center transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Analysis
-          </Link>
+          </button>
         </div>
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-white rounded-lg shadow-sm p-6 mb-6"
+        >
           <div className="flex items-center mb-4">
             <FileText className="h-8 w-8 text-blue-600 mr-3" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Generate Semester Report</h1>
-              <p className="text-gray-600">Create a comprehensive PDF report for semester {reportData.semester}</p>
+              <h1 className="text-2xl font-bold text-gray-900">Generate Institutional Report</h1>
+              <p className="text-gray-600">Create a comprehensive semester report with faculty assignments for semester {reportData.semester}</p>
             </div>
           </div>
 
           {/* Analysis Summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+              className="bg-blue-50 p-4 rounded-lg"
+            >
               <div className="flex items-center">
                 <Users className="h-6 w-6 text-blue-600 mr-2" />
                 <div>
@@ -165,8 +270,13 @@ function ReportGenerationPage() {
                   <p className="text-xl font-bold text-gray-900">{reportData.resultData.totalStudents}</p>
                 </div>
               </div>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+              className="bg-green-50 p-4 rounded-lg"
+            >
               <div className="flex items-center">
                 <BookOpen className="h-6 w-6 text-green-600 mr-2" />
                 <div>
@@ -174,190 +284,211 @@ function ReportGenerationPage() {
                   <p className="text-xl font-bold text-gray-900">{reportData.resultData.totalSubjects}</p>
                 </div>
               </div>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg">
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+              className="bg-purple-50 p-4 rounded-lg"
+            >
               <div className="flex items-center">
-                <CalendarDays className="h-6 w-6 text-purple-600 mr-2" />
+                <Building2 className="h-6 w-6 text-purple-600 mr-2" />
                 <div>
                   <p className="text-sm text-purple-600 font-medium">Overall Pass %</p>
                   <p className="text-xl font-bold text-gray-900">{reportData.resultData.overallPassPercentage.toFixed(1)}%</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Report Form */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">Report Details</h2>
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-white rounded-lg shadow-sm p-6"
+        >
+          <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+            <Building2 className="h-5 w-5 mr-2 text-blue-600" />
+            Institutional Report Details
+          </h2>
           
-          {/* Template Selection */}
+          {/* Department Information Section */}
           <div className="mb-8">
-            <h3 className="text-md font-semibold text-gray-900 mb-4">Select Report Template</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Standard Template */}
-              <div 
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  selectedTemplate === 'standard' 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => setSelectedTemplate('standard')}
-              >
-                <div className="flex items-center mb-2">
-                  <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                  <h4 className="font-medium text-gray-900">Standard Report</h4>
-                </div>
-                <p className="text-sm text-gray-600">Basic semester result analysis with student grades and subject-wise statistics.</p>
-                <div className="mt-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    Quick Generate
-                  </span>
-                </div>
+            <h3 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
+              <Building2 className="h-4 w-4 mr-2 text-blue-600" />
+              Department Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Semester */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Semester *
+                </label>
+                <input
+                  type="text"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.semester ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., 6"
+                  value={departmentInfo.semester}
+                  onChange={(e) => handleDepartmentInfoChange('semester', e.target.value)}
+                />
+                {errors.semester && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.semester}
+                  </p>
+                )}
               </div>
               
-              {/* Enhanced Template */}
-              <div 
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  selectedTemplate === 'enhanced' 
-                    ? 'border-green-500 bg-green-50' 
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => setSelectedTemplate('enhanced')}
-              >
-                <div className="flex items-center mb-2">
-                  <Edit3 className="h-5 w-5 text-green-600 mr-2" />
-                  <h4 className="font-medium text-gray-900">Enhanced Report</h4>
-                </div>
-                <p className="text-sm text-gray-600">Detailed course outcome-based report with editable fields and comprehensive analysis.</p>
-                <div className="mt-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Professional Format
-                  </span>
-                </div>
+              {/* Academic Year */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Academic Year *
+                </label>
+                <input
+                  type="text"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.academicYear ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., 2024-2025"
+                  value={departmentInfo.academicYear}
+                  onChange={(e) => handleDepartmentInfoChange('academicYear', e.target.value)}
+                />
+                {errors.academicYear && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.academicYear}
+                  </p>
+                )}
+              </div>
+              
+              {/* Department */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Department *
+                </label>
+                <select
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.department ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  value={departmentInfo.department}
+                  onChange={(e) => handleDepartmentInfoChange('department', e.target.value)}
+                >
+                  <option value="CSE">Computer Science & Engineering</option>
+                  <option value="ECE">Electronics & Communication Engineering</option>
+                  <option value="EEE">Electrical & Electronics Engineering</option>
+                  <option value="MECH">Mechanical Engineering</option>
+                  <option value="CIVIL">Civil Engineering</option>
+                  <option value="IT">Information Technology</option>
+                  <option value="others">Others</option>
+                </select>
+                {errors.department && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.department}
+                  </p>
+                )}
               </div>
             </div>
           </div>
           
-          {/* Enhanced Template Fields */}
-          {selectedTemplate === 'enhanced' && (
-            <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h3 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
-                <Settings className="h-4 w-4 mr-2 text-green-600" />
-                Enhanced Report Settings
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Faculty Assignment Section */}
+          <div className="mb-8">
+            <h3 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
+              <User className="h-4 w-4 mr-2 text-green-600" />
+              Faculty Assignments per Subject
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Please assign a faculty member for each subject detected in the analysis. This information will be included in the institutional report.
+            </p>
+            
+            <div className="bg-gray-50 border border-gray-200 rounded-md overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Subject Code
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Faculty Name *
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {reportData.analysisData.subjectCodes.map((subjectCode, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        <div className="flex items-center">
+                          <BookOpen className="h-4 w-4 text-blue-500 mr-2" />
+                          {subjectCode}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <input
+                          type="text"
+                          className={`w-full px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            errors[`faculty_${subjectCode}`] ? 'border-red-300' : 'border-gray-300'
+                          }`}
+                          placeholder="Enter faculty name"
+                          value={facultyAssignments[subjectCode] || ''}
+                          onChange={(e) => handleFacultyAssignmentChange(subjectCode, e.target.value)}
+                        />
+                        {errors[`faculty_${subjectCode}`] && (
+                          <p className="mt-1 text-sm text-red-600 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            {errors[`faculty_${subjectCode}`]}
+                          </p>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
+              <div className="flex items-start">
+                <CheckCircle className="h-4 w-4 text-blue-600 mr-2 mt-0.5" />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Subject Code
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="e.g., CS301"
-                    value={formData.subjectCode}
-                    onChange={(e) => handleInputChange('subjectCode', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Subject Name
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="e.g., Data Structures and Algorithms"
-                    value={formData.subjectName}
-                    onChange={(e) => handleInputChange('subjectName', e.target.value)}
-                  />
+                  <p className="text-sm text-blue-800 font-medium">
+                    Faculty Assignment Guidelines:
+                  </p>
+                  <ul className="text-xs text-blue-700 mt-1 list-disc list-inside">
+                    <li>Each subject must have a faculty member assigned</li>
+                    <li>Faculty names will appear in the institutional report header</li>
+                    <li>Use full names for professional presentation</li>
+                    <li>Double-check spelling before generating the report</li>
+                  </ul>
                 </div>
               </div>
-              <div className="mt-3 p-3 bg-white rounded border border-green-200">
-                <p className="text-sm text-gray-600">
-                  <strong>Enhanced Report Features:</strong>
-                </p>
-                <ul className="text-xs text-gray-500 mt-1 list-disc list-inside">
-                  <li>Course outcome-based analysis</li>
-                  <li>Detailed faculty information section</li>
-                  <li>Before/after remedial action tracking</li>
-                  <li>Professional signature sections</li>
-                  <li>Comprehensive result evaluation</li>
-                </ul>
-              </div>
-            </div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Faculty Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Faculty Name *
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter faculty name handling the report"
-                value={formData.facultyName}
-                onChange={(e) => handleInputChange('facultyName', e.target.value)}
-              />
-            </div>
-
-            {/* Semester */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Semester *
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="e.g., 6"
-                value={formData.semester}
-                onChange={(e) => handleInputChange('semester', e.target.value)}
-              />
-            </div>
-
-            {/* Academic Year */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Academic Year *
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="e.g., 2024-2025"
-                value={formData.academicYear}
-                onChange={(e) => handleInputChange('academicYear', e.target.value)}
-              />
-            </div>
-
-            {/* Department */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Department *
-              </label>
-              <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={formData.department}
-                onChange={(e) => handleInputChange('department', e.target.value)}
-              >
-                <option value="CSE">Computer Science & Engineering</option>
-                <option value="ECE">Electronics & Communication Engineering</option>
-                <option value="EEE">Electrical & Electronics Engineering</option>
-                <option value="MECH">Mechanical Engineering</option>
-                <option value="CIVIL">Civil Engineering</option>
-                <option value="IT">Information Technology</option>
-                <option value="others">Others</option>
-              </select>
             </div>
           </div>
 
           {/* Subject-wise Results Preview */}
           <div className="mb-8">
-            <h3 className="text-md font-semibold text-gray-900 mb-4">Subject-wise Results Summary</h3>
+            <h3 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
+              <Eye className="h-4 w-4 mr-2 text-purple-600" />
+              Subject-wise Results Preview
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              This is the analysis summary that will be included in the institutional report:
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {reportData.resultData.subjectWiseResults.map((subject, index) => (
-                <div key={index} className="bg-gray-50 p-4 rounded-lg border">
-                  <h4 className="font-medium text-gray-900 mb-2">{subject.subject}</h4>
+                <motion.div 
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
+                >
+                  <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                    <BookOpen className="h-4 w-4 text-blue-500 mr-2" />
+                    {subject.subject}
+                  </h4>
                   <div className="space-y-1 text-sm text-gray-600">
                     <p>Total Students: <span className="font-medium">{subject.totalStudents}</span></p>
                     <p>Passed: <span className="font-medium text-green-600">{subject.passedStudents}</span></p>
@@ -365,7 +496,7 @@ function ReportGenerationPage() {
                   </div>
                   <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className={`h-2 rounded-full ${
+                      className={`h-2 rounded-full transition-all duration-500 ${
                         subject.passPercentage >= 90 ? 'bg-green-500' :
                         subject.passPercentage >= 75 ? 'bg-yellow-500' :
                         subject.passPercentage >= 60 ? 'bg-orange-500' : 'bg-red-500'
@@ -373,40 +504,158 @@ function ReportGenerationPage() {
                       style={{ width: `${subject.passPercentage}%` }}
                     ></div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Generate Button */}
-          <div className="flex justify-end">
-            <button
-              onClick={handleGeneratePDF}
-              disabled={loading}
-              className={`px-6 py-3 rounded-md font-medium flex items-center ${
-                loading 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              } transition-colors`}
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Generating PDF...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4 mr-2" />
-                  Generate PDF Report
-                </>
-              )}
-            </button>
+          {/* Generate Report Button */}
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-500">
+              <p className="flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                Please ensure all fields are filled before generating the report
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={goBackToAnalysis}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Analysis
+              </button>
+              <button
+                onClick={handleGenerateReport}
+                disabled={loading}
+                className={`px-6 py-3 rounded-md font-medium flex items-center transition-all ${
+                  loading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+                } transform hover:scale-105`}
+              >
+                {loading ? (
+                  <>
+                    <Loader className="h-4 w-4 mr-2 animate-spin" />
+                    Generating Report...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Generate Institutional Report
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        </motion.div>
+
+        {/* Report Generated Success Modal */}
+        {showPreview && generatedReport && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Report Generated Successfully!
+                </h3>
+                
+                <p className="text-gray-600 mb-6">
+                  Your institutional report has been generated successfully. You can now preview it or download it directly.
+                </p>
+                
+                {/* Report Details */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">Department:</span>
+                      <p className="text-gray-900">{generatedReport.department}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Semester:</span>
+                      <p className="text-gray-900">{generatedReport.semester}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Academic Year:</span>
+                      <p className="text-gray-900">{generatedReport.academicYear}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Generated:</span>
+                      <p className="text-gray-900">{new Date(generatedReport.generatedAt).toLocaleDateString()}</p>
+                    </div>
+                    {generatedReport.totalStudents > 0 && (
+                      <>
+                        <div>
+                          <span className="font-medium text-gray-700">Students:</span>
+                          <p className="text-gray-900">{generatedReport.totalStudents}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Pass Rate:</span>
+                          <p className="text-gray-900">{generatedReport.overallPassPercentage?.toFixed(1)}%</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      // Open preview in new tab
+                      const previewUrl = `http://localhost:8080${generatedReport.previewUrl}`;
+                      window.open(previewUrl, '_blank');
+                    }}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Report
+                  </button>
+                  
+                  <button
+                    onClick={async () => {
+                      try {
+                        // Download the report
+                        const blob = await pdfReportsApi.downloadReport(generatedReport.reportId);
+                        pdfReportsApi.triggerDownload(blob, generatedReport.filename);
+                        toast.success('Report downloaded successfully!');
+                      } catch (error) {
+                        console.error('Error downloading report:', error);
+                        toast.error('Failed to download report. Please try again.');
+                      }
+                    }}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Report
+                  </button>
+                </div>
+                
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowPreview(false)}
+                  className="mt-4 text-gray-500 hover:text-gray-700 text-sm transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 export default ReportGenerationPage;
-
