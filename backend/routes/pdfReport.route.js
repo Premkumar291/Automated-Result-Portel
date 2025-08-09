@@ -5,29 +5,39 @@ import { verifyToken } from '../middleware/verifyToken.js';
 const router = express.Router();
 
 /**
- * PDF Report Routes
+ * Report Routes - Excel Primary, PDF Secondary
  * All routes require authentication
  */
 
-// Generate a new PDF report
+// --- Primary Excel Routes ---
+// Generate a standard Excel report
 router.post('/generate', verifyToken, PDFReportController.generateReport);
 
-// Generate an enhanced PDF report with more detailed template
-router.post('/generate-enhanced', verifyToken, PDFReportController.generateEnhancedReport);
+// Generate an enhanced Excel report
+router.post('/generate-enhanced', verifyToken, PDFReportController.generateEnhancedExcelReport);
 
-// Generate institutional format report matching the provided image
-router.post('/generate-institutional', verifyToken, PDFReportController.generateInstitutionalReport);
+// Generate an institutional format Excel report
+router.post('/generate-institutional', verifyToken, PDFReportController.generateInstitutionalExcelReport);
 
-// Download a generated PDF report
-router.get('/download/:reportId', verifyToken, PDFReportController.downloadReport);
+// Download any generated report (Excel is default)
+router.get('/download/:reportId', verifyToken, PDFReportController.downloadExcelReport);
 
-// Preview a generated PDF report in browser
-router.get('/preview/:reportId', verifyToken, PDFReportController.previewReport);
+// Preview any generated report (Excel is default)
+router.get('/preview/:reportId', verifyToken, PDFReportController.previewExcelReport);
 
-// Get list of generated reports
+// Update Excel report data
+router.put('/update/:reportId', verifyToken, PDFReportController.updateExcelReport);
+
+// --- General Report Management ---
+// Get list of all generated reports
 router.get('/list', verifyToken, PDFReportController.getReports);
 
 // Delete a generated report
 router.delete('/:reportId', verifyToken, PDFReportController.deleteReport);
+
+// --- Legacy PDF Routes (for backward compatibility) ---
+router.post('/generate-pdf', verifyToken, PDFReportController.generatePDFReport);
+router.get('/download-pdf/:reportId', verifyToken, PDFReportController.downloadReport);
+router.get('/preview-pdf/:reportId', verifyToken, PDFReportController.previewReport);
 
 export default router;

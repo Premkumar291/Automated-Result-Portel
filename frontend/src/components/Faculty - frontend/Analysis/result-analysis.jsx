@@ -359,12 +359,13 @@ export default function ResultAnalysis() {
         <div className="flex gap-3">
           {/* Generate Report Button - only show when we have result data */}
           {resultData && (
-            <button
+            <Link
+              to="/generate-report"
               onClick={() => {
-                // Navigate to report generation page with analysis data
+                // Save the required data to session storage before navigating
                 const reportData = {
-                  semester,
                   pdfId,
+                  semester,
                   selectedStartIndex,
                   analysisData: {
                     ...analysisData,
@@ -373,15 +374,19 @@ export default function ResultAnalysis() {
                   },
                   resultData
                 };
-                // Store in sessionStorage to pass data
+                
+                console.log('Saving report data to sessionStorage:', reportData);
                 sessionStorage.setItem('reportGenerationData', JSON.stringify(reportData));
-                navigate('/generate-report');
+                
+                // Verify data was saved
+                const saved = sessionStorage.getItem('reportGenerationData');
+                console.log('Verified saved data:', saved ? 'Data saved successfully' : 'Failed to save data');
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center"
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors shadow-sm"
             >
-              <FileText className="h-4 w-4 mr-1" />
+              <FileText className="h-4 w-4 mr-2" />
               Generate Report
-            </button>
+            </Link>
           )}
           <button
             onClick={refreshAnalysis}

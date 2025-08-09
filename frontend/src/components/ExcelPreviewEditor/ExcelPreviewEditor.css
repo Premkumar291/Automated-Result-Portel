@@ -1,0 +1,417 @@
+/* Excel Preview Editor Styles */
+
+.excel-preview-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.excel-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.header-left h2 {
+  margin: 0 0 8px 0;
+  color: #1e293b;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.report-info {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.report-info span {
+  background: #f1f5f9;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-right: 12px;
+  padding-right: 12px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.btn-outline:hover {
+  background: #f9fafb;
+  color: #374151;
+}
+
+.changes-banner {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  padding: 12px 24px;
+  color: #92400e;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.excel-preview-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sheet-tabs {
+  display: flex;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 24px;
+  overflow-x: auto;
+}
+
+.sheet-tab {
+  background: transparent;
+  border: none;
+  padding: 12px 20px;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sheet-tab:hover {
+  color: #374151;
+  background: #f8fafc;
+}
+
+.sheet-tab.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background: #f8fafc;
+}
+
+.edit-indicator {
+  color: #10b981;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.sheet-container {
+  flex: 1;
+  overflow: auto;
+  background: white;
+  padding: 20px 24px;
+}
+
+.excel-sheet {
+  width: 100%;
+}
+
+.sheet-content {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.excel-row {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.excel-row:last-child {
+  border-bottom: none;
+}
+
+.excel-cell-wrapper {
+  border-right: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.excel-cell-wrapper:last-child {
+  border-right: none;
+}
+
+.excel-cell {
+  padding: 8px 12px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.excel-cell:empty::before {
+  content: '\00a0';
+  opacity: 0;
+}
+
+/* Editable cell styles */
+.excel-cell.editable {
+  background: #f0fdf4;
+  border: 1px solid #10b981;
+  cursor: pointer;
+  position: relative;
+}
+
+.excel-cell.editable:hover {
+  background: #dcfce7;
+  border-color: #059669;
+}
+
+.excel-cell.edited {
+  background: #e0f2fe;
+  border-color: #0284c7;
+}
+
+.excel-cell.editing {
+  background: white;
+  border: 2px solid #3b82f6;
+}
+
+/* Loading state */
+.excel-preview-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Instructions section */
+.editing-instructions {
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 24px;
+}
+
+.editing-instructions h4 {
+  margin: 0 0 12px 0;
+  color: #0c4a6e;
+  font-size: 16px;
+}
+
+.editing-instructions ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #0369a1;
+}
+
+.editing-instructions li {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .excel-preview-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .header-actions {
+    justify-content: flex-end;
+  }
+
+  .edit-actions {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .report-info {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sheet-tabs {
+    padding: 0 16px;
+  }
+
+  .sheet-container {
+    padding: 16px;
+  }
+
+  .excel-cell {
+    font-size: 12px;
+    padding: 6px 8px;
+    min-height: 28px;
+  }
+
+  .btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .excel-preview-header {
+    padding: 16px;
+  }
+
+  .header-left h2 {
+    font-size: 20px;
+  }
+
+  .report-info span {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .sheet-container {
+    padding: 12px;
+  }
+
+  .excel-cell {
+    font-size: 11px;
+    padding: 4px 6px;
+    min-height: 24px;
+  }
+
+  .editing-instructions {
+    margin: 16px 12px;
+    padding: 12px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .excel-preview-header,
+  .sheet-tabs,
+  .editing-instructions {
+    display: none;
+  }
+
+  .excel-preview-container {
+    height: auto;
+  }
+
+  .sheet-container {
+    padding: 0;
+  }
+
+  .excel-cell {
+    border: 1px solid #333 !important;
+    font-size: 10px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .excel-cell {
+    border-color: #000;
+  }
+
+  .btn {
+    border: 2px solid currentColor;
+  }
+
+  .sheet-tab.active {
+    border-bottom-width: 4px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .sheet-tab,
+  .loading-spinner {
+    transition: none;
+    animation: none;
+  }
+}

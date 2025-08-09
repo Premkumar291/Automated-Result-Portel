@@ -46,27 +46,40 @@ function ReportGenerationPage() {
   useEffect(() => {
     // Retrieve saved report generation data from session storage
     const data = sessionStorage.getItem('reportGenerationData');
+    console.log('ReportGenerationPage: Retrieved data from sessionStorage:', data);
+    
     if (data) {
-      const parsedData = JSON.parse(data);
-      setReportData(parsedData);
+      try {
+        const parsedData = JSON.parse(data);
+        console.log('ReportGenerationPage: Parsed data:', parsedData);
+        setReportData(parsedData);
 
-      // Initialize department info with data from analysis
-      setDepartmentInfo(prev => ({
-        ...prev,
-        semester: parsedData.semester || ''
-      }));
+        // Initialize department info with data from analysis
+        setDepartmentInfo(prev => ({
+          ...prev,
+          semester: parsedData.semester || ''
+        }));
 
-      // Initialize faculty assignments object for all detected subjects
-      const initialAssignments = {};
-      if (parsedData.analysisData && parsedData.analysisData.subjectCodes) {
-        parsedData.analysisData.subjectCodes.forEach(subjectCode => {
-          initialAssignments[subjectCode] = '';
-        });
+        // Initialize faculty assignments object for all detected subjects
+        const initialAssignments = {};
+        if (parsedData.analysisData && parsedData.analysisData.subjectCodes) {
+          parsedData.analysisData.subjectCodes.forEach(subjectCode => {
+            initialAssignments[subjectCode] = '';
+          });
+        }
+        setFacultyAssignments(initialAssignments);
+      } catch (error) {
+        console.error('ReportGenerationPage: Error parsing sessionStorage data:', error);
+        toast.error('Invalid report data. Please go back to analysis page.');
+        navigate('/dashboard');
       }
-      setFacultyAssignments(initialAssignments);
     } else {
+      console.error('ReportGenerationPage: No data found in sessionStorage');
       toast.error('No report generation data found. Please go back to analysis page.');
-      navigate('/dashboard');
+      // Add a small delay to prevent immediate navigation during component mount
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     }
   }, [navigate]);
 
@@ -148,13 +161,12 @@ function ReportGenerationPage() {
 
       setLoading(true);
 
-      // Prepare the API request data
+      // Prepare the API request data to match backend expectations
       const reportRequestData = {
-        // Department information
+        // Required fields that backend validates
+        department: departmentInfo.department,
         semester: departmentInfo.semester.trim(),
         academicYear: departmentInfo.academicYear.trim(),
-        department: departmentInfo.department,
-        
         // Analysis data from the previous analysis
         analysisData: {
           students: reportData.analysisData.students,
@@ -168,38 +180,28 @@ function ReportGenerationPage() {
         // Faculty assignments per subject
         facultyAssignments: facultyAssignments,
         
-        // Report metadata
-        reportGeneratedAt: new Date().toISOString(),
-        reportType: 'institutional' // Since this is an institutional report with subject-wise faculty assignments
+        // Optional fields with defaults
+        facultyId: null, // Will use req.user?.id from backend
+        instituteName: 'INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY',
+        instituteLocation: 'ERODE - 638 316',
+        reportGeneratedAt: new Date().toISOString()
       };
 
       console.log('Generating report with data:', reportRequestData);
 
-      // Call the API to generate the institutional report
-      const response = await pdfReportsApi.generateInstitutionalReport(reportRequestData);
-      
-      if (response.success) {
-        toast.success('Institutional report generated successfully!');
+      // Call the API to generate the Excel report (not PDF)
+      const response = await pdfReportsApi.generateAndDownloadExcel(reportRequestData);
+
+      if (response.blob && response.reportData) {
+        // Trigger the download directly
+        pdfReportsApi.triggerDownload(response.blob, response.filename);
+        toast.success('Excel report downloaded successfully!');
         
-        // Store the generated report data for preview and download
-        setGeneratedReport({
-          reportId: response.data.reportId,
-          filename: response.data.filename || `${departmentInfo.department}_Sem${departmentInfo.semester}_${departmentInfo.academicYear}_Institutional_Report.pdf`,
-          previewUrl: response.data.previewUrl,
-          downloadUrl: response.data.downloadUrl,
-          generatedAt: response.data.generatedAt,
-          department: response.data.department || departmentInfo.department,
-          semester: response.data.semester || departmentInfo.semester,
-          academicYear: response.data.academicYear || departmentInfo.academicYear,
-          totalStudents: response.data.totalStudents,
-          totalSubjects: response.data.totalSubjects,
-          overallPassPercentage: response.data.overallPassPercentage
-        });
-        
-        // Show preview options instead of auto-downloading
+        // Set state for the preview modal with the returned report data
+        setGeneratedReport(response.reportData);
         setShowPreview(true);
       } else {
-        throw new Error(response.message || 'Failed to generate report');
+        throw new Error('Failed to generate or download the report.');
       }
     } catch (error) {
       console.error('Error generating institutional report:', error);
@@ -613,9 +615,10 @@ function ReportGenerationPage() {
                 <div className="flex space-x-3">
                   <button
                     onClick={() => {
-                      // Open preview in new tab
-                      const previewUrl = `http://localhost:8080${generatedReport.previewUrl}`;
-                      window.open(previewUrl, '_blank');
+                      // Open preview in new tab - use env API URL
+                      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+                      const correctedPreviewUrl = `${apiBaseUrl}/reports/preview/${generatedReport.reportId}`;
+                      window.open(correctedPreviewUrl, '_blank');
                     }}
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
                   >
@@ -626,13 +629,13 @@ function ReportGenerationPage() {
                   <button
                     onClick={async () => {
                       try {
-                        // Download the report
+                        // Download the Excel report
                         const blob = await pdfReportsApi.downloadReport(generatedReport.reportId);
                         pdfReportsApi.triggerDownload(blob, generatedReport.filename);
-                        toast.success('Report downloaded successfully!');
+                        toast.success('Excel report downloaded successfully!');
                       } catch (error) {
-                        console.error('Error downloading report:', error);
-                        toast.error('Failed to download report. Please try again.');
+                        console.error('Error downloading Excel report:', error);
+                        toast.error('Failed to download Excel report. Please try again.');
                       }
                     }}
                     className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center"

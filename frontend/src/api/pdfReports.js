@@ -11,23 +11,10 @@ const reportsApi = axios.create({
   },
 });
 
-/**
- * PDF Reports API Service
- * Handles all PDF report generation and management operations
- */
+
 export const pdfReportsApi = {
   
-  /**
-   * Generate a new PDF report from analysis data
-   * @param {Object} reportData - Report generation data
-   * @param {string} reportData.facultyName - Name of the faculty handling the report
-   * @param {string} reportData.semester - Semester information
-   * @param {string} reportData.academicYear - Academic year
-   * @param {string} reportData.department - Department name
-   * @param {Object} reportData.analysisData - Analysis data from result analysis
-   * @param {string} reportData.reportType - Type of report ('standard' or 'enhanced')
-   * @returns {Promise} API response with report generation details
-   */
+ 
   async generateReport(reportData) {
     try {
       console.log('Generating PDF report with data:', reportData);
@@ -55,18 +42,7 @@ export const pdfReportsApi = {
     }
   },
 
-  /**
-   * Generate an enhanced PDF report with detailed template
-   * @param {Object} reportData - Enhanced report generation data
-   * @param {string} reportData.facultyName - Name of the faculty handling the report
-   * @param {string} reportData.semester - Semester information
-   * @param {string} reportData.academicYear - Academic year
-   * @param {string} reportData.department - Department name
-   * @param {Object} reportData.analysisData - Analysis data from result analysis
-   * @param {string} reportData.subjectCode - Subject code (optional)
-   * @param {string} reportData.subjectName - Subject name (optional)
-   * @returns {Promise} API response with enhanced report generation details
-   */
+ 
   async generateEnhancedReport(reportData) {
     try {
       console.log('Generating enhanced PDF report with data:', reportData);
@@ -94,17 +70,7 @@ export const pdfReportsApi = {
     }
   },
 
-  /**
-   * Generate institutional format report matching the exact image format
-   * @param {Object} reportData - Institutional report generation data
-   * @param {string} reportData.department - Department name
-   * @param {string} reportData.semester - Semester information
-   * @param {string} reportData.academicYear - Academic year
-   * @param {Object} reportData.analysisData - Analysis data (optional)
-   * @param {string} reportData.instituteName - Institute name (optional)
-   * @param {string} reportData.instituteLocation - Institute location (optional)
-   * @returns {Promise} API response with institutional report generation details
-   */
+ 
   async generateInstitutionalReport(reportData) {
     try {
       console.log('Generating institutional PDF report with data:', reportData);
@@ -132,13 +98,7 @@ export const pdfReportsApi = {
     }
   },
 
-  /**
-   * Get list of generated reports
-   * @param {Object} options - Query options
-   * @param {number} options.page - Page number (default: 1)
-   * @param {number} options.limit - Items per page (default: 10)
-   * @returns {Promise} API response with reports list
-   */
+  
   async getReports(options = {}) {
     try {
       const { page = 1, limit = 10 } = options;
@@ -163,11 +123,7 @@ export const pdfReportsApi = {
     }
   },
 
-  /**
-   * Download a generated PDF report
-   * @param {string} reportId - Report ID
-   * @returns {Promise} Download blob
-   */
+  
   async downloadReport(reportId) {
     try {
       const response = await reportsApi.get(`/download/${reportId}`, {
@@ -176,30 +132,41 @@ export const pdfReportsApi = {
       
       return response.data;
     } catch (error) {
-      console.error('Error downloading report:', error);
+      console.error('Error downloading Excel report:', error);
       
       if (error.response?.status === 404) {
         throw new Error('Report not found or has been deleted.');
       } else {
-        throw new Error('Failed to download report. Please try again.');
+        throw new Error('Failed to download Excel report. Please try again.');
       }
     }
   },
 
-  /**
-   * Get preview URL for a generated PDF report
-   * @param {string} reportId - Report ID
-   * @returns {string} Preview URL
-   */
+  
+  async downloadPDFReport(reportId) {
+    try {
+      const response = await reportsApi.get(`/download-pdf/${reportId}`, {
+        responseType: 'blob'
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error downloading PDF report:', error);
+      
+      if (error.response?.status === 404) {
+        throw new Error('Report not found or has been deleted.');
+      } else {
+        throw new Error('Failed to download PDF report. Please try again.');
+      }
+    }
+  },
+
+  
   getPreviewUrl(reportId) {
     return `${API_BASE_URL}/reports/preview/${reportId}`;
   },
 
-  /**
-   * Preview a generated PDF report
-   * @param {string} reportId - Report ID
-   * @returns {Promise} Preview blob
-   */
+  
   async previewReport(reportId) {
     try {
       const response = await reportsApi.get(`/preview/${reportId}`, {
@@ -218,11 +185,7 @@ export const pdfReportsApi = {
     }
   },
 
-  /**
-   * Delete a generated report
-   * @param {string} reportId - Report ID
-   * @returns {Promise} API response
-   */
+ 
   async deleteReport(reportId) {
     try {
       const response = await reportsApi.delete(`/${reportId}`);
@@ -259,6 +222,60 @@ export const pdfReportsApi = {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+  },
+
+  /**
+   * Generate and directly download Excel report
+   * @param {Object} reportData - Report generation data
+   * @returns {Promise} Direct download response
+   */
+  async generateAndDownloadExcel(reportData) {
+    try {
+      console.log('Generating and downloading Excel report:', reportData);
+      
+      // First generate the report using institutional endpoint
+      const generateResponse = await reportsApi.post('/generate-institutional', reportData);
+      
+      if (generateResponse.data.success) {
+        const reportId = generateResponse.data.data.reportId;
+        
+        // Then download it immediately
+        console.log('Downloading Excel file for report ID:', reportId);
+        const downloadResponse = await reportsApi.get(`/download/${reportId}`, {
+          responseType: 'blob'
+        });
+        
+        console.log('Download response type:', typeof downloadResponse.data);
+        console.log('Download response size:', downloadResponse.data.size);
+        console.log('Download response headers:', downloadResponse.headers);
+        
+        // Verify we got a blob, not JSON
+        if (!(downloadResponse.data instanceof Blob)) {
+          console.error('Expected blob but got:', downloadResponse.data);
+          throw new Error('Server returned invalid file format. Expected Excel file.');
+        }
+        
+        return {
+          blob: downloadResponse.data,
+          filename: generateResponse.data.data.filename || 'semester_report.xlsx',
+          reportData: generateResponse.data.data
+        };
+      } else {
+        throw new Error(generateResponse.data.message || 'Failed to generate Excel report');
+      }
+    } catch (error) {
+      console.error('Error generating and downloading Excel report:', error);
+      
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      } else if (error.response?.status === 400) {
+        throw new Error('Invalid report data. Please check all required fields.');
+      } else {
+        throw new Error('Failed to generate Excel report. Please try again.');
+      }
+    }
   }
 };
 

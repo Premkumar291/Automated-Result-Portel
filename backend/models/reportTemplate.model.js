@@ -37,12 +37,27 @@ const reportTemplateSchema = new mongoose.Schema(
       required: [true, "Analysis data ID is required"],
     },
     
-    // Generated PDF information
+    // Generated file information
     pdfPath: {
       type: String,
+      required: false
+    },
+    excelPath: {
+      type: String,
+      required: false
+    },
+    fileType: {
+      type: String,
+      enum: ['pdf', 'excel'],
+      default: 'pdf'
+    },
+    lastModified: {
+      type: Date,
+      default: Date.now
     },
     generatedAt: {
       type: Date,
+      default: Date.now
     },
     
     // Status
