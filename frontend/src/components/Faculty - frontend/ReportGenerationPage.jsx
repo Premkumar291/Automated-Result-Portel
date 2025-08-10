@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { 
   ArrowLeft, 
   FileText, 
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { pdfReportsApi } from '../../api/pdfReports';
+
 
 // Report Generation Page
 function ReportGenerationPage() {
@@ -187,22 +187,25 @@ function ReportGenerationPage() {
         reportGeneratedAt: new Date().toISOString()
       };
 
-      console.log('Generating report with data:', reportRequestData);
+      console.log('Generating institutional report with data:', reportRequestData);
 
-      // Call the API to generate the Excel report (not PDF)
-      const response = await pdfReportsApi.generateAndDownloadExcel(reportRequestData);
+      // Call the new API to generate and download the Excel report directly
+      await pdfReportsApi.generateInstitutionalExcel(reportRequestData);
 
-      if (response.blob && response.reportData) {
-        // Trigger the download directly
-        pdfReportsApi.triggerDownload(response.blob, response.filename);
-        toast.success('Excel report downloaded successfully!');
-        
-        // Set state for the preview modal with the returned report data
-        setGeneratedReport(response.reportData);
-        setShowPreview(true);
-      } else {
-        throw new Error('Failed to generate or download the report.');
-      }
+      // Since the file is downloaded directly, we can show success and a preview modal
+      // using the data we already have on the client.
+      toast.success('Excel report downloaded successfully!');
+
+      // Use the request data to populate the preview modal
+      setGeneratedReport({
+        ...reportRequestData,
+        // Mimic structure of old response for preview component
+        generatedAt: reportRequestData.reportGeneratedAt,
+        totalStudents: reportRequestData.analysisData.totalStudents,
+        overallPassPercentage: reportRequestData.analysisData.overallPassPercentage,
+        filename: `institutional_report_${reportRequestData.semester}.xlsx` // Approximate filename
+      });
+      setShowPreview(true);
     } catch (error) {
       console.error('Error generating institutional report:', error);
       toast.error(error.message || 'Failed to generate institutional report. Please try again.');
@@ -224,12 +227,7 @@ function ReportGenerationPage() {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-50 py-8"
-    >
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Navigation */}
         <div className="flex justify-between items-center mb-6">
@@ -243,7 +241,7 @@ function ReportGenerationPage() {
         </div>
 
         {/* Header */}
-        <motion.div 
+        <div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
@@ -259,7 +257,7 @@ function ReportGenerationPage() {
 
           {/* Analysis Summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <motion.div 
+            <div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
@@ -272,8 +270,8 @@ function ReportGenerationPage() {
                   <p className="text-xl font-bold text-gray-900">{reportData.resultData.totalStudents}</p>
                 </div>
               </div>
-            </motion.div>
-            <motion.div 
+            </div>
+            <div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.3 }}
@@ -286,8 +284,8 @@ function ReportGenerationPage() {
                   <p className="text-xl font-bold text-gray-900">{reportData.resultData.totalSubjects}</p>
                 </div>
               </div>
-            </motion.div>
-            <motion.div 
+            </div>
+            <div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.4 }}
@@ -300,12 +298,12 @@ function ReportGenerationPage() {
                   <p className="text-xl font-bold text-gray-900">{reportData.resultData.overallPassPercentage.toFixed(1)}%</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Report Form */}
-        <motion.div 
+        <div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
@@ -480,7 +478,7 @@ function ReportGenerationPage() {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {reportData.resultData.subjectWiseResults.map((subject, index) => (
-                <motion.div 
+                <div 
                   key={index}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -506,7 +504,7 @@ function ReportGenerationPage() {
                       style={{ width: `${subject.passPercentage}%` }}
                     ></div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -550,16 +548,16 @@ function ReportGenerationPage() {
               </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Report Generated Success Modal */}
         {showPreview && generatedReport && (
-          <motion.div 
+          <div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           >
-            <motion.div 
+            <div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6"
@@ -653,11 +651,11 @@ function ReportGenerationPage() {
                   Close
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

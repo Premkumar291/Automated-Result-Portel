@@ -4,7 +4,7 @@ import { Link } from "react-router-dom"
 import { Home, Search, ArrowLeft } from "lucide-react" // Import Lucide icons
 
 const PageNotFound = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false) // State for theme, assuming it might be controlled externally or from local storage
+// State for theme, assuming it might be controlled externally or from local storage
 
   // This useEffect is just to simulate theme changes if needed,
   // or to read a default theme from local storage/context if available.

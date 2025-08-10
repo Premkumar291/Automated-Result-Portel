@@ -41,6 +41,31 @@ export class ExcelReportService {
   /**
    * Generate main institutional report matching exact template
    */
+  async generateSemesterReportBuffer(reportData) {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      
+      // Set workbook properties
+      workbook.creator = 'College Result Portal';
+      workbook.lastModifiedBy = 'System';
+      workbook.created = new Date();
+      workbook.modified = new Date();
+
+      // Create the main institutional template sheet only
+      await this.createInstitutionalTemplateSheet(workbook, reportData);
+
+      // Return the workbook as a buffer
+      return await workbook.xlsx.writeBuffer();
+
+    } catch (error) {
+      console.error('Error generating Excel report buffer:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate main institutional report matching exact template
+   */
   async generateSemesterReport(reportData, outputPath) {
     try {
       const workbook = new ExcelJS.Workbook();
@@ -87,6 +112,29 @@ export class ExcelReportService {
 
     } catch (error) {
       console.error('Error generating enhanced Excel report:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate institutional format Excel report
+   */
+  async generateInstitutionalReportBuffer(reportData) {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      
+      workbook.creator = 'College Result Portal';
+      workbook.created = new Date();
+
+      // Create institutional format sheets
+      await this.createInstitutionalMainSheet(workbook, reportData);
+      await this.createInstitutionalSummarySheet(workbook, reportData);
+      await this.createEditableInstitutionalSheet(workbook, reportData);
+
+      return await workbook.xlsx.writeBuffer();
+
+    } catch (error) {
+      console.error('Error generating institutional Excel report buffer:', error);
       throw error;
     }
   }
@@ -738,17 +786,23 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
       }
     };
 
-    // Set column widths for better alignment and content fit (increased by 20% + 30px)
-    sheet.getColumn(1).width = (8 * 1.2) + 90; // S.NO
-    sheet.getColumn(2).width = (14 * 1.2) + 90; // COURSE CODE
-    sheet.getColumn(3).width = (45 * 1.2) + 90; // NAME OF THE SUBJECT
-    sheet.getColumn(4).width = (25 * 1.2) + 90; // NAME OF THE FACULTY
-    sheet.getColumn(5).width = (15 * 1.2) + 90; // DEPARTMENT
-    sheet.getColumn(6).width = (12 * 1.2) + 90; // NO. OF STUDENTS
-    sheet.getColumn(7).width = (12 * 1.2) + 90; // NO. OF STUDENTS PASSED
-    sheet.getColumn(8).width = (12 * 1.2) + 90; // NO. OF STUDENTS FAILED
-    sheet.getColumn(9).width = (12 * 1.2) + 90; // PASS PERCENTAGE
-    sheet.getColumn(10).width = (15 * 1.2) + 90; // STAFF SIGN
+    // Define and set column widths for a professional layout
+    const columnWidths = [
+      { index: 1, width: 8 },   // S.NO
+      { index: 2, width: 18 },  // COURSE CODE
+      { index: 3, width: 50 },  // NAME OF THE SUBJECT
+      { index: 4, width: 35 },  // NAME OF THE FACULTY
+      { index: 5, width: 20 },  // DEPARTMENT
+      { index: 6, width: 15 },  // APPEARED
+      { index: 7, width: 20 },  // PASSED BEFORE REVALUATION
+      { index: 8, width: 20 },  // PASSED AFTER REVALUATION
+      { index: 9, width: 25 },  // % OF PASS BEFORE REVALUATION
+      { index: 10, width: 25 }  // % OF PASS AFTER REVALUATION
+    ];
+
+    columnWidths.forEach(col => {
+      sheet.getColumn(col.index).width = col.width;
+    });
 
     // Title row - INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY - ERODE - 638 316
     sheet.mergeCells('A1:J1');
@@ -1058,7 +1112,7 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
   /**
    * Create main institutional sheet matching exact template format
    */
-  async createInstitutionalMainSheet(workbook, reportData) {
+    async createInstitutionalMainSheet(workbook, reportData) {
     const sheet = workbook.addWorksheet('Result Analysis Report');
 
     // Set up page for landscape printing
@@ -1073,7 +1127,7 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
     };
 
     // Title
-    sheet.mergeCells('A1:K1');
+    sheet.mergeCells('A1:J1');
     const titleCell = sheet.getCell('A1');
     titleCell.value = `${reportData.instituteName || 'INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY'} - ${reportData.instituteLocation || 'ERODE - 638 316'}`;
     titleCell.style = {
@@ -1082,7 +1136,7 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
     };
 
     // Subtitle
-    sheet.mergeCells('A2:K2');
+    sheet.mergeCells('A2:J2');
     const subtitleCell = sheet.getCell('A2');
     subtitleCell.value = `RESULT ANALYSIS ${reportData.generatedDate || new Date().toLocaleDateString().toUpperCase()}`;
     subtitleCell.style = {
@@ -1096,15 +1150,15 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
     sheet.getCell('G4').value = `SEM: ${reportData.semester || 'I'}`;
 
     // Set column widths for institutional format
-    const columnWidths = [4, 8, 15, 15, 8, 8, 8, 8, 10, 10, 8];
+    const columnWidths = [7, 15, 40, 40, 15, 8, 15, 15, 15, 15];
     columnWidths.forEach((width, index) => {
       sheet.getColumn(index + 1).width = width;
     });
 
-    // Headers
+    // Header
     const headers = [
       'S.NO', 'COURSE CODE', 'NAME OF THE SUBJECT', 'NAME OF THE STAFF HANDLED THE SUBJECT',
-      'DEPT', 'APPEARED', 'PASSED BEFORE', 'PASSED AFTER', 'PERCENTAGE BEFORE', 'PERCENTAGE AFTER', 'STATUS'
+      'DEPT', 'APPEARED', 'PASSED BEFORE', 'PASSED AFTER', 'PERCENTAGE BEFORE', 'PERCENTAGE AFTER'
     ];
 
     headers.forEach((header, index) => {
@@ -1136,20 +1190,13 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
         row.getCell(8).value = subject.passedStudents; // Same for now
         row.getCell(9).value = `${subject.passPercentage.toFixed(1)}%`;
         row.getCell(10).value = `${subject.passPercentage.toFixed(1)}%`; // Same for now
-        
-        // Status based on performance
-        let status = 'Poor';
-        if (subject.passPercentage >= 80) status = 'Excellent';
-        else if (subject.passPercentage >= 65) status = 'Good';
-        else if (subject.passPercentage >= 50) status = 'Average';
-        
-        row.getCell(11).value = status;
       }
 
       // Apply styles
-      for (let col = 1; col <= 11; col++) {
+      for (let col = 1; col <= 10; col++) {
         row.getCell(col).style = {
           ...this.cellStyle,
+          alignment: { ...this.cellStyle.alignment, wrapText: true },
           font: { name: 'Arial', size: 9 }
         };
       }

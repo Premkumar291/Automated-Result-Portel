@@ -209,6 +209,68 @@ export const pdfReportsApi = {
   },
 
   /**
+   * Generates a semester-level Excel report and triggers a download.
+   * @param {Object} reportData - The data required for report generation.
+   * @returns {Promise<void>}
+   */
+  async generateSemesterExcel(reportData) {
+    try {
+      const response = await reportsApi.post('/generate', reportData, {
+        responseType: 'blob',
+      });
+
+      if (!(response.data instanceof Blob)) {
+        throw new Error('Server returned invalid file format. Expected Excel file.');
+      }
+
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'semester-report.xlsx';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch.length > 1) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      this.triggerDownload(response.data, filename);
+    } catch (error) {
+      console.error('Error generating semester Excel report:', error);
+      throw new Error('Failed to generate semester Excel report. Please try again.');
+    }
+  },
+
+  /**
+   * Generates an institutional-level Excel report and triggers a download.
+   * @param {Object} reportData - The data required for report generation.
+   * @returns {Promise<void>}
+   */
+  async generateInstitutionalExcel(reportData) {
+    try {
+      const response = await reportsApi.post('/generate-institutional', reportData, {
+        responseType: 'blob',
+      });
+
+      if (!(response.data instanceof Blob)) {
+        throw new Error('Server returned invalid file format. Expected Excel file.');
+      }
+
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'institutional-report.xlsx';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch.length > 1) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      this.triggerDownload(response.data, filename);
+    } catch (error) {
+      console.error('Error generating institutional Excel report:', error);
+      throw new Error('Failed to generate institutional Excel report. Please try again.');
+    }
+  },
+
+  /**
    * Helper function to trigger file download from blob
    * @param {Blob} blob - File blob
    * @param {string} filename - Desired filename
@@ -225,11 +287,12 @@ export const pdfReportsApi = {
   },
 
   /**
+   * @deprecated Use `generateSemesterExcel` or `generateInstitutionalExcel` instead. This function uses an inefficient two-step process.
    * Generate and directly download Excel report
    * @param {Object} reportData - Report generation data
    * @returns {Promise} Direct download response
    */
-  async generateAndDownloadExcel(reportData) {
+  async DEPRECATED_generateAndDownloadExcel(reportData) {
     try {
       console.log('Generating and downloading Excel report:', reportData);
       
