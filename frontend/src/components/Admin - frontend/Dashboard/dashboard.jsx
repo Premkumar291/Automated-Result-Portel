@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate, Link } from "react-router-dom" // Import Link
 import { logout, checkAuth } from "@/api/auth"
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, LogOut, Bell, Users, UserPlus } from "lucide-react"
+import { ChevronLeft, ChevronRight, LogOut, Bell, Users, UserPlus, BookOpen, Link as LinkIcon } from "lucide-react"
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -31,7 +32,7 @@ const Dashboard = () => {
   const navigate = useNavigate()
 
   // Sidebar navigation items
-  const mainNavItems = [
+  const sidebarItems = [
     {
       name: "Faculty Creation",
       icon: Users,
@@ -43,6 +44,18 @@ const Dashboard = () => {
       icon: UserPlus,
       description: "Enroll new students",
       url: "/admin/createFaculty/add-student", // URL for the Add Student page
+    },
+    {
+      name: "Subject Management",
+      icon: BookOpen,
+      description: "Manage academic subjects",
+      url: "/admin/subject-management",
+    },
+    {
+      name: "Faculty Management",
+      icon: Users,
+      description: "Manage faculty profiles",
+      url: "/admin/faculty-management",
     },
   ]
 
@@ -790,7 +803,7 @@ const Dashboard = () => {
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto">
             <div className={`p-3 space-y-1 ${isDarkMode ? "bg-black" : ""}`}>
-              {mainNavItems.map((item) => (
+              {sidebarItems.map((item) => (
                 <NavItem key={item.name} item={item} isActive={activeItem === item.name} onClick={handleItemClick} />
               ))}
             </div>

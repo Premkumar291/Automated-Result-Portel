@@ -1264,15 +1264,15 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
 
     const signatureCell1 = sheet.getCell(signatureRow, 1);
     signatureCell1.value = 'CLASS ADVISOR';
-    signatureCell1.style = { font: { name: 'Arial', size: 10, bold: true }, alignment: { vertical: 'bottom', horizontal: 'left' } };
+    signatureCell1.style = { font: { name: 'Arial', size: 15, bold: true }, alignment: { vertical: 'bottom', horizontal: 'left' } };
 
     const signatureCell2 = sheet.getCell(signatureRow, 4);
     signatureCell2.value = 'HEAD OF THE DEPARTMENT';
-    signatureCell2.style = { font: { name: 'Arial', size: 10, bold: true }, alignment: { vertical: 'bottom', horizontal: 'center' } };
+    signatureCell2.style = { font: { name: 'Arial', size: 15, bold: true }, alignment: { vertical: 'bottom', horizontal: 'center' } };
 
     const signatureCell3 = sheet.getCell(signatureRow, 9);
     signatureCell3.value = 'PRINCIPAL';
-    signatureCell3.style = { font: { name: 'Arial', size: 10, bold: true }, alignment: { vertical: 'bottom', horizontal: 'right' } };
+    signatureCell3.style = { font: { name: 'Arial', size: 15, bold: true }, alignment: { vertical: 'bottom', horizontal: 'right' } };
   }
 
   /**

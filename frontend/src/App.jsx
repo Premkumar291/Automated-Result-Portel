@@ -13,11 +13,14 @@ import ReportGenerationPage from "./components/Faculty - frontend/ReportGenerati
 import AdminDashboard from "./components/Admin - frontend/Dashboard/dashboard";
 import AddStudentPage from "./components/Admin - frontend/creatingPages/add-student-page";
 import CreateFaculty from "./components/Admin - frontend/creatingPages/create-faculty";
+import SubjectManagement from "./components/Admin - frontend/creatingPages/subject-management";
+import FacultyManagement from "./components/Admin - frontend/creatingPages/faculty-management";
+
 
 // Layout wrapper component that applies different styles based on route
 function AppLayout({ children }) {
   const location = useLocation();
-  const isFullWidthPage = location.pathname === '/faculty-dashboard' || location.pathname === '/admin-dashboard' || location.pathname.includes('/result-analysis') || location.pathname.includes('/add-student') || location.pathname.includes('/generate-report');
+  const isFullWidthPage = location.pathname === '/faculty-dashboard' || location.pathname === '/admin-dashboard' || location.pathname.includes('/result-analysis') || location.pathname.includes('/add-student') || location.pathname.includes('/generate-report') || location.pathname.includes('/subject-management') || location.pathname.includes('/faculty-management');
   
   if (isFullWidthPage) {
     // Full-width layout for dashboard and result analysis pages
@@ -51,6 +54,9 @@ function AppLayout({ children }) {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/createFaculty/add-student" element={<AddStudentPage />} />
           <Route path="/admin/createFaculty/create-faculty" element={<CreateFaculty />} />
+          <Route path="/admin/subject-management" element={<SubjectManagement />} />
+          <Route path="/admin/faculty-management" element={<FacultyManagement />} />
+          
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/result-analysis" element={<ResultAnalysis />} />

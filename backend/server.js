@@ -11,6 +11,9 @@ import pdfCoAnalysisRoutes from './routes/pdfCoAnalysis.route.js';
 import pdfReportRoutes from './routes/pdfReport.route.js';
 import { scheduleCleanup } from './utils/cleanupExpiredPDFs.js';
 import studentRoutes from './routes/student.route.js';
+import subjectRoutes from './routes/subject.route.js';
+import facultyRoutes from './routes/faculty.route.js';
+
 
 dotenv.config();
 
@@ -39,6 +42,9 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/subjects", subjectRoutes); // Subject management routes
+app.use("/api/faculty", facultyRoutes); // Faculty management routes
+
 app.use("/api/analyze", pdfCoAnalysisRoutes); // Using PDF.co as the primary analyzer
 app.use("/api/reports", pdfReportRoutes); // PDF report generation and management
 

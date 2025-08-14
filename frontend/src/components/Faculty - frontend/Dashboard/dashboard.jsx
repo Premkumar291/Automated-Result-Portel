@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { logout, checkAuth } from "@/api/auth"
 import PDFProcessingCard from "./PDFProcessingCard"
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight, BarChart3, FileText, LogOut, Bell } from "lucide-react" // Removed Search icon
 import FacultyReportEditor from "./FacultyReportEditor.jsx";
