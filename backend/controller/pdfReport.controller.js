@@ -89,12 +89,13 @@ export class PDFReportController {
         monthsAndYear,    // Added
         analysisData,
         facultyAssignments,
+        subjectNames, // Added
         instituteName,
         instituteLocation,
         reportGeneratedAt
       } = req.body;
 
-      const processedData = PDFReportController.processAnalysisData(analysisData || { students: [], subjectCodes: [] });
+      const processedData = PDFReportController.processAnalysisData(analysisData || { students: [], subjectCodes: [] }, subjectNames);
       
       const reportData = {
         instituteName: instituteName || 'INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY',
@@ -106,6 +107,7 @@ export class PDFReportController {
         monthsAndYear: monthsAndYear,
         reportGeneratedAt: reportGeneratedAt || new Date().toLocaleDateString('en-GB'),
         facultyAssignments: facultyAssignments || {},
+        subjectNames: subjectNames || {},
         ...processedData
       };
 
@@ -444,7 +446,7 @@ export class PDFReportController {
   /**
    * Process raw analysis data for report generation
    */
-  static processAnalysisData(analysisData) {
+  static processAnalysisData(analysisData, subjectNames = {}) {
     const { students, subjectCodes } = analysisData;
     
     const totalStudents = students.length;
@@ -474,7 +476,7 @@ export class PDFReportController {
 
       return {
         subjectCode,
-        subjectName: subjectCode,
+        subjectName: subjectNames[subjectCode] || subjectCode,
         passPercentage,
         totalStudents: totalStudentsForSubject,
         passedStudents

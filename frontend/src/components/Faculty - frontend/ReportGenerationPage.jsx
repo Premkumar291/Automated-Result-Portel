@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { pdfReportsApi } from '../../api/pdfReports';
+import SubjectNameInput from './ReportGeneration/SubjectNameInput';
+import FacultyNameInput from './ReportGeneration/FacultyNameInput';
 
 
 // Report Generation Page
@@ -36,6 +38,7 @@ function ReportGenerationPage() {
   
   // Faculty assignments per subject
   const [facultyAssignments, setFacultyAssignments] = useState({});
+  const [subjectNames, setSubjectNames] = useState({});
   
   // Loading state and form validation errors
   const [loading, setLoading] = useState(false);
@@ -68,6 +71,14 @@ function ReportGenerationPage() {
           });
         }
         setFacultyAssignments(initialAssignments);
+
+        const initialSubjectNames = {};
+        if (parsedData.analysisData && parsedData.analysisData.subjectCodes) {
+          parsedData.analysisData.subjectCodes.forEach(subjectCode => {
+            initialSubjectNames[subjectCode] = '';
+          });
+        }
+        setSubjectNames(initialSubjectNames);
       } catch (error) {
         console.error('ReportGenerationPage: Error parsing sessionStorage data:', error);
         toast.error('Invalid report data. Please go back to analysis page.');
@@ -83,16 +94,15 @@ function ReportGenerationPage() {
     }
   }, [navigate]);
 
-  const handleDepartmentInfoChange = (field, value) => {
-    setDepartmentInfo(prev => ({
+  const handleSubjectNameChange = (subjectCode, subjectName) => {
+    setSubjectNames(prev => ({
       ...prev,
-      [field]: value
+      [subjectCode]: subjectName
     }));
-    // Clear errors when user starts typing
-    if (errors[field]) {
+    if (errors[`subject_${subjectCode}`]) {
       setErrors(prev => ({
         ...prev,
-        [field]: ''
+        [`subject_${subjectCode}`]: ''
       }));
     }
   };
@@ -107,6 +117,20 @@ function ReportGenerationPage() {
       setErrors(prev => ({
         ...prev,
         [`faculty_${subjectCode}`]: ''
+      }));
+    }
+  };
+
+  const handleDepartmentInfoChange = (field, value) => {
+    setDepartmentInfo(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    // Clear errors when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
       }));
     }
   };
@@ -131,11 +155,14 @@ function ReportGenerationPage() {
       newErrors.monthsAndYear = 'Months/Year is required';
     }
 
-    // Validate faculty assignments - all subjects must have faculty assigned
+    // Validate faculty assignments and subject names
     if (reportData && reportData.analysisData && reportData.analysisData.subjectCodes) {
       reportData.analysisData.subjectCodes.forEach(subjectCode => {
         if (!facultyAssignments[subjectCode] || !facultyAssignments[subjectCode].trim()) {
-          newErrors[`faculty_${subjectCode}`] = 'Faculty name is required for this subject';
+          newErrors[`faculty_${subjectCode}`] = 'Faculty name is required';
+        }
+        if (!subjectNames[subjectCode] || !subjectNames[subjectCode].trim()) {
+          newErrors[`subject_${subjectCode}`] = 'Subject name is required';
         }
       });
     }
@@ -185,8 +212,9 @@ function ReportGenerationPage() {
           subjectWiseResults: reportData.resultData.subjectWiseResults
         },
         
-        // Faculty assignments per subject
+        // Faculty assignments and subject names
         facultyAssignments: facultyAssignments,
+        subjectNames: subjectNames,
         
         // Optional fields with defaults
         facultyId: null, // Will use req.user?.id from backend
@@ -463,6 +491,9 @@ function ReportGenerationPage() {
                       Subject Code
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Subject Name *
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Faculty Name *
                     </th>
                   </tr>
@@ -476,22 +507,21 @@ function ReportGenerationPage() {
                           {subjectCode}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <input
-                          type="text"
-                          className={`w-full px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            errors[`faculty_${subjectCode}`] ? 'border-red-300' : 'border-gray-300'
-                          }`}
-                          placeholder="Enter faculty name"
-                          value={facultyAssignments[subjectCode] || ''}
-                          onChange={(e) => handleFacultyAssignmentChange(subjectCode, e.target.value)}
+                                            <td className="px-6 py-4">
+                        <SubjectNameInput
+                          subjectCode={subjectCode}
+                          value={subjectNames[subjectCode] || ''}
+                          onChange={handleSubjectNameChange}
+                          error={errors[`subject_${subjectCode}`]}
                         />
-                        {errors[`faculty_${subjectCode}`] && (
-                          <p className="mt-1 text-sm text-red-600 flex items-center">
-                            <AlertCircle className="h-4 w-4 mr-1" />
-                            {errors[`faculty_${subjectCode}`]}
-                          </p>
-                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <FacultyNameInput
+                          subjectCode={subjectCode}
+                          value={facultyAssignments[subjectCode] || ''}
+                          onChange={handleFacultyAssignmentChange}
+                          error={errors[`faculty_${subjectCode}`]}
+                        />
                       </td>
                     </tr>
                   ))}

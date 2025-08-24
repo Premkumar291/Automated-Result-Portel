@@ -1,16 +1,16 @@
 import React from 'react';
-import { User, AlertCircle } from 'lucide-react';
+import { Book, AlertCircle } from 'lucide-react';
 
-const FacultyNameInput = ({ subjectCode, value, onChange, error }) => {
+const SubjectNameInput = ({ subjectCode, value, onChange, error }) => {
   return (
     <div>
       <div className="relative">
-        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Book className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(subjectCode, e.target.value)}
-          placeholder="Enter faculty name..."
+          placeholder="Enter subject name..."
           className={`w-full pl-10 pr-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
             error ? 'border-red-300' : 'border-gray-300'
           }`}
@@ -27,4 +27,4 @@ const FacultyNameInput = ({ subjectCode, value, onChange, error }) => {
 };
 
 
-export default FacultyNameInput;
+export default SubjectNameInput;
