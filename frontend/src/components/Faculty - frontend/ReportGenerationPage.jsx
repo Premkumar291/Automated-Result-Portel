@@ -29,7 +29,9 @@ function ReportGenerationPage() {
   const [departmentInfo, setDepartmentInfo] = useState({
     semester: '',
     academicYear: new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
-    department: 'CSE'
+    department: 'CSE',
+    classAdvisorName: '',
+    monthsAndYear: ''
   });
   
   // Faculty assignments per subject
@@ -46,12 +48,10 @@ function ReportGenerationPage() {
   useEffect(() => {
     // Retrieve saved report generation data from session storage
     const data = sessionStorage.getItem('reportGenerationData');
-    console.log('ReportGenerationPage: Retrieved data from sessionStorage:', data);
     
     if (data) {
       try {
         const parsedData = JSON.parse(data);
-        console.log('ReportGenerationPage: Parsed data:', parsedData);
         setReportData(parsedData);
 
         // Initialize department info with data from analysis
@@ -124,6 +124,12 @@ function ReportGenerationPage() {
     if (!departmentInfo.department.trim()) {
       newErrors.department = 'Department is required';
     }
+    if (!departmentInfo.classAdvisorName.trim()) {
+      newErrors.classAdvisorName = 'Class Advisor Name is required';
+    }
+    if (!departmentInfo.monthsAndYear.trim()) {
+      newErrors.monthsAndYear = 'Months/Year is required';
+    }
 
     // Validate faculty assignments - all subjects must have faculty assigned
     if (reportData && reportData.analysisData && reportData.analysisData.subjectCodes) {
@@ -167,6 +173,8 @@ function ReportGenerationPage() {
         department: departmentInfo.department,
         semester: departmentInfo.semester.trim(),
         academicYear: departmentInfo.academicYear.trim(),
+        classAdvisorName: departmentInfo.classAdvisorName.trim(),
+        monthsAndYear: departmentInfo.monthsAndYear.trim(),
         // Analysis data from the previous analysis
         analysisData: {
           students: reportData.analysisData.students,
@@ -186,8 +194,6 @@ function ReportGenerationPage() {
         instituteLocation: 'ERODE - 638 316',
         reportGeneratedAt: new Date().toISOString()
       };
-
-      console.log('Generating institutional report with data:', reportRequestData);
 
       // Call the new API to generate and download the Excel report directly
       await pdfReportsApi.generateInstitutionalExcel(reportRequestData);
@@ -389,6 +395,50 @@ function ReportGenerationPage() {
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {errors.department}
+                  </p>
+                )}
+              </div>
+
+              {/* Class Advisor Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Class Advisor Name *
+                </label>
+                <input
+                  type="text"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.classAdvisorName ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter class advisor's name"
+                  value={departmentInfo.classAdvisorName}
+                  onChange={(e) => handleDepartmentInfoChange('classAdvisorName', e.target.value)}
+                />
+                {errors.classAdvisorName && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.classAdvisorName}
+                  </p>
+                )}
+              </div>
+
+              {/* Months/Year */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Months/Year *
+                </label>
+                <input
+                  type="text"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.monthsAndYear ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., APRIL/MAY 2024"
+                  value={departmentInfo.monthsAndYear}
+                  onChange={(e) => handleDepartmentInfoChange('monthsAndYear', e.target.value)}
+                />
+                {errors.monthsAndYear && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.monthsAndYear}
                   </p>
                 )}
               </div>
@@ -628,8 +678,7 @@ function ReportGenerationPage() {
                     onClick={async () => {
                       try {
                         // Download the Excel report
-                        const blob = await pdfReportsApi.downloadReport(generatedReport.reportId);
-                        pdfReportsApi.triggerDownload(blob, generatedReport.filename);
+                        await pdfReportsApi.generateInstitutionalExcel(generatedReport);
                         toast.success('Excel report downloaded successfully!');
                       } catch (error) {
                         console.error('Error downloading Excel report:', error);
