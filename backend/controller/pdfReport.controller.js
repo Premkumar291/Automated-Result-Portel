@@ -85,8 +85,6 @@ export class PDFReportController {
         department, 
         semester, 
         academicYear,
-        classAdvisorName, // Added
-        monthsAndYear,    // Added
         analysisData,
         facultyAssignments,
         instituteName,
@@ -102,8 +100,6 @@ export class PDFReportController {
         department: department,
         semester: semester,
         academicYear: academicYear,
-        classAdvisorName: classAdvisorName,
-        monthsAndYear: monthsAndYear,
         reportGeneratedAt: reportGeneratedAt || new Date().toLocaleDateString('en-GB'),
         facultyAssignments: facultyAssignments || {},
         ...processedData

@@ -122,7 +122,7 @@ const PageNotFound = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {/* Go Home Button */}
             <Link
-              to="/login-page"
+              to="/dashboard"
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:shadow-lg active:translate-y-[1px] active:scale-[0.98]
                 ${
                   isDarkMode
@@ -131,7 +131,7 @@ const PageNotFound = () => {
                 }`}
             >
               <Home className="w-5 h-5" />
-              <span>Go to Log in page</span>
+              <span>Go to Dashboard</span>
             </Link>
             {/* Go Back Button */}
             <button

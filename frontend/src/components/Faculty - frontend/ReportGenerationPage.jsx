@@ -29,9 +29,7 @@ function ReportGenerationPage() {
   const [departmentInfo, setDepartmentInfo] = useState({
     semester: '',
     academicYear: new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
-    department: 'CSE',
-    classAdvisorName: '',
-    monthsAndYear: ''
+    department: 'CSE'
   });
   
 
@@ -47,10 +45,12 @@ function ReportGenerationPage() {
   useEffect(() => {
     // Retrieve saved report generation data from session storage
     const data = sessionStorage.getItem('reportGenerationData');
+    console.log('ReportGenerationPage: Retrieved data from sessionStorage:', data);
     
     if (data) {
       try {
         const parsedData = JSON.parse(data);
+        console.log('ReportGenerationPage: Parsed data:', parsedData);
         setReportData(parsedData);
 
         // Initialize department info with data from analysis
@@ -87,11 +87,24 @@ function ReportGenerationPage() {
     const newErrors = {};
     
     // Validate department info
-    if (!departmentInfo.semester.toString().trim()) newErrors.semester = 'Semester is required';
-    if (!departmentInfo.academicYear.trim()) newErrors.academicYear = 'Academic year is required';
-    if (!departmentInfo.department.trim()) newErrors.department = 'Department is required';
-    if (!departmentInfo.classAdvisorName.trim()) newErrors.classAdvisorName = 'Class Advisor Name is required';
-    if (!departmentInfo.monthsAndYear.trim()) newErrors.monthsAndYear = 'Months/Year is required';
+    if (!departmentInfo.semester.trim()) {
+      newErrors.semester = 'Semester is required';
+    }
+    if (!departmentInfo.academicYear.trim()) {
+      newErrors.academicYear = 'Academic year is required';
+    }
+    if (!departmentInfo.department.trim()) {
+      newErrors.department = 'Department is required';
+    }
+
+    // Validate faculty assignments - all subjects must have faculty assigned
+    if (reportData && reportData.analysisData && reportData.analysisData.subjectCodes) {
+      reportData.analysisData.subjectCodes.forEach(subjectCode => {
+        if (!facultyAssignments[subjectCode] || !facultyAssignments[subjectCode].trim()) {
+          newErrors[`faculty_${subjectCode}`] = 'Faculty name is required for this subject';
+        }
+      });
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -112,10 +125,9 @@ function ReportGenerationPage() {
     try {
       const reportPayload = {
         department: departmentInfo.department,
-        semester: departmentInfo.semester,
-        academicYear: departmentInfo.academicYear,
-        classAdvisorName: departmentInfo.classAdvisorName,
-        monthsAndYear: departmentInfo.monthsAndYear,
+        semester: departmentInfo.semester.trim(),
+        academicYear: departmentInfo.academicYear.trim(),
+        // Analysis data from the previous analysis
         analysisData: {
           fileName: reportData.fileName,
           totalStudents: reportData.resultData.totalStudents,
@@ -123,19 +135,30 @@ function ReportGenerationPage() {
           subjectWiseResults: reportData.resultData.subjectWiseResults
         },
         facultyId: null, // Will use req.user?.id from backend
-        reportType: 'INSTITUTIONAL',
+        instituteName: 'INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY',
+        instituteLocation: 'ERODE - 638 316',
+        reportGeneratedAt: new Date().toISOString()
       };
-      
-      const response = await pdfReportsApi.generateReport(reportPayload);
-      
-      if (response.data) {
-        setGeneratedReport(response.data);
-        setShowPreview(true);
-        toast.success('Institutional report generated successfully!');
-      } else {
-        throw new Error('No data returned from report generation');
-      }
 
+      console.log('Generating institutional report with data:', reportRequestData);
+
+      // Call the new API to generate and download the Excel report directly
+      await pdfReportsApi.generateInstitutionalExcel(reportRequestData);
+
+      // Since the file is downloaded directly, we can show success and a preview modal
+      // using the data we already have on the client.
+      toast.success('Excel report downloaded successfully!');
+
+      // Use the request data to populate the preview modal
+      setGeneratedReport({
+        ...reportRequestData,
+        // Mimic structure of old response for preview component
+        generatedAt: reportRequestData.reportGeneratedAt,
+        totalStudents: reportRequestData.analysisData.totalStudents,
+        overallPassPercentage: reportRequestData.analysisData.overallPassPercentage,
+        filename: `institutional_report_${reportRequestData.semester}.xlsx` // Approximate filename
+      });
+      setShowPreview(true);
     } catch (error) {
       console.error('Error generating report:', error);
       toast.error(error.response?.data?.message || 'Failed to generate report. Please try again.');
@@ -199,16 +222,6 @@ function ReportGenerationPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Academic Year *</label>
                 <input type="text" className={`w-full px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.academicYear ? 'border-red-300' : 'border-gray-300'}`} placeholder="e.g., 2023-2024" value={departmentInfo.academicYear} onChange={(e) => handleDepartmentInfoChange('academicYear', e.target.value)} />
                 {errors.academicYear && <p className="mt-1 text-sm text-red-600 flex items-center"><AlertCircle className="h-4 w-4 mr-1" />{errors.academicYear}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Class Advisor Name *</label>
-                <input type="text" className={`w-full px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.classAdvisorName ? 'border-red-300' : 'border-gray-300'}`} placeholder="Enter full name" value={departmentInfo.classAdvisorName} onChange={(e) => handleDepartmentInfoChange('classAdvisorName', e.target.value)} />
-                {errors.classAdvisorName && <p className="mt-1 text-sm text-red-600 flex items-center"><AlertCircle className="h-4 w-4 mr-1" />{errors.classAdvisorName}</p>}
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Months & Year of Exam *</label>
-                <input type="text" className={`w-full px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.monthsAndYear ? 'border-red-300' : 'border-gray-300'}`} placeholder="e.g., May-June 2024" value={departmentInfo.monthsAndYear} onChange={(e) => handleDepartmentInfoChange('monthsAndYear', e.target.value)} />
-                {errors.monthsAndYear && <p className="mt-1 text-sm text-red-600 flex items-center"><AlertCircle className="h-4 w-4 mr-1" />{errors.monthsAndYear}</p>}
               </div>
             </div>
           </div>
@@ -277,7 +290,21 @@ function ReportGenerationPage() {
                     <Eye className="h-4 w-4 mr-2" />
                     View Report
                   </button>
-                  <button onClick={async () => { try { await pdfReportsApi.generateInstitutionalExcel(generatedReport); toast.success('Excel report downloaded successfully!'); } catch (error) { console.error('Error downloading Excel report:', error); toast.error('Failed to download Excel report. Please try again.'); } }} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center">
+                  
+                  <button
+                    onClick={async () => {
+                      try {
+                        // Download the Excel report
+                        const blob = await pdfReportsApi.downloadReport(generatedReport.reportId);
+                        pdfReportsApi.triggerDownload(blob, generatedReport.filename);
+                        toast.success('Excel report downloaded successfully!');
+                      } catch (error) {
+                        console.error('Error downloading Excel report:', error);
+                        toast.error('Failed to download Excel report. Please try again.');
+                      }
+                    }}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center"
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Download Report
                   </button>
