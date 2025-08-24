@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 
+// Middleware to verify JWT token
 export const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
   if (!token) {
@@ -13,12 +14,13 @@ export const verifyToken = (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized - Invalid token" });
     }
 
-    // Ensure req.user is properly set for all controller expectations
-    req.userId = decoded.userId; // Attach user info to request object
+    // Ensure req.user is properly set with all necessary information
+    req.userId = decoded.userId;
     req.user = {
-      _id: decoded.userId,      // For controllers expecting _id
-      userId: decoded.userId,  // For controllers expecting userId
-      id: decoded.userId       // For compatibility
+      _id: decoded.userId,
+      userId: decoded.userId,
+      id: decoded.userId,
+      role: decoded.role // Include role from token
     };
     
     console.log('Token verified successfully, req.user:', req.user); // Debug log
@@ -29,3 +31,31 @@ export const verifyToken = (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized access" });
   }
 };
+
+// Middleware to verify admin role
+export const verifyAdmin = (req, res, next) => {
+  console.log('Verifying admin role for user:', req.user);
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    console.log('Unauthorized admin access attempt:', req.user);
+    return res.status(403).json({ 
+      success: false,
+      message: "Access denied. Admin privileges required." 
+    });
+  }
+};
+
+// Middleware to verify faculty role
+export const verifyFaculty = (req, res, next) => {
+  console.log('Verifying faculty role for user:', req.user);
+  if (req.user && req.user.role === 'faculty') {
+    next();
+  } else {
+    console.log('Unauthorized faculty access attempt:', req.user);
+    return res.status(403).json({ 
+      success: false,
+      message: "Access denied. Faculty privileges required." 
+    });
+  }
+};;

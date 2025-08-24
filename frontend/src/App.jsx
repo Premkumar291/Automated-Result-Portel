@@ -5,15 +5,22 @@ import {
   SignupPage, 
   VerifyEmailPage, 
   ForgotPassword,
-  Dashboard,
-  PageNotFound,
-  ResultAnalysis
+  Dashboard as FacultyDashboard,
+  PageNotFound
 } from "./components";
+import { ResultAnalysis } from "./components/Faculty - frontend/Analysis";
+import ReportGenerationPage from "./components/Faculty - frontend/ReportGenerationPage";
+import AdminDashboard from "./components/Admin - frontend/Dashboard/dashboard";
+import AddStudentPage from "./components/Admin - frontend/creatingPages/add-student-page";
+import CreateFaculty from "./components/Admin - frontend/creatingPages/create-faculty";
+import SubjectManagement from "./components/Admin - frontend/creatingPages/subject-management";
+import FacultyManagement from "./components/Admin - frontend/creatingPages/faculty-management";
+
 
 // Layout wrapper component that applies different styles based on route
 function AppLayout({ children }) {
   const location = useLocation();
-  const isFullWidthPage = location.pathname === '/dashboard' || location.pathname.includes('/result-analysis');
+  const isFullWidthPage = location.pathname === '/faculty-dashboard' || location.pathname === '/admin-dashboard' || location.pathname.includes('/result-analysis') || location.pathname.includes('/add-student') || location.pathname.includes('/generate-report') || location.pathname.includes('/subject-management') || location.pathname.includes('/faculty-management');
   
   if (isFullWidthPage) {
     // Full-width layout for dashboard and result analysis pages
@@ -34,7 +41,7 @@ function AppLayout({ children }) {
   );
 }
 
-function App() {
+ function App() {
   return (
     <Router>
       <AppLayout>
@@ -42,10 +49,18 @@ function App() {
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/faculty-dashboard" element={<FacultyDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/createFaculty/add-student" element={<AddStudentPage />} />
+          <Route path="/admin/createFaculty/create-faculty" element={<CreateFaculty />} />
+          <Route path="/admin/subject-management" element={<SubjectManagement />} />
+          <Route path="/admin/faculty-management" element={<FacultyManagement />} />
+          
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/result-analysis" element={<ResultAnalysis />} />
+          <Route path="/generate-report" element={<ReportGenerationPage />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Toaster

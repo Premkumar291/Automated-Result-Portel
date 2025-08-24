@@ -1,18 +1,33 @@
 @import "tailwindcss";
-<<<<<<< HEAD
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body.dark {
+  background-color: #1f1f2e;
+  color: white;
+  transition: background 0.3s ease, color 0.3s ease;
+}
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background-image: url('.src/assets/background1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: 'Poppins', sans-serif;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Optional: Add overlay for readability */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Dark overlay */
+  z-index: -1;
 }
-=======
->>>>>>> cccbcd8ad28449916d6ddc487e1f5c6b01e4a5af
+

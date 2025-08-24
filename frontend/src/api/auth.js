@@ -1,5 +1,5 @@
 // Authentication API functions
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL ;
 
 export const signup = async (formData) => {
   const response = await fetch(`${API_URL}/auth/signup`, {
@@ -51,6 +51,27 @@ export const verifyEmail = async (code) => {
     return data;
   } catch (error) {
     console.error('Verify email API error:', error);
+    throw error;
+  }
+};
+
+export const resendVerificationCode = async (email) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/resend-verification-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Resend verification code API error:', error);
     throw error;
   }
 };
