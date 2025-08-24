@@ -16,7 +16,7 @@ export class ExcelReportService {
     
     this.headerStyle = {
       font: { name: 'Arial', size: 12, bold: true },
-      alignment: { vertical: 'middle', horizontal: 'center' },
+      alignment: { vertical: 'middle', horizontal: 'center', wrapText: true },
       fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'E5E7EB' } },
       border: {
         top: { style: 'thin' },
@@ -412,8 +412,7 @@ export class ExcelReportService {
       'Total Students',
       'Passed Students',
       'Failed Students',
-      'Pass Percentage',
-      'Status'
+      'Pass Percentage'
     ];
 
     headers.forEach((header, index) => {
@@ -1138,7 +1137,7 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
     // Subtitle
     sheet.mergeCells('A2:J2');
     const subtitleCell = sheet.getCell('A2');
-    subtitleCell.value = `RESULT ANALYSIS ${reportData.generatedDate || new Date().toLocaleDateString().toUpperCase()}`;
+    subtitleCell.value = `RESULT ANALYSIS - ${reportData.monthsAndYear || 'APRIL/MAY 2024'}`;
     subtitleCell.style = {
       font: { name: 'Arial', size: 12, bold: true },
       alignment: { vertical: 'middle', horizontal: 'center' }
@@ -1146,11 +1145,17 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
 
     // Course info
     sheet.getCell('A4').value = 'DEGREE: B.TECH';
+
+    // Class Advisor
+    sheet.mergeCells('A5:C5');
+    const advisorCell = sheet.getCell('A5');
+    advisorCell.value = `CLASS ADVISOR: ${reportData.classAdvisorName || ''}`;
+    advisorCell.style = { font: { name: 'Arial', size: 10, bold: true }, alignment: { vertical: 'middle', horizontal: 'left' } };
     sheet.getCell('D4').value = `BRANCH: ${reportData.department || 'IT'}`;
     sheet.getCell('G4').value = `SEM: ${reportData.semester || 'I'}`;
 
     // Set column widths for institutional format
-    const columnWidths = [7, 15, 40, 40, 15, 8, 15, 15, 15, 15];
+    const columnWidths = [5, 8, 25, 25, 12, 10, 8, 8, 15, 15];
     columnWidths.forEach((width, index) => {
       sheet.getColumn(index + 1).width = width;
     });
@@ -1187,9 +1192,9 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
         row.getCell(5).value = reportData.department;
         row.getCell(6).value = subject.totalStudents;
         row.getCell(7).value = subject.passedStudents;
-        row.getCell(8).value = subject.passedStudents; // Same for now
+        row.getCell(8).value = ''; // PASSED AFTER - leave empty
         row.getCell(9).value = `${subject.passPercentage.toFixed(1)}%`;
-        row.getCell(10).value = `${subject.passPercentage.toFixed(1)}%`; // Same for now
+        row.getCell(10).value = ''; // PERCENTAGE AFTER - leave empty
       }
 
       // Apply styles
@@ -1200,8 +1205,74 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
           font: { name: 'Arial', size: 9 }
         };
       }
-      row.height = 20;
+      row.height = 24; 
     }
+
+    // --- Re-evaluation Summary Table and Signature Section ---
+    const summaryStartRow = 7 + maxRows + 2; // Start 2 rows after the main table
+
+    // Re-evaluation table headers
+    const revalHeaderRow = sheet.getRow(summaryStartRow);
+    sheet.mergeCells(summaryStartRow, 4, summaryStartRow, 6);
+    const beforeCell = sheet.getCell(summaryStartRow, 4);
+    beforeCell.value = 'BEFORE REVALUATION';
+    beforeCell.style = { ...this.headerStyle, font: { name: 'Arial', size: 10, bold: true }, alignment: { ...this.headerStyle.alignment, horizontal: 'center' } };
+
+    sheet.mergeCells(summaryStartRow, 7, summaryStartRow, 9);
+    const afterCell = sheet.getCell(summaryStartRow, 7);
+    afterCell.value = 'AFTER REVALUATION';
+    afterCell.style = { ...this.headerStyle, font: { name: 'Arial', size: 10, bold: true }, alignment: { ...this.headerStyle.alignment, horizontal: 'center' } };
+
+    // Re-evaluation table data
+    const totalStudents = reportData.analysisData?.totalStudents || 0;
+    const passedBefore = reportData.analysisData?.subjectWiseResults?.reduce((acc, subject) => acc + subject.passedStudents, 0) || 0; 
+    const passPercentageBefore = reportData.analysisData?.overallPassPercentage || 0;
+
+    const summaryData = [
+      ['NO. OF STUDENTS APPEARED', totalStudents, ''],
+      ['NO. OF STUDENTS PASSED', passedBefore, ''],
+      ['OVERALL PASS PERCENTAGE', `${passPercentageBefore.toFixed(2)}`, '']
+    ];
+
+    summaryData.forEach((data, index) => {
+      const dataRowIndex = summaryStartRow + 1 + index;
+      const dataRow = sheet.getRow(dataRowIndex);
+      dataRow.height = 20;
+
+      // Label
+      sheet.mergeCells(dataRowIndex, 1, dataRowIndex, 3);
+      const labelCell = dataRow.getCell(1);
+      labelCell.value = data[0];
+      labelCell.style = { ...this.cellStyle, font: { name: 'Arial', size: 10, bold: true }, alignment: { ...this.cellStyle.alignment, horizontal: 'left', indent: 1 } };
+
+      // Before Value
+      sheet.mergeCells(dataRowIndex, 4, dataRowIndex, 6);
+      const beforeValueCell = dataRow.getCell(4);
+      beforeValueCell.value = data[1];
+      beforeValueCell.style = this.cellStyle;
+
+      // After Value
+      sheet.mergeCells(dataRowIndex, 7, dataRowIndex, 9);
+      const afterValueCell = dataRow.getCell(7);
+      afterValueCell.value = data[2];
+      afterValueCell.style = this.cellStyle;
+    });
+
+    // Signature Section
+    const signatureRow = summaryStartRow + summaryData.length + 4;
+    sheet.getRow(signatureRow).height = 25;
+
+    const signatureCell1 = sheet.getCell(signatureRow, 1);
+    signatureCell1.value = 'CLASS ADVISOR';
+    signatureCell1.style = { font: { name: 'Arial', size: 10, bold: true }, alignment: { vertical: 'bottom', horizontal: 'left' } };
+
+    const signatureCell2 = sheet.getCell(signatureRow, 4);
+    signatureCell2.value = 'HEAD OF THE DEPARTMENT';
+    signatureCell2.style = { font: { name: 'Arial', size: 10, bold: true }, alignment: { vertical: 'bottom', horizontal: 'center' } };
+
+    const signatureCell3 = sheet.getCell(signatureRow, 9);
+    signatureCell3.value = 'PRINCIPAL';
+    signatureCell3.style = { font: { name: 'Arial', size: 10, bold: true }, alignment: { vertical: 'bottom', horizontal: 'right' } };
   }
 
   /**
