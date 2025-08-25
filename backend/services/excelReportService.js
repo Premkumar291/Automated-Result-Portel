@@ -345,7 +345,8 @@ export class ExcelReportService {
         cell.value = grade;
         
         // Color coding for grades
-        if (grade === 'U' || grade === 'F') {
+        const arrearGrades = ['U', 'F', 'UA', 'R', 'WH', 'RA'];
+        if (arrearGrades.includes(grade)) {
           cell.style = {
             ...this.cellStyle,
             fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FEE2E2' } },

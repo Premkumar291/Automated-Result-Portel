@@ -244,7 +244,8 @@ export class PDFReportService {
         const grade = student.grades[subject.subjectCode] || '-';
         
         // Color code the grade
-        if (grade === 'U') {
+        const arrearGrades = ['U', 'RA', 'UA', 'R', 'WH'];
+        if (arrearGrades.includes(grade)) {
           doc.fill('#DC2626'); // Red for fail
         } else if (grade === '-') {
           doc.fill('#6B7280'); // Gray for no grade
@@ -676,7 +677,8 @@ export class PDFReportService {
         const grade = student.grades[subject.subjectCode] || '-';
         
         // Color coding
-        if (grade === 'U' || grade === 'F') {
+        const arrearGrades = ['U', 'F', 'RA', 'UA', 'R', 'WH'];
+        if (arrearGrades.includes(grade)) {
           doc.fill('#DC2626'); // Red
         } else if (grade === '-' || grade === '') {
           doc.fill('#6B7280'); // Gray

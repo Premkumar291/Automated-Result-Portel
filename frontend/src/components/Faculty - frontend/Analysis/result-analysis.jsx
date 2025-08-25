@@ -11,6 +11,11 @@ import StudentSelectionModal from './StudentSelectionModal';
 
 export default function ResultAnalysis() {
 
+  // Helper function to check if a grade is an arrear grade
+  const isArrearGrade = (grade) => {
+    const arrearGrades = ['U', 'F', 'RA', 'UA', 'R', 'WH'];
+    return arrearGrades.includes(grade);
+  };
 
   const SubjectPerformanceItem = ({ subject }) => (
     <div className="flex flex-col p-4 bg-gray-50 rounded-lg hover:shadow-md transition-shadow duration-200">
@@ -59,7 +64,7 @@ export default function ResultAnalysis() {
                     <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{student.regNo}</td>
                     <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{student.name}</td>
                     <td className="px-3 py-2 whitespace-nowrap text-xs">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${student.grade === 'U' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${isArrearGrade(student.grade) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
                         {student.grade}
                       </span>
                     </td>
@@ -237,7 +242,7 @@ export default function ResultAnalysis() {
     // Calculate overall pass percentage (students who passed all subjects)
     const total = selectedStudents.length;
     const passed = selectedStudents.filter(s => 
-      Object.values(s.grades).every(g => g !== "U") // "U" represents a failing grade
+      Object.values(s.grades).every(g => !isArrearGrade(g)) // Check if all grades are not arrear grades
     ).length;
     const overallPass = (passed / total) * 100;
     
@@ -251,8 +256,8 @@ export default function ResultAnalysis() {
       // Count students who have a grade for this subject (not empty)
       const appeared = selectedStudents.filter(s => s.grades[code]).length;
       
-      // Count students who passed this subject (grade is not "U")
-      const passed = selectedStudents.filter(s => s.grades[code] && s.grades[code] !== "U").length;
+      // Count students who passed this subject (grade is not an arrear grade)
+      const passed = selectedStudents.filter(s => s.grades[code] && !isArrearGrade(s.grades[code])).length;
       
       // Count students with empty grades for this subject
       const emptyGrades = selectedStudents.filter(s => !s.grades[code]).length;
@@ -559,7 +564,7 @@ export default function ResultAnalysis() {
                           <td key={code} className="px-6 py-4 whitespace-nowrap text-sm">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               !student.grades[code] ? 'bg-gray-100 text-gray-800' :
-                              student.grades[code] === 'U' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                              isArrearGrade(student.grades[code]) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                             }`}>
                               {student.grades[code] || '-'}
                             </span>
@@ -601,7 +606,7 @@ export default function ResultAnalysis() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{student.name}</td>
                         {subjectCodes.map(code => (
                           <td key={code} className="px-6 py-4 whitespace-nowrap text-sm">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${student.grades[code] === 'U' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isArrearGrade(student.grades[code]) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
                               {student.grades[code]}
                             </span>
                           </td>

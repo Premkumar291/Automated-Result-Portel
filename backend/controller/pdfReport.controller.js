@@ -448,30 +448,33 @@ export class PDFReportController {
    */
   static processAnalysisData(analysisData, subjectNames = {}) {
     const { students, subjectCodes } = analysisData;
-    
+    const arrearGrades = ['U', 'F', 'RA', 'UA', 'R', 'WH'];
+
     const totalStudents = students.length;
     const totalSubjects = subjectCodes.length;
-    
-    const studentsPassedAll = students.filter(student => 
-      subjectCodes.every(code => 
-        student.grades[code] && student.grades[code] !== 'U'
-      )
+
+    const studentsPassedAll = students.filter(student =>
+      subjectCodes.every(code => {
+        const grade = student.grades[code];
+        return grade && !arrearGrades.includes(grade);
+      })
     ).length;
-    
-    const overallPassPercentage = totalStudents > 0 ? 
+
+    const overallPassPercentage = totalStudents > 0 ?
       (studentsPassedAll / totalStudents) * 100 : 0;
 
     const subjectResults = subjectCodes.map(subjectCode => {
-      const studentsWithGrade = students.filter(student => 
+      const studentsWithGrade = students.filter(student =>
         student.grades[subjectCode] && student.grades[subjectCode] !== ''
       );
-      
-      const passedStudents = studentsWithGrade.filter(student => 
-        student.grades[subjectCode] !== 'U'
-      ).length;
+
+      const passedStudents = studentsWithGrade.filter(student => {
+        const grade = student.grades[subjectCode];
+        return grade && !arrearGrades.includes(grade);
+      }).length;
 
       const totalStudentsForSubject = studentsWithGrade.length;
-      const passPercentage = totalStudentsForSubject > 0 ? 
+      const passPercentage = totalStudentsForSubject > 0 ?
         (passedStudents / totalStudentsForSubject) * 100 : 0;
 
       return {
