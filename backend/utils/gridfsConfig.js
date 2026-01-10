@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import mongoose from 'mongoose';
 import { GridFSBucket } from 'mongodb';
 import multer from 'multer';
@@ -22,7 +23,7 @@ export const initGridFS = (connection) => {
 
 // Create storage engine
 const storage = new GridFsStorage({
-  url: process.env.MONGODB_URI,
+  url: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/acadex-db',
   options: {
     maxPoolSize: 1, // Reduced for serverless
     serverSelectionTimeoutMS: 5000,

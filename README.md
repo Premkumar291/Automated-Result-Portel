@@ -176,6 +176,16 @@
 | **XLSX** | 0.18.5 | Excel file handling |
 | **ESLint** | 9.25.0 | Code linting |
 
+### Python Microservice
+
+| Technology | Purpose |
+|------------|---------|
+| **Python** | 3.13+ |
+| **FastAPI** | Web Framework |
+| **Uvicorn** | ASGI Server |
+| **pdfplumber** | PDF Data Extraction |
+| **Pandas** | Data Processing |
+
 ---
 
 ## 🚀 Installation & Setup
@@ -184,12 +194,31 @@
 
 Ensure you have the following installed:
 
+- **Python**: v3.10 or higher ([Download](https://www.python.org/downloads/))
 - **Node.js**: v18.0.0 or higher ([Download](https://nodejs.org/))
 - **MongoDB**: v6.0.0 or higher ([Download](https://www.mongodb.com/try/download/community))
 - **Git**: Latest version ([Download](https://git-scm.com/downloads))
-- **PDF.co API Key**: Sign up at [PDF.co](https://pdf.co/)
 
-### Backend Setup
+### 1. Python Service Setup (Required for PDF Analysis)
+
+1.  **Navigate to python-service directory**
+    ```bash
+    cd python-service
+    ```
+
+2.  **Install Python dependencies**
+    ```bash
+    # Make sure to use the '-r' flag
+    pip install -r requirements.txt
+    ```
+
+3.  **Start the Python Microservice**
+    ```bash
+    uvicorn main:app --reload --port 8000
+    ```
+    Service will run on `http://localhost:8000`
+
+### 2. Backend Setup
 
 1. **Clone the repository**
    ```bash
@@ -229,7 +258,7 @@ Ensure you have the following installed:
 
    Server will run on `http://localhost:8080`
 
-### Frontend Setup
+### 3. Frontend Setup
 
 1. **Navigate to frontend directory**
    ```bash

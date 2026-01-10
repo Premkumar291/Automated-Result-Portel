@@ -713,14 +713,9 @@ export default function ResultAnalysis() {
                     </div>
                     <button
                       onClick={() => {
-                        // Create a filtered version of the data without gradePoints
                         const filteredData = {
                           ...analysisData,
-                          students: analysisData.students.slice(selectedStartIndex).map(student => {
-                            // Create a copy of the student without gradePoints
-                            const { ...studentWithoutGradePoints } = student;
-                            return studentWithoutGradePoints;
-                          })
+                          students: analysisData.students.slice(selectedStartIndex)
                         };
                         const jsonStr = JSON.stringify(filteredData, null, 2);
                         const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -756,11 +751,7 @@ export default function ResultAnalysis() {
                       {JSON.stringify(
                         {
                           ...analysisData,
-                          students: analysisData.students.slice(selectedStartIndex).map(student => {
-                            // Create a copy of the student without gradePoints
-                            const { ...studentWithoutGradePoints } = student;
-                            return studentWithoutGradePoints;
-                          })
+                          students: analysisData.students.slice(selectedStartIndex)
                         },
                         null,
                         2
