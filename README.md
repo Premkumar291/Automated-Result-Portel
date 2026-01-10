@@ -574,6 +574,50 @@ ACADEX includes a powerful CSS variable theming system that allows you to custom
 
 ---
 
+## ☁️ Deployment
+
+### 1. Frontend Deployment (Vercel)
+
+The frontend is optimized for **Vercel**.
+
+1.  Push your code to GitHub.
+2.  Import the project in Vercel.
+3.  Set the **Root Directory** to `frontend`.
+4.  Add Environment Variables:
+    *   `VITE_API_URL`: Your deployed Backend URL (e.g., `https://acadex-backend.onrender.com/api`)
+    *   `VITE_APP_NAME`: `ACADEX`
+
+### 2. Backend Deployment (Render)
+
+The backend is best hosted on **Render** or **Railway**.
+
+1.  Create a **New Web Service** on Render.
+2.  Connect your GitHub repository.
+3.  **Settings:**
+    *   **Root Directory:** `backend`
+    *   **Build Command:** `npm install`
+    *   **Start Command:** `node server.js`
+4.  **Environment Variables:**
+    *   Copy all values from your local `backend/.env`
+    *   Update `MONGODB_URI` to your production MongoDB Atlas URI.
+    *   Update `PYTHON_SERVICE_URL` to your deployed Python Service URL.
+
+### 3. Python Service Deployment (Render)
+
+The Python microservice handles PDF analysis and must be deployed separately.
+
+1.  Create a **New Web Service** on Render.
+2.  Connect the same repository.
+3.  **Settings:**
+    *   **Root Directory:** `python-service`
+    *   **Runtime:** Python 3
+    *   **Build Command:** `pip install -r requirements.txt`
+    *   **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4.  **Environment Variables:**
+    *   No specific env vars required unless you add custom config.
+
+---
+
 ## 🔄 Recent Updates
 
 ### Version 1.0.2 - CSS Variable Theming System (December 2025)
