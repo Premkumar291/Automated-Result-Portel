@@ -2,10 +2,10 @@ import bcrypt from "bcryptjs";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { sendEmail } from "../utils/sendEmail.js";
-import { User } from '../models/user.model.js'; 
+import { User } from '../models/user.model.js';
 
 export const signup = async (req, res) => {
-    const { email, password, name, department, role, collegeName } = req.body;
+    const { email, password, name, department, role, collegeName, adminSecret } = req.body;
     try {
 
         // Validate role if provided
@@ -14,6 +14,16 @@ export const signup = async (req, res) => {
                 success: false,
                 message: "Invalid role. Must be either 'faculty' or 'admin'"
             });
+        }
+
+        // Security check for admin creation
+        if (role === 'admin' && process.env.NODE_ENV === 'production') {
+            if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Unauthorized to create admin account"
+                });
+            }
         }
 
         // For admin users, collegeName is required
@@ -25,17 +35,17 @@ export const signup = async (req, res) => {
         }
 
         if (!email || !password || !name || !department) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "All fields are required" 
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required"
             });
         }
 
         const userAlreadyExists = await User.findOne({ email });
         if (userAlreadyExists) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "User already exists" 
+            return res.status(400).json({
+                success: false,
+                message: "User already exists"
             });
         }
 
@@ -52,9 +62,9 @@ export const signup = async (req, res) => {
             verificationToken,
             verificationTokenExpiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
         });
-        
 
-        
+
+
         await newUser.save();
 
         // JWT authentication
@@ -82,8 +92,8 @@ export const signup = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Internal server error",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -91,13 +101,13 @@ export const signup = async (req, res) => {
 };
 
 export const verifyEmail = async (req, res) => {
-    const {code} = req.body;
+    const { code } = req.body;
     try {
 
         if (!code) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Verification code is required" 
+            return res.status(400).json({
+                success: false,
+                message: "Verification code is required"
             });
         }
 
@@ -114,7 +124,7 @@ export const verifyEmail = async (req, res) => {
             });
 
             if (expiredUser && !expiredUser.isVerified) {
-                
+
                 // Generate new verification code
                 const newVerificationToken = generateVerificationCode();
                 expiredUser.verificationToken = newVerificationToken;
@@ -132,16 +142,16 @@ export const verifyEmail = async (req, res) => {
                     // Email sending failed - log internally if needed
                 }
 
-                return res.status(400).json({ 
-                    success: false, 
+                return res.status(400).json({
+                    success: false,
                     message: "Verification code expired. A new verification code has been sent to your email.",
                     codeExpired: true
                 });
             }
 
-            return res.status(400).json({ 
-                success: false, 
-                message: "Invalid verification code" 
+            return res.status(400).json({
+                success: false,
+                message: "Invalid verification code"
             });
         }
 
@@ -162,8 +172,8 @@ export const verifyEmail = async (req, res) => {
         }
 
 
-        res.status(200).json({ 
-            success: true, 
+        res.status(200).json({
+            success: true,
             message: "Email verified successfully",
             user: {
                 _id: user._id,
@@ -176,38 +186,38 @@ export const verifyEmail = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Internal server error",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 }
 
-export const login = async (req,res) => {
+export const login = async (req, res) => {
     const { email, password } = req.body;
     try {
 
         if (!email || !password) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Email and password are required" 
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
             });
         }
 
-        const user = await User.findOne({email}).maxTimeMS(5000);
+        const user = await User.findOne({ email }).maxTimeMS(5000);
         if (!user) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Invalid email or password" 
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email or password"
             });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Invalid email or password" 
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email or password"
             });
         }
 
@@ -215,7 +225,7 @@ export const login = async (req,res) => {
         if (!user.isVerified) {
             let shouldSendEmail = false;
             let verificationCode = user.verificationToken;
-            
+
             // Only generate new code if expired or doesn't exist
             if (!user.verificationToken || !user.verificationTokenExpiresAt || user.verificationTokenExpiresAt < Date.now()) {
                 const newVerificationToken = generateVerificationCode();
@@ -226,7 +236,7 @@ export const login = async (req,res) => {
                 shouldSendEmail = true; // Only send email if code was regenerated
             }
             // If code is still valid, don't send another email
-            
+
             // Send verification email only if new code was generated
             if (shouldSendEmail) {
                 try {
@@ -239,10 +249,10 @@ export const login = async (req,res) => {
                     // Email sending failed - log internally if needed
                 }
             }
-            
-            return res.status(200).json({ 
-                success: false, 
-                message: shouldSendEmail 
+
+            return res.status(200).json({
+                success: false,
+                message: shouldSendEmail
                     ? "Please verify your email before logging in. A verification code has been sent to your email."
                     : "Please verify your email before logging in. Check your email for the verification code.",
                 needsVerification: true,
@@ -281,7 +291,7 @@ export const login = async (req,res) => {
 
         res.status(200).json({
             success: true,
-            message: "Login successful with user role " + user.role ,
+            message: "Login successful with user role " + user.role,
             user: {
                 _id: user._id,
                 email: user.email,
@@ -291,28 +301,28 @@ export const login = async (req,res) => {
                 isVerified: user.isVerified
             }
         });
-        
+
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Internal server error",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
 
-export const logout = async (req,res) => {
+export const logout = async (req, res) => {
     try {
         res.clearCookie("token");
         res.clearCookie("refreshToken");
-        res.status(200).json({ 
-            success: true, 
-            message: "Logged out successfully" 
+        res.status(200).json({
+            success: true,
+            message: "Logged out successfully"
         });
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
         });
     }
 };
@@ -323,17 +333,17 @@ export const forgotPassword = async (req, res) => {
     try {
 
         if (!email) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Email is required" 
+            return res.status(400).json({
+                success: false,
+                message: "Email is required"
             });
         }
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "User not found" 
+            return res.status(400).json({
+                success: false,
+                message: "User not found"
             });
         }
 
@@ -349,19 +359,19 @@ export const forgotPassword = async (req, res) => {
                 `Your reset password code is: ${resetToken}. It is valid for 30 minutes.`
             );
         } catch (emailError) {
-            return res.status(500).json({ 
-                success: false, 
-                message: "Failed to send reset email" 
+            return res.status(500).json({
+                success: false,
+                message: "Failed to send reset email"
             });
         }
 
-        res.status(200).json({ 
-            success: true, 
-            message: "Reset password code sent to your email." 
+        res.status(200).json({
+            success: true,
+            message: "Reset password code sent to your email."
         });
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Internal server error",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -374,9 +384,9 @@ export const verifyResetToken = async (req, res) => {
     try {
 
         if (!email || !code) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Email and code are required" 
+            return res.status(400).json({
+                success: false,
+                message: "Email and code are required"
             });
         }
 
@@ -386,18 +396,18 @@ export const verifyResetToken = async (req, res) => {
             resetPasswordExpiresAt: { $gt: Date.now() }
         });
         if (!user) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Invalid or expired reset code" 
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired reset code"
             });
         }
-        res.status(200).json({ 
-            success: true, 
-            message: "Reset code is valid" 
+        res.status(200).json({
+            success: true,
+            message: "Reset code is valid"
         });
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Internal server error",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -410,9 +420,9 @@ export const resetPassword = async (req, res) => {
     try {
 
         if (!email || !code || !newPassword) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Email, code, and new password are required" 
+            return res.status(400).json({
+                success: false,
+                message: "Email, code, and new password are required"
             });
         }
 
@@ -422,9 +432,9 @@ export const resetPassword = async (req, res) => {
             resetPasswordExpiresAt: { $gt: Date.now() }
         });
         if (!user) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Invalid or expired reset code" 
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired reset code"
             });
         }
         user.password = await bcrypt.hash(newPassword, 10);
@@ -433,13 +443,13 @@ export const resetPassword = async (req, res) => {
         await user.save();
 
 
-        res.status(200).json({ 
-            success: true, 
-            message: "Password reset successful" 
+        res.status(200).json({
+            success: true,
+            message: "Password reset successful"
         });
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Internal server error",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -453,24 +463,24 @@ export const resendVerificationCode = async (req, res) => {
     try {
 
         if (!email) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Email is required" 
+            return res.status(400).json({
+                success: false,
+                message: "Email is required"
             });
         }
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "User not found" 
+            return res.status(400).json({
+                success: false,
+                message: "User not found"
             });
         }
 
         if (user.isVerified) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Email is already verified" 
+            return res.status(400).json({
+                success: false,
+                message: "Email is already verified"
             });
         }
 
@@ -491,31 +501,31 @@ export const resendVerificationCode = async (req, res) => {
         // Send verification email with appropriate message
         try {
             const emailSubject = isNewCode ? "New Verification Code" : "Verification Code Reminder";
-            const emailMessage = isNewCode 
+            const emailMessage = isNewCode
                 ? `Your new verification code is: ${verificationToken}. It is valid for 10 minutes.`
                 : `Your verification code is: ${verificationToken}. It is still valid. Please use it to verify your account.`;
-            
+
             await sendEmail(
                 user.email,
                 emailSubject,
                 emailMessage
             );
         } catch (emailError) {
-            return res.status(500).json({ 
-                success: false, 
-                message: "Failed to send verification email" 
+            return res.status(500).json({
+                success: false,
+                message: "Failed to send verification email"
             });
         }
 
-        res.status(200).json({ 
-            success: true, 
-            message: isNewCode 
-                ? "New verification code sent to your email." 
-                : "Verification code resent to your email." 
+        res.status(200).json({
+            success: true,
+            message: isNewCode
+                ? "New verification code sent to your email."
+                : "Verification code resent to your email."
         });
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Internal server error",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -524,25 +534,25 @@ export const resendVerificationCode = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
     try {
-        
+
         // Use userId from either req.userId or req.user.userId
         const userId = req.userId || (req.user && req.user.userId);
-        
+
         if (!userId) {
-            return res.status(401).json({ 
-                success: false, 
-                message: "Authentication required - no userId" 
+            return res.status(401).json({
+                success: false,
+                message: "Authentication required - no userId"
             });
         }
 
-        
+
         // Add timeout to the database query
         const user = await User.findById(userId).maxTimeMS(5000);
-        
+
         if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "User not found" 
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
             });
         }
 
@@ -561,20 +571,20 @@ export const checkAuth = async (req, res) => {
         });
 
     } catch (error) {
-        
+
         // Specific handling for timeout errors
         if (error.name === 'MongooseError' && error.message.includes('timeout')) {
-            return res.status(503).json({ 
-                success: false, 
-                message: "Database connection timeout. Please try again." 
+            return res.status(503).json({
+                success: false,
+                message: "Database connection timeout. Please try again."
             });
         }
-        
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
+
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
         });
-        
+
     }
 }
 

@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 
 import { connectDb } from './dataBase/connectDb.js';
 import { createIndexes } from './models/index.js';
@@ -21,11 +23,27 @@ import adminHierarchyRoutes from './routes/adminHierarchy.routes.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// trust proxy if behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
+app.set('trust proxy', 1);
+
 // CORS configuration (must be first)
 app.use(cors(corsOptions));
 
 // Security middleware
 app.use(securityMiddleware);
+
+// Compression
+app.use(compression());
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many requests from this IP, please try again after 15 minutes'
+});
+app.use('/api', limiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
@@ -68,20 +86,28 @@ app.use(errorHandler);
 // Database initialization (async, non-blocking)
 // Database initialization handled in request wrapper
 
-// Local development server
-if (process.env.NODE_ENV !== 'production') {
-  (async () => {
-    try {
-      await connectDb();
-      console.log('Database connected successfully');
-      app.listen(PORT, () => {
-        console.log(`Server running on http://localhost:${PORT}`);
-      });
-    } catch (error) {
-      console.error('Failed to start server:', error);
-      process.exit(1);
-    }
-  })();
+// Helper to start server
+const startServer = async () => {
+  try {
+    await connectDb();
+    console.log('Database connected successfully');
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Start server if not running in Serverless mode (Vercel)
+// We assume Vercel uses the exported function and doesn't run this top-level script directly in the same way,
+// OR we check for an environment variable specific to the runtime if needed.
+// A common pattern is checking if the file is the main module.
+// However, in ES modules, require.main is not available.
+// We can check process.env.VERCEL. If NOT Vercel, we start the server.
+if (!process.env.VERCEL) {
+  startServer();
 }
 
 // Export for Vercel (Native Express)

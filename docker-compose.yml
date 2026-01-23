@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  python-service:
+    build: ./python-service
+    container_name: acadex-python-service
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - acadex-network
+
+  backend:
+    build: ./backend
+    container_name: acadex-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    environment:
+      - PYTHON_SERVICE_URL=http://python-service:8000
+    depends_on:
+      - python-service
+    restart: unless-stopped
+    networks:
+      - acadex-network
+
+  frontend:
+    build: ./frontend
+    container_name: acadex-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - acadex-network
+
+networks:
+  acadex-network:
+    driver: bridge
