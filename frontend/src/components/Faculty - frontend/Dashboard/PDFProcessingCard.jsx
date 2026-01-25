@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Eye, Download, TrendingUp } from "lucide-react";
@@ -17,6 +18,17 @@ export default function PDFProcessingCard() {
   // Fixed confidence threshold value of 0.8
   const [viewingPdfId, setViewingPdfId] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+  const navigate = useNavigate();
+  const [analyzingPdfId, setAnalyzingPdfId] = useState(null);
+
+  const handleAnalyze = (pdf) => {
+    setAnalyzingPdfId(pdf.id);
+    // Short delay to show the animation before navigating
+    setTimeout(() => {
+      navigate(`/result-analysis?id=${pdf.id}&semester=${pdf.semester}`);
+      setAnalyzingPdfId(null);
+    }, 500);
+  };
 
   // Load existing PDFs when component mounts
   useEffect(() => {
@@ -53,7 +65,7 @@ export default function PDFProcessingCard() {
       formData.append("autoDeleteHours", "1");
       // Always use fixed confidence threshold of 0.8
       formData.append("confidenceThreshold", "0.8");
-      
+
       // Delete old PDFs before uploading new one
       if (uploadId) {
         try {
@@ -62,26 +74,26 @@ export default function PDFProcessingCard() {
           // Ignore deletion errors - proceed with upload
         }
       }
-      
+
       // Use the new GridFS-based API endpoint
       const res = await axios.post(`${API_URL}/pdf/split`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      
+
       toast.success("PDF uploaded and split successfully!");
       setUploadId(res.data.uploadName);
-      
+
       // Fetch semester PDFs using the new API
       setLoadingSemesterList(true);
       const listRes = await axios.get(`${API_URL}/pdf/${res.data.uploadName}`);
       setSemesterPDFs(listRes.data);
-      
+
       // Show auto-delete information
       if (res.data.autoDeleteScheduled && res.data.deleteAt) {
         const deleteDate = new Date(res.data.deleteAt);
         toast.success(`PDFs will be auto-deleted at ${deleteDate.toLocaleString()}`);
       }
-      
+
       // Show number of semester PDFs created
       if (listRes.data && listRes.data.length > 0) {
         toast.success(`Created ${listRes.data.length} semester PDF${listRes.data.length !== 1 ? 's' : ''}`);
@@ -132,11 +144,11 @@ export default function PDFProcessingCard() {
         window.open(`${API_URL}/pdf/view/${pdfId}?download=true`, '_blank');
         // Reset downloading state after a short delay
         setTimeout(() => setDownloadingPdfId(null), 500);
-      } 
+      }
       // Otherwise use the selected semester from dropdown
       else if (selectedSemester) {
         const selectedPdf = semesterPDFs.find(pdf => pdf.semester === parseInt(selectedSemester));
-        
+
         if (selectedPdf && selectedPdf.id) {
           // Use the ID-based endpoint
           window.open(`${API_URL}/pdf/view/${selectedPdf.id}?download=true`, '_blank');
@@ -156,7 +168,7 @@ export default function PDFProcessingCard() {
 
       <h3 className="text-lg font-semibold text-primary-900 mb-2">Department Result PDF Splitter</h3>
       <p className="text-primary-700 mb-4">Upload a department result PDF and split it into 8 semester files.</p>
-      
+
       {/* Files will be automatically deleted after 1 hour */}
       <div className="mb-4 text-xs text-primary-600 flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -164,16 +176,15 @@ export default function PDFProcessingCard() {
         </svg>
         <span>Files will be automatically deleted after 1 hour ({new Date(Date.now() + 60 * 60 * 1000).toLocaleString()})</span>
       </div>
-      
 
-      
+
+
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`mb-2 border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
-          dragActive ? 'border-primary-600 bg-primary-50' : 'border-primary-200 bg-primary-50'
-        } ${uploading ? 'opacity-50 pointer-events-none' : 'hover:border-primary-400'}`}
+        className={`mb-2 border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${dragActive ? 'border-primary-600 bg-primary-50' : 'border-primary-200 bg-primary-50'
+          } ${uploading ? 'opacity-50 pointer-events-none' : 'hover:border-primary-400'}`}
         style={{ cursor: uploading ? 'not-allowed' : 'pointer' }}
         onClick={() => !uploading && fileInputRef.current.click()}
       >
@@ -239,7 +250,7 @@ export default function PDFProcessingCard() {
             </span>
           )}
         </div>
-        
+
         {loadingSemesterList ? (
           <div className="bg-primary-50 rounded-lg p-6 text-center border border-primary-200">
             <div className="flex flex-col items-center">
@@ -268,7 +279,7 @@ export default function PDFProcessingCard() {
                       {pdf.filename}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <a 
+                      <a
                         href={`${API_URL}/pdf/view/${pdf.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -278,7 +289,7 @@ export default function PDFProcessingCard() {
                           e.stopPropagation();
                           // Set loading state
                           setViewingPdfId(pdf.id);
-                          
+
                           // If the file fails to load, show a toast
                           const img = new Image();
                           img.onerror = () => {
@@ -304,15 +315,21 @@ export default function PDFProcessingCard() {
                         <Download size={16} className="mr-1" />
                         <span>{downloadingPdfId === pdf.id ? 'Downloading...' : 'Download'}</span>
                       </button>
+
                       <div className="relative inline-block">
-                        <a 
-                          href={`/result-analysis?id=${pdf.id}&semester=${pdf.semester}`}
-                          className="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white rounded-md hover:bg-primary-700 shadow-sm transition-all duration-200 transform hover:scale-105"
+                        <button
+                          onClick={() => handleAnalyze(pdf)}
+                          className={`inline-flex items-center px-3 py-1.5 ${analyzingPdfId === pdf.id ? 'bg-primary-500' : 'bg-primary-600'} text-white rounded-md hover:bg-primary-700 shadow-sm transition-all duration-200 transform hover:scale-105 ${analyzingPdfId === pdf.id ? 'cursor-wait' : ''}`}
                           title="Analyze this semester's results"
+                          disabled={!!analyzingPdfId}
                         >
-                          <TrendingUp size={16} className="mr-1" />
-                          <span>Analyze</span>
-                        </a>
+                          {analyzingPdfId === pdf.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                          ) : (
+                            <TrendingUp size={16} className="mr-1" />
+                          )}
+                          <span>{analyzingPdfId === pdf.id ? 'Analyzing...' : 'Analyze'}</span>
+                        </button>
                       </div>
                     </td>
                   </tr>

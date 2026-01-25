@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useCallback } from 'react';
+import React, { useEffect, useReducer, useCallback, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -16,9 +16,16 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { pdfReportsApi } from '../../api/pdfReports';
+import { facultyAPI } from '../../api/faculty';
+import { subjectAPI } from '../../api/subjects';
+import { getCurrentUserCollegeName } from '../../utils/userUtils';
 import EnhancedSubjectNameInput from './ReportGeneration/EnhancedSubjectNameInput';
-import FacultyNameInput from './ReportGeneration/FacultyNameInput';
+import FacultyNameInput from './ReportGeneration/FacultyNameInput'; // This seems to be the old name? Wait.
+// Actually, in the file it imports 'FacultyNameInput' from './ReportGeneration/FacultyNameInput'
+// But I was editing 'FacultyDropdown.jsx'.
+// Let's check if FacultyNameInput is using FacultyDropdown.
 import ClassAdvisorDropdown from './ReportGeneration/ClassAdvisorDropdown';
+import GlobalLoading from "@/components/common/GlobalLoading";
 
 // Initial state for the form
 const initialFormState = {
@@ -180,6 +187,52 @@ function ReportGenerationPage() {
       }, 1000);
     }
   }, [navigate]);
+
+  // Resource state
+  const [facultyList, setFacultyList] = useState([]);
+  const [departmentSubjects, setDepartmentSubjects] = useState([]);
+  const { department } = departmentInfo;
+
+  // Fetch faculty list once
+  useEffect(() => {
+    const fetchFaculty = async () => {
+      try {
+        await getCurrentUserCollegeName(); // Ensure auth check
+        const response = await facultyAPI.getFaculty();
+        if (response.success && response.data) {
+          setFacultyList(response.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch faculty list:', err);
+      }
+    };
+    fetchFaculty();
+  }, []);
+
+  // Fetch subjects when department changes
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      if (!department) return;
+
+      try {
+        const response = await subjectAPI.getSubjectsByDepartment(department);
+        if (response.success && response.data) {
+          setDepartmentSubjects(response.data);
+        } else {
+          // If department fetch fails or returns empty (e.g. 'others'), 
+          // maybe we want to fetch nothing or everything? 
+          // For now, empty list is safer than spamming global search.
+          setDepartmentSubjects([]);
+        }
+      } catch (err) {
+        console.error(`Failed to fetch subjects for department ${department}:`, err);
+        setDepartmentSubjects([]);
+      }
+    };
+
+    // Debounce slightly if needed, but dependency on department string is fine
+    fetchSubjects();
+  }, [department]);
 
   const handleSubjectNameChange = useCallback((subjectCode, subjectName) => {
     dispatch({
@@ -348,16 +401,10 @@ function ReportGenerationPage() {
     }
   };
 
+
+
   if (!reportData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Loader className="h-8 w-8 text-blue-600 mx-auto animate-spin" />
-          <p className="mt-2 text-gray-600">Loading report generation data...</p>
-          <p className="text-sm text-gray-500 mt-1">Please wait while we prepare the report form...</p>
-        </div>
-      </div>
-    );
+    return <GlobalLoading message="Loading report generation data..." />;
   }
 
   return (
@@ -365,13 +412,22 @@ function ReportGenerationPage() {
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Navigation */}
         <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={goBackToAnalysis}
-            className="text-blue-600 hover:text-blue-800 flex items-center transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Analysis
-          </button>
+          <div className="flex space-x-4">
+            <Link
+              to="/faculty-dashboard"
+              className="text-gray-600 hover:text-blue-800 flex items-center transition-colors px-3 py-2 rounded-md hover:bg-gray-100"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Dashboard
+            </Link>
+            <button
+              onClick={goBackToAnalysis}
+              className="text-blue-600 hover:text-blue-800 flex items-center transition-colors px-3 py-2 rounded-md hover:bg-blue-50"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Analysis
+            </button>
+          </div>
         </div>
 
         {/* Header */}
@@ -514,6 +570,7 @@ function ReportGenerationPage() {
 
                   }}
                   error={errors.classAdvisorName}
+                  facultyList={facultyList}
                 />
                 {errors.classAdvisorName && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -603,7 +660,7 @@ function ReportGenerationPage() {
                           value={subjectNames[subjectCode] || ''}
                           onChange={handleSubjectNameChange}
                           error={errors[`subject_${subjectCode}`]}
-                          department={departmentInfo.department}
+                          subjectsList={departmentSubjects}
                         />
                       </td>
                       <td className="px-6 py-4">
@@ -612,6 +669,7 @@ function ReportGenerationPage() {
                           value={facultyAssignments[subjectCode] || ''}
                           onChange={handleFacultyAssignmentChange}
                           error={errors[`faculty_${subjectCode}`]}
+                          facultyList={facultyList}
                         />
                       </td>
                     </tr>
@@ -695,9 +753,16 @@ function ReportGenerationPage() {
               </p>
             </div>
             <div className="flex space-x-3">
+              <Link
+                to="/faculty-dashboard"
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Dashboard
+              </Link>
               <button
                 onClick={goBackToAnalysis}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+                className="px-4 py-2 border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors flex items-center"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Analysis

@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "r
 import { Toaster } from "react-hot-toast";
 import FacultyErrorBoundary from "./components/common/FacultyErrorBoundary";
 import { Suspense, lazy } from "react";
-import LoadingSpinner from "./components/common/LoadingSpinner"; // You might need to create this or use a simple fallback
+import GlobalLoading from "@/components/common/GlobalLoading";
 
 
 // Lazy load pages
@@ -47,15 +47,13 @@ function AppLayout({ children }) {
   );
 }
 
+
+
 function App() {
   return (
     <Router>
       <AppLayout>
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-          </div>
-        }>
+        <Suspense fallback={<GlobalLoading />}>
           <Routes>
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/login" element={<LoginPage />} />

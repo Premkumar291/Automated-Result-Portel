@@ -39,6 +39,8 @@ const PersonIcon = () => (
   </svg>
 )
 
+import GlobalLoading from "@/components/common/GlobalLoading"
+
 const VerifyEmail = () => {
   // All original state and logic preserved
   const [code, setCode] = useState("")
@@ -104,7 +106,7 @@ const VerifyEmail = () => {
       if (data.success) {
         setSuccess("Email verified successfully! Redirecting to dashboard...")
         toast.success("Email verified successfully!")
-        
+
         // Check user role and redirect accordingly
         try {
           const authData = await checkAuth()
@@ -142,6 +144,11 @@ const VerifyEmail = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Render GlobalLoading if verifying
+  if (loading) {
+    return <GlobalLoading message="Verifying email..." />
   }
 
   return (
@@ -676,9 +683,8 @@ const VerifyEmail = () => {
                           onChange={(e) => setCode(e.target.value)}
                           disabled={loading}
                           required
-                          className={`w-full h-14 pl-12 pr-4 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
-                            loading ? "cursor-not-allowed opacity-50" : ""
-                          }`}
+                          className={`w-full h-14 pl-12 pr-4 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${loading ? "cursor-not-allowed opacity-50" : ""
+                            }`}
                           placeholder="  enter verification code"
                         />
                       </div>
@@ -688,11 +694,10 @@ const VerifyEmail = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className={`w-full h-12 font-medium text-sm rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-black mt-8 border ${
-                        loading
-                          ? "bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300"
-                          : "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md active:bg-gray-200"
-                      }`}
+                      className={`w-full h-12 font-medium text-sm rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-black mt-8 border ${loading
+                        ? "bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300"
+                        : "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md active:bg-gray-200"
+                        }`}
                     >
                       {loading ? (
                         <div className="flex items-center justify-center space-x-2">
@@ -729,14 +734,13 @@ const VerifyEmail = () => {
                 <div className="mt-10 text-center">
                   <span className="text-gray-400 text-sm">
                     Didn't receive the code?{" "}
-                    <button 
+                    <button
                       onClick={handleResend}
                       disabled={resending}
-                      className={`font-semibold transition-colors ${
-                        resending 
-                          ? "text-gray-500 cursor-not-allowed" 
-                          : "text-blue-400 hover:text-blue-300"
-                      }`}
+                      className={`font-semibold transition-colors ${resending
+                        ? "text-gray-500 cursor-not-allowed"
+                        : "text-blue-400 hover:text-blue-300"
+                        }`}
                     >
                       {resending ? "Sending..." : "Resend"}
                     </button>

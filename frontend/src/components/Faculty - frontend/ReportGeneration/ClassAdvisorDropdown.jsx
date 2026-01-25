@@ -3,67 +3,28 @@ import { User, AlertCircle, Loader } from 'lucide-react';
 import { facultyAPI } from '../../../api/faculty';
 import { getCurrentUserCollegeName } from '../../../utils/userUtils';
 
-const ClassAdvisorDropdown = ({ value, onChange, error }) => {
-  const [facultyList, setFacultyList] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [fetchError, setFetchError] = useState(null);
+const ClassAdvisorDropdown = ({ value, onChange, error, facultyList = [], loading = false }) => {
+  // Remove internal fetch
 
-  // Fetch all faculty members (no department filter)
-  useEffect(() => {
-    const fetchFaculty = async () => {
-      setLoading(true);
-      setFetchError(null);
-      
-      try {
-        // Get current user's college name (for future use or debugging)
-        await getCurrentUserCollegeName();
-        
-        // Fetch all faculty (no department filter)
-        // The backend will automatically filter by college
-        const response = await facultyAPI.getFaculty();
-        
-        if (response.success && response.data) {
-          setFacultyList(response.data);
-        } else {
-          setFacultyList([]);
-        }
-      } catch (err) {
-        console.error('Error fetching faculty:', err);
-        // Provide more descriptive error messages
-        if (err.message && err.message.includes('Access denied')) {
-          setFetchError('You do not have permission to view faculty information. Please contact your administrator.');
-        } else if (err.message) {
-          setFetchError(`Failed to fetch faculty members: ${err.message}`);
-        } else {
-          setFetchError('Failed to fetch faculty members. Please try again later.');
-        }
-        setFacultyList([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFaculty();
-  }, []); // Remove department dependency
 
   const handleChange = (e) => {
     const selectedFacultyId = e.target.value;
-    
+
     // If "No Staff" is selected, pass dash symbol for both name and department
     if (selectedFacultyId === 'NO_STAFF') {
       onChange('classAdvisorName', '-', '-'); // Pass dash for both name and department
       return;
     }
-    
+
     // If clearing selection
     if (selectedFacultyId === '') {
       onChange('classAdvisorName', '', ''); // Pass empty strings
       return;
     }
-    
+
     // Find the selected faculty member
     const selectedFaculty = facultyList.find(faculty => faculty._id === selectedFacultyId);
-    
+
     if (selectedFaculty) {
       // Pass the full faculty name with title, initials, and full name format, and the department
       onChange('classAdvisorName', `${selectedFaculty.title} ${selectedFaculty.initials} ${selectedFaculty.name}`, selectedFaculty.department);
@@ -77,15 +38,15 @@ const ClassAdvisorDropdown = ({ value, onChange, error }) => {
   const getSelectedFacultyId = () => {
     // Special case for "No Staff"
     if (value === '-') return 'NO_STAFF';
-    
+
     // If no value or empty value
     if (!value) return '';
-    
+
     // Find faculty by matching the display name
-    const matchedFaculty = facultyList.find(faculty => 
+    const matchedFaculty = facultyList.find(faculty =>
       `${faculty.title} ${faculty.initials} ${faculty.name}` === value
     );
-    
+
     return matchedFaculty ? matchedFaculty._id : '';
   };
 
@@ -118,9 +79,8 @@ const ClassAdvisorDropdown = ({ value, onChange, error }) => {
         <select
           value={getSelectedFacultyId()}
           onChange={handleChange}
-          className={`w-full pl-10 pr-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            error ? 'border-red-300' : 'border-gray-300'
-          }`}
+          className={`w-full pl-10 pr-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${error ? 'border-red-300' : 'border-gray-300'
+            }`}
         >
           <option value="">Select class advisor...</option>
           <option value="NO_STAFF">No Staff</option>
@@ -137,12 +97,7 @@ const ClassAdvisorDropdown = ({ value, onChange, error }) => {
           {error}
         </p>
       )}
-      {fetchError && (
-        <p className="mt-1 text-sm text-yellow-600 flex items-center">
-          <AlertCircle className="h-4 w-4 mr-1" />
-          {fetchError}
-        </p>
-      )}
+
     </div>
   );
 };

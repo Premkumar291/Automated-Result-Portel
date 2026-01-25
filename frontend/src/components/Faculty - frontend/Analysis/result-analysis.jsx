@@ -9,6 +9,8 @@ import { analyzePDFWithPdfCo } from "@/api/analyzePdfCo"
 import StudentSelectionModal from './StudentSelectionModal';
 
 
+import GlobalLoading from "@/components/common/GlobalLoading"
+
 export default function ResultAnalysis() {
 
   // Helper function to check if a grade is an arrear grade
@@ -346,22 +348,10 @@ export default function ResultAnalysis() {
   };
 
 
-  const LoadingSpinner = ({ message = "Loading analysis data..." }) => (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      <div className="text-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 border-4 border-primary-200 border-t-primary-700 rounded-full mx-auto"
-        />
-        <p className="mt-4 text-primary-700 font-semibold">{message}</p>
-      </div>
-    </div>
-  );
 
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <GlobalLoading message="Analyzing result data..." />;
   }
 
 
@@ -809,6 +799,17 @@ export default function ResultAnalysis() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Bottom Navigation */}
+            <div className="mt-8 mb-4 flex justify-center">
+              <Link
+                to="/faculty-dashboard"
+                className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-primary-700 hover:bg-gray-50 hover:text-primary-900 transition-all shadow-sm hover:shadow flex items-center font-medium"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Back to Dashboard
+              </Link>
             </div>
           </>
         )}

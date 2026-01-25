@@ -93,6 +93,8 @@ const PersonIcon = () => (
   </svg>
 )
 
+import GlobalLoading from "@/components/common/GlobalLoading"
+
 const Signup = () => {
   // All original state and logic preserved
   const [form, setForm] = useState({
@@ -160,6 +162,11 @@ const Signup = () => {
   }
   const toggleConfirmVisibility = () => {
     setShowConfirm(!showConfirm)
+  }
+
+  // Render GlobalLoading if registering
+  if (loading) {
+    return <GlobalLoading message="Creating account..." />
   }
 
   return (
@@ -636,7 +643,7 @@ const Signup = () => {
                   </h2>
                   <p className="text-gray-400 text-sm font-medium">Create your account to continue</p>
                 </div>
-                <br/>
+                <br />
                 {/* Error/Success messages */}
                 {error && (
                   <div className="mb-8 p-4 bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/50 rounded-xl backdrop-blur-sm">
@@ -692,13 +699,12 @@ const Signup = () => {
                       onChange={handleChange}
                       disabled={loading}
                       required
-                      className={`v0-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
-                        loading ? "cursor-not-allowed opacity-50" : ""
-                      }`}
+                      className={`v0-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${loading ? "cursor-not-allowed opacity-50" : ""
+                        }`}
                       placeholder="Enter Your Full Name"
                     />
                   </div>
-                  <br/>
+                  <br />
                   {/* Email Input */}
                   <div className="relative">
                     <div className="absolute inset-y-0 v0-input-icon flex items-center pointer-events-none text-gray-400 transition-colors">
@@ -711,13 +717,12 @@ const Signup = () => {
                       onChange={handleChange}
                       disabled={loading}
                       required
-                      className={`v0-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
-                        loading ? "cursor-not-allowed opacity-50" : ""
-                      }`}
+                      className={`v0-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${loading ? "cursor-not-allowed opacity-50" : ""
+                        }`}
                       placeholder="Enter you@college.edu"
                     />
                   </div>
-                  <br/>
+                  <br />
                   {/* Department Input */}
                   <div className="relative">
                     <div className="absolute inset-y-0 v0-input-icon flex items-center pointer-events-none text-gray-400 transition-colors">
@@ -730,13 +735,12 @@ const Signup = () => {
                       onChange={handleChange}
                       disabled={loading}
                       required
-                      className={`v0-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
-                        loading ? "cursor-not-allowed opacity-50" : ""
-                      }`}
+                      className={`v0-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${loading ? "cursor-not-allowed opacity-50" : ""
+                        }`}
                       placeholder="Enter Department"
                     />
                   </div>
-                  <br/>
+                  <br />
                   {/* Password Input */}
                   <div className="relative">
                     <div className="absolute inset-y-0 v0-input-icon flex items-center pointer-events-none text-gray-400 transition-colors">
@@ -749,12 +753,11 @@ const Signup = () => {
                       onChange={handleChange}
                       disabled={loading}
                       required
-                      className={`v0-password-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
-                        loading ? "cursor-not-allowed opacity-50" : ""
-                      }`}
+                      className={`v0-password-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${loading ? "cursor-not-allowed opacity-50" : ""
+                        }`}
                       placeholder="Enter password"
                     />
-                    
+
                     <div className="absolute inset-y-0 v0-eye-button flex items-center">
                       <button
                         type="button"
@@ -767,7 +770,7 @@ const Signup = () => {
                       </button>
                     </div>
                   </div>
-                  <br/>
+                  <br />
                   {/* Confirm Password Input */}
                   <div className="relative">
                     <div className="absolute inset-y-0 v0-input-icon flex items-center pointer-events-none text-gray-400 transition-colors">
@@ -780,9 +783,8 @@ const Signup = () => {
                       onChange={handleChange}
                       disabled={loading}
                       required
-                      className={`v0-password-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
-                        loading ? "cursor-not-allowed opacity-50" : ""
-                      }`}
+                      className={`v0-password-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${loading ? "cursor-not-allowed opacity-50" : ""
+                        }`}
                       placeholder="Confirm password"
                     />
                     <div className="absolute inset-y-0 v0-eye-button flex items-center">
@@ -797,16 +799,15 @@ const Signup = () => {
                       </button>
                     </div>
                   </div>
-                  <br/>
+                  <br />
                   {/* Simple Signup Button */}
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full h-12 font-medium text-sm rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-black mt-8 border ${
-                      loading
-                        ? "bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300"
-                        : "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md active:bg-gray-200"
-                    }`}
+                    className={`w-full h-12 font-medium text-sm rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-black mt-8 border ${loading
+                      ? "bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300"
+                      : "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md active:bg-gray-200"
+                      }`}
                   >
                     {loading ? (
                       <div className="flex items-center justify-center space-x-2">

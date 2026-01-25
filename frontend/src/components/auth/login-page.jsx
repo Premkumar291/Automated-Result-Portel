@@ -63,6 +63,8 @@ const PersonIcon = () => (
   </svg>
 )
 
+import GlobalLoading from "@/components/common/GlobalLoading"
+
 const Login = () => {
   // All original state and logic preserved
   const [form, setForm] = useState({ email: "", password: "" })
@@ -127,6 +129,11 @@ const Login = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
+  }
+
+  // Render GlobalLoading if validating
+  if (isLoading) {
+    return <GlobalLoading message="Authenticating..." />
   }
 
   return (
@@ -615,7 +622,7 @@ const Login = () => {
                     <PersonIcon />
                   </div>
                   <h2 className="text-lg font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
-                     Login with your Account
+                    Login with your Account
                   </h2>
                   <p className="text-gray-400 text-sm font-medium">Secure access to your dashboard</p>
                 </div>
@@ -656,9 +663,8 @@ const Login = () => {
                       onChange={handleChange}
                       disabled={isLoading}
                       required
-                      className={`v0-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
-                        isLoading ? "cursor-not-allowed opacity-50" : ""
-                      }`}
+                      className={`v0-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${isLoading ? "cursor-not-allowed opacity-50" : ""
+                        }`}
                       placeholder="Enter email address"
                     />
                   </div>
@@ -676,9 +682,8 @@ const Login = () => {
                       onChange={handleChange}
                       disabled={isLoading}
                       required
-                      className={`v0-password-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${
-                        isLoading ? "cursor-not-allowed opacity-50" : ""
-                      }`}
+                      className={`v0-password-input w-full h-12 bg-gray-800/60 border border-gray-600/50 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm font-medium ${isLoading ? "cursor-not-allowed opacity-50" : ""
+                        }`}
                       placeholder="Enter password"
                     />
                     <div className="absolute inset-y-0 v0-eye-button flex items-center">
@@ -709,11 +714,10 @@ const Login = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full h-12 font-medium text-sm rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-black mt-8 border ${
-                      isLoading
-                        ? "bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300"
-                        : "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md active:bg-gray-200"
-                    }`}
+                    className={`w-full h-12 font-medium text-sm rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-black mt-8 border ${isLoading
+                      ? "bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300"
+                      : "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md active:bg-gray-200"
+                      }`}
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center space-x-2">
@@ -744,8 +748,8 @@ const Login = () => {
                     )}
                   </button>
                 </form>
-                
-               
+
+
               </div>
             </div>
           </div>

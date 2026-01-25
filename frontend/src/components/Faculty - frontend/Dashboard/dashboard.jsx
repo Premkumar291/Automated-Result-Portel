@@ -1,15 +1,12 @@
-
-
-
-"use client"
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { logout, checkAuth } from "@/api/auth"
 import PDFProcessingCard from "./PDFProcessingCard"
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, BarChart3, FileText, LogOut, Bell } from "lucide-react" // Removed Search icon
+import { LogOut } from "lucide-react"
 import FacultyReportEditor from "./FacultyReportEditor.jsx";
+import GlobalLoading from "@/components/common/GlobalLoading";
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -17,26 +14,12 @@ const Dashboard = () => {
   const [user, setUser] = useState(null)
   const [userLoading, setUserLoading] = useState(true)
   const [isDarkMode] = useState(false)
-  const [isCollapsed, setIsCollapsed] = useState(true) // Changed to true - sidebar closed by default
-  const [activeItem, setActiveItem] = useState("Analysis")
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
+
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const gsapRef = useRef(null)
   const navigate = useNavigate()
 
-  // Sidebar navigation items - Updated with your specific options
-  const mainNavItems = [
-    {
-      name: "Analysis",
-      icon: BarChart3,
-      description: "Data analysis and insights",
-    },
-    {
-      name: "View Results",
-      icon: FileText,
-      description: "View processing results",
-    },
-  ]
+
 
   // ColourfulText Component (inline)
   const ColourfulText = ({ text, className = "" }) => {
@@ -79,111 +62,7 @@ const Dashboard = () => {
     )
   }
 
-  // Animated ACADEX Logo Component for Sidebar
-  const SidebarAcadexLogo = () => {
-    return (
-      <div className="acadex-logo text-lg">
-        <motion.span
-          className="acadex-a1"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          whileHover={{ scale: 1.1, rotate: 5 }}
-        >
-          A
-        </motion.span>
-        <motion.span
-          className="acadex-c"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          whileHover={{ scale: 1.1, rotate: -5 }}
-        >
-          C
-        </motion.span>
-        <motion.span
-          className="acadex-a2"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-          whileHover={{ scale: 1.1, rotate: 5 }}
-        >
-          A
-        </motion.span>
-        <motion.span
-          className="acadex-d"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-          whileHover={{ scale: 1.1, rotate: -5 }}
-        >
-          D
-        </motion.span>
-        <motion.span
-          className="acadex-e"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.5 }}
-          whileHover={{ scale: 1.1, rotate: 5 }}
-        >
-          E
-        </motion.span>
-        <motion.span
-          className="acadex-x"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.6 }}
-          whileHover={{ scale: 1.1, rotate: -5 }}
-        >
-          X
-        </motion.span>
-      </div>
-    )
-  }
 
-  // Animated "A" Symbol Component for Sidebar
-  const AnimatedASymbol = () => {
-    return (
-      <motion.div
-        className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #6366F1 0%, #EF4444 25%, #F59E0B 50%, #8B5CF6 75%, #10B981 100%)",
-        }}
-        initial={{ scale: 0.8, rotate: -10 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        whileHover={{
-          scale: 1.1,
-          rotate: 10,
-          boxShadow: "0 0 20px rgba(99, 102, 241, 0.5)",
-        }}
-      >
-        <motion.span
-          className="text-white text-sm font-bold"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          whileHover={{ scale: 1.2 }}
-        >
-          A
-        </motion.span>
-        {/* Animated background particles */}
-        <motion.div
-          className="absolute inset-0 opacity-30"
-          animate={{
-            background: [
-              "radial-gradient(circle at 20% 50%, #6366F1 0%, transparent 50%)",
-              "radial-gradient(circle at 80% 50%, #EF4444 0%, transparent 50%)",
-              "radial-gradient(circle at 50% 20%, #F59E0B 0%, transparent 50%)",
-              "radial-gradient(circle at 50% 80%, #8B5CF6 0%, transparent 50%)",
-              "radial-gradient(circle at 20% 50%, #6366F1 0%, transparent 50%)",
-            ],
-          }}
-          transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-        />
-      </motion.div>
-    )
-  }
 
   // Logout Confirmation Dialog Component
   const LogoutDialog = () => {
@@ -208,9 +87,8 @@ const Dashboard = () => {
             <button
               onClick={handleConfirmLogout}
               disabled={isLoading}
-              className={`flex-1 px-4 py-2 ${
-                isDarkMode ? "bg-white text-black hover:bg-gray-100" : "bg-black hover:bg-gray-800 text-white"
-              } font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded`}
+              className={`flex-1 px-4 py-2 ${isDarkMode ? "bg-white text-black hover:bg-gray-100" : "bg-black hover:bg-gray-800 text-white"
+                } font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded`}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -224,9 +102,8 @@ const Dashboard = () => {
             <button
               onClick={() => setShowLogoutDialog(false)}
               disabled={isLoading}
-              className={`flex-1 px-4 py-2 ${
-                isDarkMode ? "bg-gray-700 text-white hover:bg-gray-600" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              } font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded`}
+              className={`flex-1 px-4 py-2 ${isDarkMode ? "bg-gray-700 text-white hover:bg-gray-600" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                } font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded`}
             >
               Cancel
             </button>
@@ -236,60 +113,7 @@ const Dashboard = () => {
     )
   }
 
-  // Sidebar Navigation Item Component
-  const NavItem = ({ item, isActive, onClick }) => {
-    const Icon = item.icon
-    return (
-      <div className="relative group">
-        <button
-          onClick={() => onClick(item.name)}
-          className={`
-          w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
-          ${
-            isActive
-              ? isDarkMode
-                ? "bg-gray-900 text-white shadow-sm border border-gray-800"
-                : "bg-gray-100 text-gray-900 shadow-sm"
-              : isDarkMode
-                ? "text-gray-300 hover:bg-gray-900 hover:text-white"
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          }
-          ${isMobileOpen || !isCollapsed ? "justify-start" : "justify-center px-2"}
-        `}
-        >
-          <Icon
-            className={`
-            w-4 h-4 transition-colors duration-200 flex-shrink-0
-            ${
-              isActive
-                ? isDarkMode
-                  ? "text-white"
-                  : "text-gray-700"
-                : isDarkMode
-                  ? "text-gray-500 group-hover:text-white"
-                  : "text-gray-500 group-hover:text-gray-700"
-            }
-          `}
-          />
-          {/* Only show text when sidebar is expanded */}
-          {(isMobileOpen || !isCollapsed) && (
-            <span className="text-sm font-medium flex-1 text-left truncate">{item.name}</span>
-          )}
-        </button>
-        {/* Tooltip for collapsed state */}
-        {isCollapsed && (
-          <div
-            className={`absolute left-full ml-2 top-1/2 -translate-y-1/2 ${
-              isDarkMode ? "bg-gray-900 text-white border border-gray-800" : "bg-gray-900 text-white"
-            } text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50`}
-          >
-            {item.name}
-            {item.description && <div className="text-gray-400 text-xs">{item.description}</div>}
-          </div>
-        )}
-      </div>
-    )
-  }
+
 
   // Initialize GSAP animations
   useEffect(() => {
@@ -370,77 +194,13 @@ const Dashboard = () => {
 
   // Dark theme is now permanent
 
-  const handleItemClick = (itemName) => {
-    setActiveItem(itemName)
-    // Close mobile sidebar when an item is clicked
-    if (window.innerWidth < 1024) {
-      setIsMobileOpen(false)
-    }
-  }
 
-  // Unified toggle function for both mobile and desktop
-  const handleSidebarToggle = () => {
-    if (window.innerWidth < 1024) {
-      setIsMobileOpen(!isMobileOpen)
-    } else {
-      setIsCollapsed(!isCollapsed)
-    }
-  }
 
   if (userLoading) {
-    return (
-      <div
-        className={`min-h-screen flex items-center justify-center transition-all duration-700 ${
-          isDarkMode ? "bg-black" : "bg-gradient-to-br from-gray-50 via-white to-gray-100"
-        }`}
-      >
-        <div className="text-center">
-          <div className="relative w-24 h-24 mx-auto mb-8">
-            <div
-              className={`absolute inset-0 border-4 ${
-                isDarkMode ? "border-purple-500" : "border-blue-200"
-              } rounded-full animate-ping opacity-20`}
-            ></div>
-            <div
-              className={`absolute inset-2 border-4 ${
-                isDarkMode ? "border-purple-400" : "border-blue-400"
-              } rounded-full animate-spin`}
-            ></div>
-            <div
-              className={`absolute inset-4 border-4 ${
-                isDarkMode ? "border-purple-600" : "border-blue-600"
-              } rounded-full animate-pulse`}
-            ></div>
-            <div
-              className={`absolute inset-6 ${
-                isDarkMode
-                  ? "bg-gradient-to-r from-purple-500 to-pink-600"
-                  : "bg-gradient-to-r from-blue-500 to-indigo-600"
-              } rounded-full flex items-center justify-center`}
-            >
-              <svg className="w-8 h-8 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-          </div>
-          <h2 className={`text-3xl font-bold mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}>
-            Initializing ACADEX Portal
-          </h2>
-          <div className="flex justify-center space-x-2">
-            {[...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className={`w-3 h-3 rounded-full ${isDarkMode ? "bg-purple-600" : "bg-blue-600"} animate-bounce`}
-                style={{ animationDelay: `${i * 0.1}s` }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    )
+    return <GlobalLoading />;
   }
 
-  const sidebarWidth = "18rem" // Corresponds to w-72
+
 
   return (
     <>
@@ -697,203 +457,57 @@ const Dashboard = () => {
         }
       `}</style>
       <div className="min-h-screen theme-transition bg-gradient-to-br from-gray-50 via-white to-gray-100 flex">
-        {/* Mobile Overlay */}
-        {isMobileOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={handleSidebarToggle} />
-        )}
-        {/* Sidebar */}
-        <motion.div
-          initial={false}
-          animate={{
-            width: isMobileOpen ? sidebarWidth : isCollapsed ? "0rem" : sidebarWidth,
-            x: isMobileOpen ? "0%" : isCollapsed ? "-100%" : "0%",
-          }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={`
-            fixed top-0 left-0 h-full z-50
-            bg-white border-primary-200
-            border-r shadow-lg
-            flex flex-col
-          `}
-        >
-          {/* Sidebar Header */}
-          <div
-            className={`
-              flex items-center ${isDarkMode ? "border-gray-800 bg-black" : "border-primary-200 bg-white"} border-b p-4
-              ${isMobileOpen || !isCollapsed ? "justify-between" : "justify-center"}
-            `}
-          >
-            {isMobileOpen || !isCollapsed ? ( // When sidebar is open (mobile or desktop)
-              <div className="flex items-center gap-3">
-                <AnimatedASymbol />
-                <div>
-                  <SidebarAcadexLogo />
-                  <p className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Pro Plan</p>
-                </div>
-              </div> // When sidebar is collapsed (desktop)
-            ) : (
-              <AnimatedASymbol />
-            )}
-            {/* Close button for the sidebar, visible when sidebar is open */}
-            {(isMobileOpen || !isCollapsed) && (
-              <button
-                onClick={handleSidebarToggle}
-                className={`
-                  p-1.5 rounded-lg ${isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"} transition-colors duration-200
-                `}
-              >
-                <ChevronLeft className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-              </button>
-            )}
-          </div>
-          {/* Navigation */}
-          <div className="flex-1 overflow-y-auto">
-            <div className={`p-3 space-y-1 ${isDarkMode ? "bg-black" : "bg-white"}`}>
-              {mainNavItems.map((item) => (
-                <NavItem key={item.name} item={item} isActive={activeItem === item.name} onClick={handleItemClick} />
-              ))}
-            </div>
-            {/* Separator */}
-            <div className={`mx-4 my-4 border-t ${isDarkMode ? "border-gray-800" : "border-primary-200"}`}></div>
-          </div>
 
-          {/* Logout Button */}
-          {(isMobileOpen || !isCollapsed) && (
-            <div className={`p-3 ${isDarkMode ? "bg-black" : "bg-white"}`}>
-              <button
-                onClick={handleLogoutClick}
-                disabled={isLoading}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                  isDarkMode
-                    ? "text-gray-300 hover:bg-gray-900 hover:text-red-300"
-                    : "text-gray-700 hover:bg-red-50 hover:text-red-700"
-                } justify-start`}
-              >
-                <LogOut
-                  className={`w-4 h-4 transition-colors duration-200 flex-shrink-0 ${
-                    isDarkMode ? "text-gray-500 hover:text-red-300" : "text-gray-500 hover:text-red-700"
-                  }`}
-                />
-                <span className="text-sm font-medium flex-1 text-left truncate">Sign Out</span>
-              </button>
-            </div>
-          )}
-
-          {/* Account Information Section */}
-          {(isMobileOpen || !isCollapsed) && (
-            <div className={`${isDarkMode ? "border-gray-800 bg-black" : "border-primary-200 bg-white"} border-t p-4`}>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-8 h-8 ${isDarkMode ? "bg-gray-800" : "bg-black"} rounded-full flex items-center justify-center`}
-                  >
-                    <span className="text-white text-sm font-medium">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${isDarkMode ? "text-white" : "text-gray-900"} truncate`}>
-                      {user?.name || "User"}
-                    </p>
-                    <p className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"} truncate`}>
-                      {user?.email || "user@example.com"}
-                    </p>
-                  </div>
-                  <Bell className={`w-4 h-4 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`} />
-                </div>
-                {/* Account Status */}
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>Status</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="pulse-indicator w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className={`text-xs font-medium ${isDarkMode ? "text-green-400" : "text-green-600"}`}>
-                      ACTIVE
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </motion.div>
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-h-screen">
           {/* Dynamic Navbar - ACADEX name hides when sidebar opens */}
           <header className="animate-header white-navbar">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-16">
-                {/* Left Section - Single Unified Sidebar Toggle */}
+                {/* Left Section - Logo */}
                 <div className="flex items-center">
-                  {/* Single Unified Sidebar Toggle Button */}
-                  <button
-                    onClick={handleSidebarToggle}
-                    className={`flex items-center justify-center p-3 rounded-lg ${
-                      isDarkMode ? "hover:bg-gray-800 text-white" : "hover:bg-gray-100 text-gray-900"
-                    } transition-all duration-200 group mr-4`}
-                  >
-                    {/* Dynamic Icon based on mobile/desktop and collapsed state */}
-                    {window.innerWidth < 1024 ? (
-                      <div className="relative w-6 h-6 flex flex-col justify-center items-center">
-                        <span
-                          className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out ${isMobileOpen ? "rotate-45 translate-y-1.5" : ""}`}
-                        ></span>
-                        <span
-                          className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isMobileOpen ? "opacity-0" : ""}`}
-                        ></span>
-                        <span
-                          className={`block h-0.5 w-6 ${isDarkMode ? "bg-white" : "bg-gray-900"} transform transition duration-300 ease-in-out mt-1 ${isMobileOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
-                        ></span>
-                      </div>
-                    ) : isCollapsed ? (
-                      <ChevronRight className="w-6 h-6" />
-                    ) : (
-                      <ChevronLeft className="w-6 h-6" />
-                    )}
-                  </button>
-                  {/* Brand Section - Show ACADEX name only when sidebar is collapsed */}
-                  <motion.div
-                    initial={false}
-                    animate={{
-                      opacity: isCollapsed ? 1 : 0,
-                      scale: isCollapsed ? 1 : 0.8,
-                      x: isCollapsed ? 0 : -20,
-                    }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="flex items-center"
-                  >
-                    {isCollapsed && (
-                      <div className="acadex-logo text-2xl">
-                        <span className="acadex-a1">A</span>
-                        <span className="acadex-c">C</span>
-                        <span className="acadex-a2">A</span>
-                        <span className="acadex-d">D</span>
-                        <span className="acadex-e">E</span>
-                        <span className="acadex-x">X</span>
-                      </div>
-                    )}
-                  </motion.div>
+                  <div className="acadex-logo text-2xl cursor-default">
+                    <span className="acadex-a1">A</span>
+                    <span className="acadex-c">C</span>
+                    <span className="acadex-a2">A</span>
+                    <span className="acadex-d">D</span>
+                    <span className="acadex-e">E</span>
+                    <span className="acadex-x">X</span>
+                  </div>
                 </div>
                 {/* Right Section - Controls */}
-                <div className="flex items-center space-x-4">
-                  {/* Dark theme is now permanent */}
+                <div className="flex items-center space-x-6">
                   {/* User Profile */}
                   <div className="flex items-center space-x-3">
-                    <div className="relative">
-                      <div
-                        className={`w-10 h-10 rounded-full bg-black text-white flex items-center justify-center ${
-                          isDarkMode ? "font-black text-base" : "font-bold text-sm"
-                        }`}
-                      >
-                        {user?.name?.charAt(0).toUpperCase() || "U"}
-                      </div>
-                      <div className="status-dot absolute -top-1 -right-1 w-3 h-3 rounded-full"></div>
-                    </div>
-                    <div className="hidden md:block">
-                      <p className={`font-semibold text-base text-white`}>
+                    <div className="hidden md:block text-right">
+                      <p className={`font-semibold text-base ${isDarkMode ? "text-white" : "text-black"}`}>
                         {user?.name || "User"}
                       </p>
-                      <p className={`text-xs mono font-medium ${isDarkMode ? "text-purple-300" : "text-black"}`}>
+                      <p className={`text-xs mono font-medium ${isDarkMode ? "text-purple-300" : "text-gray-500"}`}>
                         Faculty
                       </p>
                     </div>
+                    <div className="relative group">
+                      <div
+                        className={`w-10 h-10 rounded-full bg-black text-white flex items-center justify-center shadow-lg ${isDarkMode ? "font-black text-base border-2 border-purple-500" : "font-bold text-sm border-2 border-gray-200"
+                          }`}
+                      >
+                        {user?.name?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                      <div className="status-dot absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-black"></div>
+                    </div>
                   </div>
+
+                  <div className={`h-8 w-px ${isDarkMode ? "bg-gray-800" : "bg-gray-200"}`}></div>
+
+                  <button
+                    onClick={handleLogoutClick}
+                    className={`group p-2 rounded-full transition-all duration-300 ${isDarkMode ? "hover:bg-red-500/10 text-gray-400 hover:text-red-400" : "hover:bg-red-50 text-gray-500 hover:text-red-600"
+                      }`}
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-5 h-5 transform group-hover:scale-110 transition-transform" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -904,9 +518,8 @@ const Dashboard = () => {
             <div className="animate-section py-20 flex items-center justify-center relative">
               <div className="text-center space-y-6 relative z-20 px-8">
                 <motion.h1
-                  className={`text-2xl relative z-20 md:text-4xl lg:text-7xl font-bold text-center ${
-                    isDarkMode ? "text-white" : "text-black"
-                  } font-sans tracking-tight`}
+                  className={`text-2xl relative z-20 md:text-4xl lg:text-7xl font-bold text-center ${isDarkMode ? "text-white" : "text-black"
+                    } font-sans tracking-tight`}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
@@ -914,9 +527,8 @@ const Dashboard = () => {
                   Welcome back, <ColourfulText text={user?.name?.split(" ")[0] || "User"} />
                 </motion.h1>
                 <motion.p
-                  className={`text-lg md:text-xl ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  } max-w-3xl mx-auto leading-relaxed`}
+                  className={`text-lg md:text-xl ${isDarkMode ? "text-gray-300" : "text-gray-600"
+                    } max-w-3xl mx-auto leading-relaxed`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.5 }}
@@ -954,7 +566,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div className={`bg-gradient-to-r from-transparent via-primary-800 to-transparent h-px mb-6`}></div>
-{/* PDF Processing Component */}
+                  {/* PDF Processing Component */}
                   <PDFProcessingCard />
 
                 </div>
@@ -967,9 +579,8 @@ const Dashboard = () => {
         {/* Error Notification */}
         {error && (
           <div
-            className={`fixed bottom-8 right-8 z-50 ${
-              isDarkMode ? "dark-elevated-card" : "elevated-card"
-            } p-4 max-w-md hover-lift`}
+            className={`fixed bottom-8 right-8 z-50 ${isDarkMode ? "dark-elevated-card" : "elevated-card"
+              } p-4 max-w-md hover-lift`}
           >
             <div className="flex items-start space-x-3">
               <div className="w-8 h-8 bg-red-500 flex items-center justify-center flex-shrink-0">
@@ -987,9 +598,8 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={() => setError("")}
-                className={`${
-                  isDarkMode ? "text-gray-300 hover:text-white" : "text-slate-600 hover:text-slate-800"
-                } transition-colors`}
+                className={`${isDarkMode ? "text-gray-300 hover:text-white" : "text-slate-600 hover:text-slate-800"
+                  } transition-colors`}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path
