@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-ISC-green.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
 ![React](https://img.shields.io/badge/react-19.1.0-61DAFB.svg)
@@ -146,17 +146,26 @@
 | **MongoDB** | ≥6.0.0 | NoSQL database |
 | **Mongoose** | 8.16.2 | MongoDB ODM |
 | **JWT** | 9.0.2 | Authentication tokens |
-| **Bcrypt.js** | 3.0.2 | Password hashing |
+| **Bcryptjs** | 3.0.2 | Password hashing |
 | **ExcelJS** | 4.4.0 | Excel report generation |
 | **PDF-lib** | 1.17.1 | PDF manipulation |
+| **PDF2JSON** | 4.0.0 | PDF text extraction |
+| **PDFKit** | 0.15.0 | PDF generation |
 | **Multer** | 1.4.4 | File upload handling |
-| **GridFS** | 5.0.2 | Large file storage |
+| **Multer-GridFS** | 5.0.2 | GridFS storage integration |
 | **Helmet.js** | 7.1.0 | Security headers |
 | **Express Rate Limit** | 7.1.5 | API rate limiting |
 | **CORS** | 2.8.5 | Cross-origin resource sharing |
 | **HPP** | 0.2.3 | HTTP parameter pollution protection |
-| **Validator.js** | 13.11.0 | Input validation |
+| **Validator** | 13.11.0 | Input validation |
 | **Nodemailer** | 6.10.1 | Email services |
+| **Dotenv** | 16.5.0 | Environment variables |
+| **Compression** | 1.8.1 | Response compression |
+| **XSS-Clean** | 0.1.4 | XSS protection |
+| **Express-Mongo-Sanitize** | 2.2.0 | MongoDB injection prevention |
+| **Cookie-Parser** | 1.4.6 | Cookie middleware |
+| **Axios** | 1.6.2 | HTTP client |
+| **Serverless-HTTP** | 3.2.0 | Vercel serverless support |
 
 ### Frontend
 
@@ -180,11 +189,13 @@
 
 | Technology | Purpose |
 |------------|---------|
-| **Python** | 3.13+ |
+| **Python** | 3.10+ |
 | **FastAPI** | Web Framework |
 | **Uvicorn** | ASGI Server |
 | **pdfplumber** | PDF Data Extraction |
-| **Pandas** | Data Processing |
+| **pandas** | Data Processing |
+| **python-multipart** | Multipart form data handling |
+| **gunicorn** | Production WSGI server |
 
 ---
 
@@ -256,7 +267,7 @@ Ensure you have the following installed:
    npm start
    ```
 
-   Server will run on `http://localhost:8080`
+   Server will run on `http://localhost:3000`
 
 ### 3. Frontend Setup
 
@@ -314,12 +325,12 @@ JWT_REFRESH_EXPIRE=7d
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-app-specific-password
 
-# PDF.co API
-PDFCO_API_KEY=your-pdfco-api-key-here
-
 # Server Configuration
-PORT=5000
+PORT=3000
 NODE_ENV=development
+
+# Python Service Configuration
+PYTHON_SERVICE_URL=http://localhost:8000
 
 # Security
 COOKIE_SECRET=your-cookie-secret-key
@@ -329,11 +340,11 @@ COOKIE_SECRET=your-cookie-secret-key
 
 ```env
 # API Configuration
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:3000/api
 
 # Application Configuration
 VITE_APP_NAME=ACADEX
-VITE_APP_VERSION=1.0.2
+VITE_APP_VERSION=1.0.0
 ```
 
 ### ⚠️ Security Notes
@@ -350,7 +361,7 @@ VITE_APP_VERSION=1.0.2
 
 ### Base URL
 ```
-http://localhost:5000/api
+http://localhost:3000/api
 ```
 
 ### Authentication Endpoints
@@ -358,20 +369,31 @@ http://localhost:5000/api
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | POST | `/auth/login` | User login | No |
-| POST | `/auth/register` | User registration (Admin only) | Yes (Admin) |
-| POST | `/auth/refresh` | Refresh JWT token | No |
+| POST | `/auth/signup` | User registration (Admin only) | No |
 | POST | `/auth/logout` | User logout | Yes |
-| GET | `/auth/check` | Check authentication status | Yes |
+| GET | `/auth/check-auth` | Check authentication status | Yes |
+| POST | `/auth/verify-email` | Verify email with code | No |
+| POST | `/auth/resend-verification-code` | Resend verification code | No |
+| POST | `/auth/forgot-password` | Request password reset | No |
+| POST | `/auth/verify-reset-token` | Verify password reset token | No |
+| POST | `/auth/reset-password` | Reset password with token | No |
 
 ### Admin Endpoints
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| GET | `/admin/users` | Get all users (Admin hierarchy) | Yes (Admin) |
-| POST | `/admin/users` | Create new admin/faculty user | Yes (Admin) |
-| PUT | `/admin/users/:id` | Update user information | Yes (Admin) |
-| DELETE | `/admin/users/:id` | Delete user | Yes (Admin) |
-| GET | `/admin/statistics` | Get admin statistics | Yes (Admin) |
+| GET | `/admin/users` | Get all users | Yes (Admin) |
+| GET | `/admin/stats` | Get admin statistics | Yes (Admin) |
+| GET | `/admin-hierarchy/info` | Get admin info | Yes |
+| GET | `/admin-hierarchy/created-users` | Get users created by admin | Yes |
+| GET | `/admin-hierarchy/statistics` | Get admin statistics | Yes |
+| GET | `/admin-hierarchy/creation-status` | Get admin creation status | Yes |
+| POST | `/admin-hierarchy/admin` | Create new admin | Yes (Admin) |
+| POST | `/admin-hierarchy/faculty` | Create new faculty user | Yes (Admin) |
+| PUT | `/admin-hierarchy/admin/:id` | Update admin | Yes (Admin) |
+| PUT | `/admin-hierarchy/faculty/:id` | Update faculty | Yes (Admin) |
+| DELETE | `/admin-hierarchy/admin/:id` | Delete admin | Yes (Admin) |
+| DELETE | `/admin-hierarchy/faculty/:id` | Delete faculty | Yes (Admin) |
 
 ### Faculty Management
 
@@ -379,10 +401,10 @@ http://localhost:5000/api
 |--------|----------|-------------|---------------|
 | GET | `/faculty` | Get all faculty members | Yes |
 | GET | `/faculty/:id` | Get faculty by ID | Yes |
+| GET | `/faculty/department/:department` | Get faculty by department | Yes |
 | POST | `/faculty` | Create new faculty | Yes (Admin) |
 | PUT | `/faculty/:id` | Update faculty | Yes (Admin) |
 | DELETE | `/faculty/:id` | Delete faculty | Yes (Admin) |
-| GET | `/faculty/department/:dept` | Get faculty by department | Yes |
 
 ### Subject Management
 
@@ -390,10 +412,10 @@ http://localhost:5000/api
 |--------|----------|-------------|---------------|
 | GET | `/subjects` | Get all subjects | Yes |
 | GET | `/subjects/:id` | Get subject by ID | Yes |
+| GET | `/subjects/department/:department` | Get subjects by department | Yes |
 | POST | `/subjects` | Create new subject | Yes (Admin) |
 | PUT | `/subjects/:id` | Update subject | Yes (Admin) |
 | DELETE | `/subjects/:id` | Delete subject | Yes (Admin) |
-| GET | `/subjects/department/:dept` | Get subjects by department | Yes |
 
 ### Student Management
 
@@ -409,11 +431,13 @@ http://localhost:5000/api
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| POST | `/pdf/upload` | Upload PDF for processing | Yes (Faculty) |
-| POST | `/pdf/analyze` | Analyze PDF document | Yes (Faculty) |
-| GET | `/pdf/:id` | Get PDF by ID | Yes |
-| DELETE | `/pdf/:id` | Delete PDF | Yes (Faculty) |
-| POST | `/reports/generate` | Generate Excel report | Yes (Faculty) |
+| POST | `/pdf/split` | Upload and split PDF by semester | Yes |
+| GET | `/pdf/recent` | Get recent PDF uploads | Yes |
+| GET | `/pdf/:uploadId` | Get semesters from uploaded PDF | Yes |
+| GET | `/pdf/:uploadId/:semester` | Download PDF for specific semester | Yes |
+| GET | `/pdf/view/:id` | Download PDF by ID | Yes |
+| POST | `/analyze/analyze-pdf` | Analyze PDF document | Yes |
+| POST | `/reports/generate` | Generate Excel report | Yes |
 | GET | `/reports/download/:id` | Download Excel report | Yes |
 
 ---
@@ -574,6 +598,69 @@ ACADEX includes a powerful CSS variable theming system that allows you to custom
 
 ---
 
+## 🐳 Docker Setup
+
+ACADEX supports full containerization using Docker and Docker Compose for seamless deployment.
+
+### Prerequisites
+- Docker v20.10+
+- Docker Compose v2.0+
+
+### Quick Start with Docker Compose
+
+1. **Ensure `.env` files are configured** in `backend/` directory
+2. **Run the entire stack**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Access the services**
+   - Frontend: `http://localhost`
+   - Backend API: `http://localhost:8080/api`
+   - Python Service: `http://localhost:8000`
+
+### Docker Services
+
+#### Python Service
+- **Container Name**: `acadex-python-service`
+- **Port**: 8000
+- **Image**: Built from `python-service/Dockerfile`
+- **Services**: PDF analysis and processing
+
+#### Backend
+- **Container Name**: `acadex-backend`
+- **Port**: 8080
+- **Image**: Built from `backend/Dockerfile`
+- **Environment**: Uses `backend/.env` file
+- **Dependencies**: Requires python-service
+
+#### Frontend
+- **Container Name**: `acadex-frontend`
+- **Port**: 80
+- **Image**: Built from `frontend/Dockerfile`
+- **Config**: Uses `nginx.conf` for routing
+
+### Docker Compose Network
+All services communicate through the `acadex-network` bridge network for secure internal communication.
+
+### Useful Docker Commands
+
+```bash
+# Stop all containers
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Rebuild images
+docker-compose up --build -d
+
+# Remove volumes (reset data)
+docker-compose down -v
+```
+
+---
+
 ## ☁️ Deployment
 
 ### 1. Frontend Deployment (Vercel)
@@ -620,41 +707,26 @@ The Python microservice handles PDF analysis and must be deployed separately.
 
 ## 🔄 Recent Updates
 
-### Version 1.0.2 - CSS Variable Theming System (December 2025)
-- ✅ **Global CSS Color Variables**: Implemented comprehensive theming system
-  - CSS custom properties for all color shades (50-950)
-  - Utility classes: `bg-primary-*`, `text-primary-*`, `border-primary-*`
-  - One-click theme switching by updating hex values in `index.css`
-  - 11+ components migrated to use primary color variables
-- ✅ **Ready-to-Use Color Palettes**: Pre-configured themes available
-  - Teal (Professional), Blue (Corporate), Green (Natural)
-  - Purple (Creative), Slate (Minimalist), Amber (Current)
-- ✅ **Theme Customization Guide**: Complete documentation for easy theme changes
-- ✅ **Backward Compatible**: Old color classes still work alongside new system
+### Version 1.0.0 - Core Implementation (January 2026)
+- ✅ **Automated College Result Portal**: Complete faculty, student, and subject management
+- ✅ **PDF Processing**: GridFS storage with PDF splitting and analysis
+- ✅ **Excel Report Generation**: Dynamic institutional format reports
+- ✅ **Admin Hierarchy System**: Multi-level admin and faculty user management
+- ✅ **Email Authentication**: Verification codes and password reset functionality
+- ✅ **Security Hardening**: Helmet, rate limiting, input sanitization, XSS protection
+- ✅ **Python Microservice**: FastAPI service for advanced PDF analysis
+- ✅ **Docker Support**: Full containerization with Docker Compose
+- ✅ **Modern Frontend**: React 19 with TailwindCSS 4 and Framer Motion
+- ✅ **Responsive Design**: Mobile-first approach across all platforms
+- ✅ **API Documentation**: Complete RESTful API with proper authentication
 
-### Version 1.0.1 - Enhanced Features (September 2025)
-- ✅ **Fixed Subjects API 500 Error**: Resolved authentication issues and invalid search filters
-- ✅ **Enhanced Subject Code Input**: Auto-uppercase conversion with real-time validation
-  - Smart input field that converts lowercase to uppercase automatically
-  - Real-time validation using regex pattern `/^[A-Z]{2,4}\\d{3,4}[A-Z]?$/`
-  - Visual feedback with green checkmarks (✓) for valid codes and red X marks (✗) for invalid
-  - Professional monospace font styling for better code readability
-- ✅ **Improved User Experience**: Visual feedback with color-coded validation indicators
-- ✅ **Architecture Cleanup**: Removed unnecessary faculty-to-subject assignment logic
-- ✅ **Department Consistency**: Aligned frontend/backend department configurations
-- ✅ **Input Validation**: Real-time regex validation with professional styling
-
-### Version 1.0.0 - Core Implementation
-- ✅ Complete faculty management system with academic qualifications
-- ✅ Subject management with department-wise organization
-- ✅ Student management with CRUD operations
-- ✅ PDF processing and analysis using PDF.co API
-- ✅ Excel report generation with institutional format
-- ✅ Admin hierarchy and user management system
-- ✅ Security enhancements and console log cleanup
-- ✅ Modern React UI with TailwindCSS and Framer Motion
-- ✅ GridFS file storage for PDF documents
-- ✅ Production-ready security configurations
+### Previous Features from Initial Release
+- ✅ JWT-based authentication with refresh tokens
+- ✅ Role-based access control (Admin, Faculty, Student)
+- ✅ Department-wise organization and filtering
+- ✅ Subject management with validation
+- ✅ Real-time input validation and error handling
+- ✅ Comprehensive security features and deployment guidance
 
 ---
 
