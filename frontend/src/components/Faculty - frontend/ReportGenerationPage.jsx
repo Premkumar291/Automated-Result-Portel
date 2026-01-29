@@ -177,13 +177,13 @@ function ReportGenerationPage() {
         });
       } catch {
         toast.error('Invalid report data. Please go back to analysis page.');
-        navigate('/dashboard');
+        navigate('faculty-dashboard');
       }
     } else {
       toast.error('No report generation data found. Please go back to analysis page.');
       // Add a small delay to prevent immediate navigation during component mount
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('faculty-dashboard');
       }, 1000);
     }
   }, [navigate]);
@@ -585,14 +585,38 @@ function ReportGenerationPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Months/Year *
                 </label>
-                <input
-                  type="text"
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.monthsAndYear ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                  placeholder="e.g., APRIL/MAY 2024"
-                  value={departmentInfo.monthsAndYear}
-                  onChange={(e) => handleDepartmentInfoChange('monthsAndYear', e.target.value)}
-                />
+                <div className="flex space-x-2">
+                  <select
+                    className={`w-3/5 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.monthsAndYear ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                    value={departmentInfo.monthsAndYear ? departmentInfo.monthsAndYear.split(' ')[0] : ''}
+                    onChange={(e) => {
+                      const currentParts = departmentInfo.monthsAndYear ? departmentInfo.monthsAndYear.split(' ') : [];
+                      const year = currentParts[1] || new Date().getFullYear();
+                      handleDepartmentInfoChange('monthsAndYear', `${e.target.value} ${year}`);
+                    }}
+                  >
+                    <option value="">Select Month</option>
+                    <option value="APRIL/MAY">April/May</option>
+                    <option value="NOV/DEC">Nov/Dec</option>
+                  </select>
+
+                  <select
+                    className={`w-2/5 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.monthsAndYear ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                    value={departmentInfo.monthsAndYear ? departmentInfo.monthsAndYear.split(' ')[1] : ''}
+                    onChange={(e) => {
+                      const currentParts = departmentInfo.monthsAndYear ? departmentInfo.monthsAndYear.split(' ') : [];
+                      const month = currentParts[0] || '';
+                      handleDepartmentInfoChange('monthsAndYear', `${month} ${e.target.value}`);
+                    }}
+                  >
+                    <option value="">Year</option>
+                    {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i).map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
                 {errors.monthsAndYear && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
