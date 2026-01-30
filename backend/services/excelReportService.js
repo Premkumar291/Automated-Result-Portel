@@ -729,10 +729,10 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
       sheet.getColumn(col.index).width = col.width;
     });
 
-    // Title row - INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY - ERODE - 638 316
+    // Title row - GOVERNMENT COLLEGE OF ENGINEERING - ERODE - 638 316
     sheet.mergeCells('A1:J1');
     const titleCell = sheet.getCell('A1');
-    titleCell.value = 'INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY - ERODE - 638 316';
+    titleCell.value = 'GOVERNMENT COLLEGE OF ENGINEERING - ERODE - 638 316';
     titleCell.style = {
       font: { name: 'Arial', size: 12, bold: true },
       alignment: { vertical: 'middle', horizontal: 'center' },
@@ -1055,7 +1055,7 @@ C = Average, P = Pass, U = Fail, F = Fail, - = Not Applicable`;
     // Title
     sheet.mergeCells('A1:J1');
     const titleCell = sheet.getCell('A1');
-    titleCell.value = `${reportData.instituteName || 'INSTITUTE OF ROAD AND TRANSPORT TECHNOLOGY'} - ${reportData.instituteLocation || 'ERODE - 638 316'}`;
+    titleCell.value = `${reportData.instituteName || 'GOVERNMENT COLLEGE OF ENGINEERING'} - ${reportData.instituteLocation || 'ERODE - 638 316'}`;
     titleCell.style = {
       font: { name: 'Arial', size: 14, bold: true },
       alignment: { vertical: 'middle', horizontal: 'center' }

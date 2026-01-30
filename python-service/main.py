@@ -10,6 +10,10 @@ app = FastAPI()
 async def root():
     return {"status": "Python PDF Service Running"}
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 @app.post("/analyze-pdf")
 async def analyze_pdf(file: UploadFile = File(...)):
     if not file.filename.endswith('.pdf'):

@@ -6,7 +6,16 @@ services:
     container_name: acadex-python-service
     ports:
       - "8000:8000"
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
     networks:
       - acadex-network
 
@@ -20,8 +29,19 @@ services:
     environment:
       - PYTHON_SERVICE_URL=http://python-service:8000
     depends_on:
-      - python-service
-    restart: unless-stopped
+      python-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
     networks:
       - acadex-network
 
@@ -31,8 +51,11 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
-    restart: unless-stopped
+      backend:
+        condition: service_healthy
+    deploy:
+      restart_policy:
+        condition: always
     networks:
       - acadex-network
 

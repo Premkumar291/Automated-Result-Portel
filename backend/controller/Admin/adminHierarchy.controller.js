@@ -4,7 +4,7 @@ import { getVisibleUsersForAdmin, getAdminData, getAdminStats, canCreateAdmin } 
 import bcryptjs from 'bcryptjs';
 import { generateTokenAndSetCookie } from '../../utils/generateTokenAndSetCookie.js';
 import { generateVerificationCode } from '../../utils/generateVerificationCode.js';
-
+    
 /**
  * Controller for hierarchical admin management
  */
@@ -105,7 +105,7 @@ export const createAdmin = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Admin account created successfully. User will receive verification code when they first login.",
+            message: "Admin account created successfully. User will receive verification code when they login for the first time.",
             admin: adminData
         });
 
@@ -301,7 +301,7 @@ export const getCreatedUsers = async (req, res) => {
 /**
  * Get admin statistics
  */
-export const getAdminStatistics = async (req, res) => {
+export const getAdminStatistics = async (req, res) => {q
     try {
         const adminId = req.user.userId;
         
