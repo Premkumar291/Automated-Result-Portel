@@ -4,7 +4,7 @@ import { getVisibleUsersForAdmin, getAdminData, getAdminStats, canCreateAdmin } 
 import bcryptjs from 'bcryptjs';
 import { generateTokenAndSetCookie } from '../../utils/generateTokenAndSetCookie.js';
 import { generateVerificationCode } from '../../utils/generateVerificationCode.js';
-    
+
 /**
  * Controller for hierarchical admin management
  */
@@ -16,7 +16,7 @@ export const createAdmin = async (req, res) => {
     try {
         const { email, password, name, department } = req.body;
         const creatorId = req.userId || req.user?.userId || req.user?._id;
-        
+
 
         // Validate required fields
         if (!email || !password || !name || !department) {
@@ -99,7 +99,7 @@ export const createAdmin = async (req, res) => {
         });
 
         await newAdmin.save();
-        
+
         // Remove password from response
         const { password: _, ...adminData } = newAdmin.toObject();
 
@@ -125,7 +125,7 @@ export const createFacultyUser = async (req, res) => {
     try {
         const { email, password, name, department } = req.body;
         const creatorId = req.userId || req.user?.userId || req.user?._id;
-        
+
         // Validate required fields
         if (!email || !password || !name || !department) {
             return res.status(400).json({
@@ -198,10 +198,10 @@ export const createFacultyUser = async (req, res) => {
         });
 
         await newFacultyUser.save();
-        
+
         // Don't send verification email during creation
         // Email will be sent when user tries to login or clicks resend
-        
+
         // Remove password from response
         const { password: _, ...facultyData } = newFacultyUser.toObject();
 
@@ -226,20 +226,20 @@ export const createFacultyUser = async (req, res) => {
 export const getAdminInfo = async (req, res) => {
     try {
         const adminId = req.user.userId;
-        
+
         const adminData = await getAdminData(adminId);
-        
+
         // Get created faculty separately (faculty users are stored in User model)
-        const createdFaculty = await User.find({ 
-            createdBy: adminId, 
-            role: 'faculty' 
+        const createdFaculty = await User.find({
+            createdBy: adminId,
+            role: 'faculty'
         })
-        .select('name email department collegeName createdAt')
-        .sort({ createdAt: -1 });
-        
+            .select('name email department collegeName createdAt')
+            .sort({ createdAt: -1 });
+
         // Add faculty to the response
         adminData.createdFaculty = createdFaculty;
-        
+
         res.status(200).json({
             success: true,
             message: "Admin data retrieved successfully",
@@ -262,27 +262,27 @@ export const getCreatedUsers = async (req, res) => {
     try {
         const adminId = req.user.userId;
         const { type } = req.query; // 'admins', 'faculty', 'users', or 'all'
-        
+
         const createdUsers = await getVisibleUsersForAdmin(adminId);
-        
+
         let responseData = {};
-        
+
         if (type === 'admins' || !type) {
             responseData.admins = createdUsers.admins;
         }
-        
+
         if (type === 'faculty' || !type) {
             responseData.faculty = createdUsers.faculty;
         }
-        
+
         if (type === 'users' || !type) {
             responseData.users = createdUsers.users;
         }
-        
+
         if (!type) {
             responseData = createdUsers;
         }
-        
+
         res.status(200).json({
             success: true,
             message: "Created users retrieved successfully",
@@ -301,12 +301,12 @@ export const getCreatedUsers = async (req, res) => {
 /**
  * Get admin statistics
  */
-export const getAdminStatistics = async (req, res) => {q
+export const getAdminStatistics = async (req, res) => {
     try {
         const adminId = req.user.userId;
-        
+
         const stats = await getAdminStats(adminId);
-        
+
         res.status(200).json({
             success: true,
             message: "Admin statistics retrieved successfully",
@@ -415,9 +415,9 @@ export const deleteAdmin = async (req, res) => {
         // Check if admin has created users
         const createdUsers = await User.countDocuments({ createdBy: id });
         // Faculty users are stored in User model, not Faculty model
-        const createdFaculty = await User.countDocuments({ 
-            createdBy: id, 
-            role: 'faculty' 
+        const createdFaculty = await User.countDocuments({
+            createdBy: id,
+            role: 'faculty'
         });
 
         if (createdUsers > 0 || createdFaculty > 0) {
@@ -501,14 +501,14 @@ export const deleteFacultyUser = async (req, res) => {
 export const getAdminCreationStatus = async (req, res) => {
     try {
         const adminId = req.user.userId;
-        
+
         const canCreateStatus = await canCreateAdmin(adminId);
         const admin = await User.findById(adminId);
-        const createdAdminCount = await User.countDocuments({ 
-            createdBy: adminId, 
-            role: 'admin' 
+        const createdAdminCount = await User.countDocuments({
+            createdBy: adminId,
+            role: 'admin'
         });
-        
+
         res.status(200).json({
             success: true,
             message: "Admin creation status retrieved",

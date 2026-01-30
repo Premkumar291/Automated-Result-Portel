@@ -82,7 +82,7 @@ export const canAdminSeeFaculty = async (adminId, facultyId) => {
         }
 
         // Can only see faculty they created directly
-        if (faculty.createdBy && faculty.createdBy._id.equals(adminId)) {
+        if (faculty.createdBy && faculty.createdBy.equals(adminId)) {
             return true;
         }
 
@@ -100,7 +100,7 @@ export const canAdminSeeFaculty = async (adminId, facultyId) => {
 export const canCreateAdmin = async (adminId) => {
     try {
         const admin = await User.findById(adminId);
-        
+
         if (!admin || admin.role !== 'admin') {
             return { canCreate: false, reason: 'Invalid admin' };
         }
@@ -126,7 +126,7 @@ export const getAdminData = async (adminId) => {
 
         // Get all visible users
         const { admins, faculty, users } = await getVisibleUsersForAdmin(adminId);
-        
+
         return {
             currentAdmin: admin,
             createdAdmins: admins,

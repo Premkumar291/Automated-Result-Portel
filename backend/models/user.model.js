@@ -1,34 +1,34 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    email : {
-        type:String,
-        required:true,
-        unique:true
+    email: {
+        type: String,
+        required: true,
+        unique: true
     },
-    password : {
-        type:String,
-        required:true
+    password: {
+        type: String,
+        required: true
     },
-    name : {
-        type:String,
-        required:true
+    name: {
+        type: String,
+        required: true
     },
-    department : {
-        type:String,
-        required:true
+    department: {
+        type: String,
+        required: true
     },
     // College name field for admin and faculty users
     collegeName: {
         type: String,
-        required: function() { return this.role === 'admin'; }, // Required only for admin users
+        required: function () { return this.role === 'admin'; }, // Required only for admin users
         trim: true
     },
-    lastLogin : {
+    lastLogin: {
         type: Date,
         default: Date.now
     },
-    isVerified : {
+    isVerified: {
         type: Boolean,
         default: false
     },
@@ -45,12 +45,12 @@ const userSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpiresAt: Date,
-    verificationToken : String,
-    verificationTokenExpiresAt : Date
+    verificationToken: String,
+    verificationTokenExpiresAt: Date
 }, { timestamps: true });
 
 // Add a pre-save hook to log the data being saved
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
     console.log('Saving user with data:', {
         email: this.email,
         name: this.name,
@@ -67,7 +67,7 @@ userSchema.index({ createdBy: 1 });
 userSchema.index({ role: 1 });
 
 // Pre-save middleware for basic validation
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
     try {
         // If user is an admin, collegeName is required
         if (this.role === 'admin' && !this.collegeName) {
@@ -80,29 +80,24 @@ userSchema.pre('save', async function(next) {
 });
 
 // Static method to get users created by an admin
-userSchema.statics.getUsersCreatedBy = function(adminId) {
+userSchema.statics.getUsersCreatedBy = function (adminId) {
     return this.find({
         createdBy: adminId
     }).populate('createdBy');
 };
 
 // Method to check if user can see another user (only users they created)
-userSchema.methods.canSeeUser = function(targetUserId) {
-    if (this.role !== 'admin') return false;
-    
-    // Can only see users they created directly
-    return this.createdBy && this.createdBy.equals(targetUserId);
-};
+// Method removed: canSeeUser was incorrect and is now handled by hierarchyUtils.js
 
 // Method to get the college name for a user (from themselves if admin, or from their creator if faculty)
-userSchema.methods.getCollegeName = async function() {
+userSchema.methods.getCollegeName = async function () {
     console.log('Getting college name for user:', {
         userId: this._id,
         role: this.role,
         collegeName: this.collegeName,
         createdBy: this.createdBy
     });
-    
+
     if (this.role === 'admin') {
         console.log('User is admin, returning collegeName:', this.collegeName);
         return this.collegeName;

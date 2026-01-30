@@ -106,8 +106,37 @@ const startServer = async () => {
 // A common pattern is checking if the file is the main module.
 // However, in ES modules, require.main is not available.
 // We can check process.env.VERCEL. If NOT Vercel, we start the server.
+import cluster from 'cluster';
+import os from 'os';
+
+// Start server if not running in Serverless mode (Vercel)
 if (!process.env.VERCEL) {
-  startServer();
+  // Check if clustering is enabled via WEB_CONCURRENCY (standard on Render/Heroku)
+  // If not set, default to 1 (no clustering) to stay safe on shared instances with limited RAM
+  const numWorkers = process.env.WEB_CONCURRENCY || 1;
+
+  if (cluster.isPrimary && numWorkers > 1 && process.env.NODE_ENV === 'production') {
+    console.log(`Primary ${process.pid} is running`);
+    console.log(`Forking ${numWorkers} workers...`);
+
+    // Fork workers.
+    for (let i = 0; i < numWorkers; i++) {
+      cluster.fork();
+    }
+
+    cluster.on('exit', (worker, code, signal) => {
+      console.log(`worker ${worker.process.pid} died`);
+      // Replace the dead worker
+      cluster.fork();
+    });
+  } else {
+    // Workers can share any TCP connection
+    // In this case it is an HTTP server
+    startServer();
+    if (cluster.isWorker) {
+      console.log(`Worker ${process.pid} started`);
+    }
+  }
 }
 
 // Export for Vercel (Native Express)
