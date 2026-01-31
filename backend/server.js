@@ -15,7 +15,7 @@ import gridFSPdfRoutes from './routes/gridFSPdfSplit.route.js';
 import pdfCoAnalysisRoutes from './routes/pdfCoAnalysis.route.js';
 import pdfReportRoutes from './routes/pdfReport.route.js';
 import authRoutes from './routes/auth.route.js';
-import studentRoutes from './routes/student.route.js';
+
 import subjectRoutes from './routes/subject.route.js';
 import facultyRoutes from './routes/faculty.route.js';
 import adminHierarchyRoutes from './routes/adminHierarchy.routes.js';
@@ -72,7 +72,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/pdf", gridFSPdfRoutes);
-app.use("/api/student", studentRoutes);
+
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/admin-hierarchy", adminHierarchyRoutes);

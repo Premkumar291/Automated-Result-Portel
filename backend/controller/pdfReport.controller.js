@@ -1,6 +1,6 @@
 import { pdfReportService } from '../services/pdfReportService.js';
 import { excelReportService } from '../services/excelReportService.js';
-import { ReportTemplate } from '../models/reportTemplate.model.js';
+
 
 /**
  * Handles the generation of semester result PDF reports
@@ -151,50 +151,7 @@ export class PDFReportController {
     });
   }
 
-  /**
-   * Get list of generated reports for a faculty
-   */
-  static async getReports(req, res) {
-    try {
-      const { facultyId } = req.params;
 
-      const reports = await ReportTemplate.find({ facultyId: facultyId }).sort({ generatedAt: -1 });
-
-      if (!reports || reports.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'No reports found for this faculty'
-        });
-      }
-
-      const formattedReports = reports.map(report => ({
-        reportId: report._id,
-        facultyName: report.facultyName,
-        semester: report.semester,
-        academicYear: report.academicYear,
-        department: report.department,
-        generatedAt: report.generatedAt,
-        fileType: report.fileType,
-        downloadUrl: report.fileType === 'pdf' ? `/api/reports/download-pdf/${report._id}` : `/api/reports/download-excel/${report._id}`,
-        previewUrl: report.fileType === 'pdf' ? `/api/reports/preview-pdf/${report._id}` : `/api/reports/preview-excel/${report._id}`
-      }));
-
-      res.status(200).json({
-        success: true,
-        data: formattedReports
-      });
-
-    } catch (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('Error fetching reports:', error);
-      }
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch reports',
-        error: error.message
-      });
-    }
-  }
 
   /**
    * Generate institutional format PDF report (direct stream)
@@ -316,40 +273,7 @@ export class PDFReportController {
     }
   }
 
-  /**
-   * Delete a generated report (Legacy/Cleanup)
-   */
-  static async deleteReport(req, res) {
-    try {
-      const { reportId } = req.params;
 
-      const report = await ReportTemplate.findById(reportId);
-      if (!report) {
-        return res.status(404).json({
-          success: false,
-          message: 'Report not found'
-        });
-      }
-
-      // No local files to delete anymore
-      await ReportTemplate.findByIdAndDelete(reportId);
-
-      res.status(200).json({
-        success: true,
-        message: 'Report deleted successfully'
-      });
-
-    } catch (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('Error deleting report:', error);
-      }
-      res.status(500).json({
-        success: false,
-        message: 'Failed to delete report',
-        error: error.message
-      });
-    }
-  }
 
   /**
    * Process raw analysis data for report generation
