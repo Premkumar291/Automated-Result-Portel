@@ -654,7 +654,8 @@ function ReportGenerationPage() {
               </div>
             )}
 
-            <div className="bg-gray-50 border border-gray-200 rounded-md overflow-hidden">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-gray-50 border border-gray-200 rounded-md overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
@@ -674,11 +675,11 @@ function ReportGenerationPage() {
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
                         <div className="flex items-center">
-                          <BookOpen className="h-4 w-4 text-blue-500 mr-2" />
+                          <BookOpen className="h-4 w-4 text-blue-500 mr-2 shrink-0" />
                           {subjectCode}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 min-w-[250px]">
                         <EnhancedSubjectNameInput
                           subjectCode={subjectCode}
                           value={subjectNames[subjectCode] || ''}
@@ -687,7 +688,7 @@ function ReportGenerationPage() {
                           subjectsList={departmentSubjects}
                         />
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 min-w-[250px]">
                         <FacultyNameInput
                           subjectCode={subjectCode}
                           value={facultyAssignments[subjectCode] || ''}
@@ -700,6 +701,38 @@ function ReportGenerationPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {reportData.analysisData.subjectCodes.map((subjectCode, index) => (
+                <div key={index} className="bg-white border text-left p-4 rounded-md shadow-sm border-gray-200 flex flex-col gap-4">
+                  <div className="flex items-center text-sm font-bold text-gray-900 bg-gray-50 p-2 rounded-md border border-gray-100">
+                    <BookOpen className="h-4 w-4 text-blue-500 mr-2 shrink-0" />
+                    <span>{subjectCode}</span>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">Subject Name *</label>
+                    <EnhancedSubjectNameInput
+                      subjectCode={subjectCode}
+                      value={subjectNames[subjectCode] || ''}
+                      onChange={handleSubjectNameChange}
+                      error={errors[`subject_${subjectCode}`]}
+                      subjectsList={departmentSubjects}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">Faculty Name *</label>
+                    <FacultyNameInput
+                      subjectCode={subjectCode}
+                      value={facultyAssignments[subjectCode] || ''}
+                      onChange={handleFacultyAssignmentChange}
+                      error={errors[`faculty_${subjectCode}`]}
+                      facultyList={facultyList}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
